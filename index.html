@@ -134,9 +134,29 @@ function showImage(){
   document.getElementById('nextImage').style.display=multiple?'flex':'none';
   document.getElementById('imageCount').style.display=multiple?'block':'none';
 }
+function renderBBCode(source=''){
+  // Escape all ordinary text first; only explicitly supported tags become markup.
+  let text=String(source).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+  // Inline formatting tags.
+  text=text.replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>');
+  text=text.replace(/\[i\]([\s\S]*?)\[\/i\]/gi,'<em>$1</em>');
+  text=text.replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
+
+  // Only accept simple hex colors to prevent CSS injection.
+  text=text.replace(/\[color=(#[0-9a-f]{3}(?:[0-9a-f]{3})?)\]([\s\S]*?)\[\/color\]/gi,
+    '<span style="color:$1">$2</span>');
+
+  // Links: only allow http(s) URLs; render other protocols as plain text.
+  text=text.replace(/\[url=(https?:\/\/[^\]\s]+)\]([\s\S]*?)\[\/url\]/gi,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>');
+
+  return text;
+}
+
 function openPost(post){
   activePost=post;activeImage=0;showImage();
-  document.getElementById('viewCaption').textContent=post.caption;
+  document.getElementById('viewCaption').innerHTML=renderBBCode(post.caption);
   overlay.classList.add('open');document.body.style.overflow='hidden';
 }
 function changeImage(direction){
