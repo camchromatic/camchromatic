@@ -11,19 +11,14 @@ content:
     filename: "{primary}.md"
     format: yaml-frontmatter
     fields:
-      - name: title
-        label: Post Title
-        type: string
-        required: true
-      - name: date
-        label: Date
-        type: date
-      - name: image
-        label: Artwork
+      - name: images
+        label: Images
         type: image
+        required: true
+        options:
+          multiple:
+            max: 10
+          unique: true
       - name: caption
         label: Caption
         type: text
-      - name: category
-        label: Category
-        type: string
