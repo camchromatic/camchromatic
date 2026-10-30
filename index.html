@@ -23,12 +23,16 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:.85rem}
 .overlay{position:fixed;inset:0;background:#080808d9;display:none;align-items:center;justify-content:center;padding:20px;z-index:5}.overlay.open{display:flex}
 .post-view{background:var(--bg);width:min(940px,100%);max-height:92vh;overflow:auto;border-radius:14px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);position:relative}
-.post-images{min-width:0;display:flex;flex-direction:column;gap:10px;max-height:82vh;overflow-y:auto;background:#181818}
-.post-images img{display:block;width:100%;height:auto;max-height:78vh;object-fit:contain;background:#181818}
+.carousel{position:relative;min-width:0;min-height:300px;height:min(78vh,720px);display:flex;align-items:center;justify-content:center;background:#181818;overflow:hidden}
+.carousel img{display:block;width:100%;height:100%;object-fit:contain}
+.carousel-control{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:50%;background:#111b;color:#fff;font-size:1.8rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.carousel-control.prev{left:12px}.carousel-control.next{right:12px}
+.carousel-control:disabled{opacity:.25;cursor:default}
+.image-count{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);padding:4px 10px;border-radius:20px;background:#111b;color:#fff;font-size:.8rem}
 .post-copy{padding:32px 26px;overflow-y:auto}
 .close{position:absolute;right:12px;top:10px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer;z-index:2}
 .caption{white-space:pre-wrap;margin-top:0}
-@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{gap:8px}.post-view{display:block}.post-images{max-height:60vh}.post-images img{max-height:60vh}.post-copy{padding:22px}}
+@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{gap:8px}.post-view{display:block}.carousel{height:60vh;min-height:240px}.post-copy{padding:22px}}
 </style>
 </head>
 <body>
@@ -37,7 +41,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 <section class="hero" id="about"><div class="eyebrow">Digital & Traditional · Characters & Explorations · Jewellery & Crafts</div><h1>Creations by Cam Garcia</h1><p class="intro">Available for hire.</p></section>
 <div class="status" id="status" aria-live="polite">Loading artwork…</div><section class="grid" id="gallery" aria-label="Art gallery"></section>
 </main><footer><div class="wrap">© 2020-<span id="year"></span> CamChromatic · Webside code made with minimal AI assistance.</div></footer>
-<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Artwork details"><article class="post-view"><button class="close" id="close" aria-label="Close post">×</button><div id="viewImages" class="post-images"></div><div class="post-copy"><div class="caption" id="viewCaption"></div></div></article></div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Artwork details"><article class="post-view"><button class="close" id="close" aria-label="Close post">×</button><div class="carousel" id="carousel"><img id="viewImage" alt=""><button class="carousel-control prev" id="prevImage" aria-label="Previous image">‹</button><button class="carousel-control next" id="nextImage" aria-label="Next image">›</button><div class="image-count" id="imageCount"></div></div><div class="post-copy"><div class="caption" id="viewCaption"></div></div></article></div>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
 const grid=document.getElementById('gallery');
@@ -116,18 +120,43 @@ function render(){
     card.append(image);card.addEventListener('click',()=>openPost(post));grid.append(card);
   });
 }
+let activePost=null,activeImage=0;
+function showImage(){
+  if(!activePost)return;
+  const image=document.getElementById('viewImage');
+  image.src=activePost.images[activeImage];
+  image.alt=`Artwork image ${activeImage+1} of ${activePost.images.length}`;
+  document.getElementById('imageCount').textContent=`${activeImage+1} / ${activePost.images.length}`;
+  document.getElementById('prevImage').disabled=activeImage===0;
+  document.getElementById('nextImage').disabled=activeImage===activePost.images.length-1;
+  const multiple=activePost.images.length>1;
+  document.getElementById('prevImage').style.display=multiple?'flex':'none';
+  document.getElementById('nextImage').style.display=multiple?'flex':'none';
+  document.getElementById('imageCount').style.display=multiple?'block':'none';
+}
 function openPost(post){
-  const container=document.getElementById('viewImages');container.innerHTML='';
-  post.images.forEach((src,index)=>{
-    const image=document.createElement('img');image.src=src;image.alt=`Artwork image ${index+1}`;image.loading=index===0?'eager':'lazy';container.append(image);
-  });
+  activePost=post;activeImage=0;showImage();
   document.getElementById('viewCaption').textContent=post.caption;
   overlay.classList.add('open');document.body.style.overflow='hidden';
 }
+function changeImage(direction){
+  if(!activePost)return;
+  activeImage=Math.max(0,Math.min(activePost.images.length-1,activeImage+direction));
+  showImage();
+}
+document.getElementById('prevImage').addEventListener('click',()=>changeImage(-1));
+document.getElementById('nextImage').addEventListener('click',()=>changeImage(1));
+const carousel=document.getElementById('carousel');
+let touchStartX=0;
+carousel.addEventListener('touchstart',event=>{touchStartX=event.changedTouches[0].screenX;},{passive:true});
+carousel.addEventListener('touchend',event=>{
+  const delta=event.changedTouches[0].screenX-touchStartX;
+  if(Math.abs(delta)>40)changeImage(delta<0?1:-1);
+},{passive:true});
 function closePost(){overlay.classList.remove('open');document.body.style.overflow='';}
 document.getElementById('close').addEventListener('click',closePost);
 overlay.addEventListener('click',event=>{if(event.target===overlay)closePost();});
-document.addEventListener('keydown',event=>{if(event.key==='Escape')closePost();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closePost();if(overlay.classList.contains('open')&&event.key==='ArrowLeft')changeImage(-1);if(overlay.classList.contains('open')&&event.key==='ArrowRight')changeImage(1);});
 document.getElementById('year').textContent=new Date().getFullYear();
 loadPosts();
 </script></body></html>
