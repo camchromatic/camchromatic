@@ -51,12 +51,14 @@ let posts=[];
 
 function unquote(value=''){
   value=String(value).trim();
-  // Pages CMS/YAML can leave an extra layer of quotes around a value.
-  for(let i=0;i<2;i++){
+  // Remove one or more complete YAML quote wrappers.
+  for(let i=0;i<3;i++){
     if(value.length>=2&&
       ((value[0]==='"'&&value[value.length-1]==='"')||
        (value[0]==="'"&&value[value.length-1]==="'"))){
-      value=value.slice(1,-1).trim();
+      const quote=value[0];
+      value=value.slice(1,-1);
+      if(quote==='"')value=value.replace(/\\"/g,'"').replace(/\\\\/g,'\\');
     }else break;
   }
   return value.replace(/\\n/g,'\n');
@@ -70,29 +72,63 @@ function imagePath(value){
 function parseFrontMatter(text,filename){
   const match=text.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
   if(!match)return null;
+
   const data={},lines=match[1].split(/\r?\n/);
-  let activeArray=null,activeBlock=null;
-  for(const line of lines){
-    if(activeBlock){
-      if(/^\s+/.test(line)||line.trim()===''){data[activeBlock].push(line.replace(/^\s{1,2}/,''));continue;}
-      data[activeBlock]=data[activeBlock].join('\n').replace(/\n+$/,'');activeBlock=null;
-    }
+  let activeArray=null;
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
     const item=line.match(/^\s+-\s*(.*?)\s*$/);
-    if(item&&activeArray){data[activeArray].push(unquote(item[1]));continue;}
+    if(item&&activeArray){
+      data[activeArray].push(unquote(item[1]));
+      continue;
+    }
+
     const field=line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
-    if(!field){activeArray=null;continue;}
-    const key=field[1],value=field[2].trim();
+    if(!field){continue;}
+
+    const key=field[1];
+    let value=field[2].trim();
+    activeArray=null;
+
     if(key==='images'){
+      data.images=[];
       activeArray='images';
       if(value.startsWith('[')){
-        try{data.images=JSON.parse(value.replace(/'/g,'"'));}
+        try{data.images=JSON.parse(value);}
         catch{data.images=value.replace(/^\[|\]$/g,'').split(',').map(unquote).filter(Boolean);}
-      }else data.images=[];
-    }else if(key==='caption'&&['|','>','|-','>-'].includes(value)){
-      data.caption=[];activeBlock='caption';activeArray=null;
-    }else{data[key]=unquote(value);activeArray=null;}
+        activeArray=null;
+      }
+      continue;
+    }
+
+    if(key==='caption'){
+      // Pages CMS writes multiline captions as a YAML quoted scalar:
+      // caption: "first line
+      //   second line"
+      // Collect continuation lines until the closing quote, then unwrap once.
+      if(value.startsWith('"')||value.startsWith("'")){
+        const quote=value[0];
+        let scalar=value;
+        while(!(scalar.length>1&&scalar.endsWith(quote))&&i+1<lines.length){
+          scalar+=' '+lines[++i].trim();
+        }
+        data.caption=unquote(scalar);
+      }else if(['|','>','|-','>-','|+','>+'].includes(value)){
+        const block=[];
+        while(i+1<lines.length&&(/^\s+/.test(lines[i+1])||lines[i+1].trim()==='')){
+          block.push(lines[++i].replace(/^\s{1,2}/,''));
+        }
+        data.caption=block.join('\n').replace(/\n+$/,'');
+      }else{
+        data.caption=unquote(value);
+      }
+      continue;
+    }
+
+    data[key]=unquote(value);
   }
-  if(activeBlock)data[activeBlock]=data[activeBlock].join('\n').replace(/\n+$/,'');
+
   let images=Array.isArray(data.images)?data.images:[];
   if(!images.length&&data.image)images=[data.image];
   images=images.map(imagePath).filter(Boolean);
@@ -142,31 +178,21 @@ function showImage(){
   document.getElementById('imageCount').style.display=multiple?'block':'none';
 }
 function renderBBCode(source=''){
-  // Strip redundant quote wrappers sometimes added by YAML/frontmatter editors.
-  let raw=String(source??'').trim();
-  for(let i=0;i<2;i++){
-    if(raw.length>=2&&
-      ((raw[0]==='"'&&raw[raw.length-1]==='"')||
-       (raw[0]==="'"&&raw[raw.length-1]==="'"))){
-      raw=raw.slice(1,-1).trim();
-    }else break;
-  }
-
-  // Escape text before inserting only the small set of supported safe tags.
-  let text=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let text=String(source??'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
 
   text=text.replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>');
   text=text.replace(/\[i\]([\s\S]*?)\[\/i\]/gi,'<em>$1</em>');
   text=text.replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
 
-  // Accept #RGB or #RRGGBB colors, case-insensitively.
-  text=text.replace(/\[color\s*=\s*(#[0-9a-f]{3}(?:[0-9a-f]{3})?)\]([\s\S]*?)\[\/color\]/gi,
+  text=text.replace(/\[color\s*=\s*["']?(#[0-9a-f]{3}(?:[0-9a-f]{3})?)["']?\s*\]([\s\S]*?)\[\/color\]/gi,
     (_,color,content)=>`<span style="color:${color}">${content}</span>`);
 
-  // Only create links for http(s) URLs; encode the URL for safe HTML attributes.
-  text=text.replace(/\[url\s*=\s*(https?:\/\/[^\]\s]+)\]([\s\S]*?)\[\/url\]/gi,
+  text=text.replace(/\[url\s*=\s*["']?(https?:\/\/[^\]\s"']+)["']?\s*\]([\s\S]*?)\[\/url\]/gi,
     (_,url,label)=>{
-      const safeUrl=url.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'%3C').replace(/>/g,'%3E');
+      const safeUrl=url.replace(/&/g,'&amp;').replace(/"/g,'%22');
       return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
     });
 
