@@ -51,7 +51,14 @@ let posts=[];
 
 function unquote(value=''){
   value=String(value).trim();
-  if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'")))value=value.slice(1,-1);
+  // Pages CMS/YAML can leave an extra layer of quotes around a value.
+  for(let i=0;i<2;i++){
+    if(value.length>=2&&
+      ((value[0]==='"'&&value[value.length-1]==='"')||
+       (value[0]==="'"&&value[value.length-1]==="'"))){
+      value=value.slice(1,-1).trim();
+    }else break;
+  }
   return value.replace(/\\n/g,'\n');
 }
 function imagePath(value){
@@ -135,21 +142,33 @@ function showImage(){
   document.getElementById('imageCount').style.display=multiple?'block':'none';
 }
 function renderBBCode(source=''){
-  // Escape all ordinary text first; only explicitly supported tags become markup.
-  let text=String(source).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  // Strip redundant quote wrappers sometimes added by YAML/frontmatter editors.
+  let raw=String(source??'').trim();
+  for(let i=0;i<2;i++){
+    if(raw.length>=2&&
+      ((raw[0]==='"'&&raw[raw.length-1]==='"')||
+       (raw[0]==="'"&&raw[raw.length-1]==="'"))){
+      raw=raw.slice(1,-1).trim();
+    }else break;
+  }
 
-  // Inline formatting tags.
+  // Escape text before inserting only the small set of supported safe tags.
+  let text=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
   text=text.replace(/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>');
   text=text.replace(/\[i\]([\s\S]*?)\[\/i\]/gi,'<em>$1</em>');
   text=text.replace(/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>');
 
-  // Only accept simple hex colors to prevent CSS injection.
-  text=text.replace(/\[color=(#[0-9a-f]{3}(?:[0-9a-f]{3})?)\]([\s\S]*?)\[\/color\]/gi,
-    '<span style="color:$1">$2</span>');
+  // Accept #RGB or #RRGGBB colors, case-insensitively.
+  text=text.replace(/\[color\s*=\s*(#[0-9a-f]{3}(?:[0-9a-f]{3})?)\]([\s\S]*?)\[\/color\]/gi,
+    (_,color,content)=>`<span style="color:${color}">${content}</span>`);
 
-  // Links: only allow http(s) URLs; render other protocols as plain text.
-  text=text.replace(/\[url=(https?:\/\/[^\]\s]+)\]([\s\S]*?)\[\/url\]/gi,
-    '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>');
+  // Only create links for http(s) URLs; encode the URL for safe HTML attributes.
+  text=text.replace(/\[url\s*=\s*(https?:\/\/[^\]\s]+)\]([\s\S]*?)\[\/url\]/gi,
+    (_,url,label)=>{
+      const safeUrl=url.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'%3C').replace(/>/g,'%3E');
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    });
 
   return text;
 }
