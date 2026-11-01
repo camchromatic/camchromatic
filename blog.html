@@ -20,7 +20,8 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 .status{font-size:.84rem;color:var(--muted);margin:12px 0 18px}
 .entries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 .entry-card{display:flex;flex-direction:column;gap:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);text-align:left;cursor:pointer;width:100%;min-width:0;overflow:hidden}
-.entry-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#181818}
+.entry-cover-frame{width:100%;aspect-ratio:1;overflow:hidden;background:#181818}
+.entry-cover-frame img{display:block;width:100%;height:100%;object-fit:cover;background:#181818}
 .entry-card.no-cover{padding-top:0}
 .entry-card-copy{padding:15px 16px 17px}
 .entry-card h2{font-size:1.2rem;line-height:1.2;margin:2px 0 5px}
@@ -43,7 +44,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 .article-body p{margin:.9em 0}
 .article-body ul,.article-body ol{padding-left:1.5em}
 .article-body blockquote{border-left:3px solid var(--line);padding-left:18px;color:var(--muted);margin:1.2em 0}
-.article-body img{display:block;max-width:100%;height:auto;border-radius:8px;margin:1.4em auto}
+.article-body img{display:block;max-width:100%;height:auto;border-radius:8px;margin:1.4em auto}.article-body .post-image{margin:1.4em 0}.article-body .post-image img{width:auto;max-height:900px}
 .article-body pre{overflow:auto;background:var(--panel);padding:14px;border-radius:8px}
 .article-body code{background:var(--panel);padding:2px 5px;border-radius:4px}
 .table-wrap{width:100%;overflow-x:auto;margin:1.2em 0}
@@ -52,7 +53,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 .article-body th{background:var(--panel);font-weight:650}
 .article-body tr:nth-child(even) td{background:#ffffff08}
 @media(max-width:900px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.entries{grid-template-columns:1fr;gap:12px}.entry-card img{aspect-ratio:16/9}.entry-card-copy{padding:13px 14px 15px}.overlay{padding:10px}.article{padding:38px 20px 28px}}
+@media(max-width:600px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.entries{grid-template-columns:1fr;gap:12px}.entry-card-copy{padding:13px 14px 15px}.overlay{padding:10px}.article{padding:38px 20px 28px}}
 </style>
 </head>
 <body>
@@ -85,6 +86,10 @@ function mediaPath(value=''){
   if(/^https?:\/\//i.test(path))return path;
   return path.startsWith('/')?path:'/'+path;
 }
+function clampNumber(value,min,max,fallback){
+  const number=Number(value);
+  return Number.isFinite(number)&&String(value).trim()!==''?Math.min(max,Math.max(min,number)):fallback;
+}
 function parseEntry(source,filename){
   const match=source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/);
   if(!match)return null;
@@ -95,14 +100,15 @@ function parseEntry(source,filename){
   }
   if(!meta.title)return null;
   const body=source.slice(match[0].length).trim();
-  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
+  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),coverZoom:clampNumber(meta.cover_zoom,1,3,1),coverX:clampNumber(meta.cover_x,0,100,50),coverY:clampNumber(meta.cover_y,0,100,50),body,filename};
 }
 function safeMediaUrl(value=''){
-  const url=String(value||'').trim();
+  let url=String(value||'').trim().replace(/^<|>$/g,'');
   if(/^https?:\/\//i.test(url))return url;
+  // Pages CMS may store /media/file.png, media/file.png, or ./media/file.png.
+  url=url.replace(/^\.\//,'');
+  if(/^\/?media\//i.test(url))return '/'+url.replace(/^\//,'');
   if(url.startsWith('/'))return url;
-  // Pages CMS may write media paths with or without a leading slash.
-  if(/^(?:media|\.\.?\/media)\//i.test(url))return '/'+url.replace(/^\.\//,'');
   return '';
 }
 function inlineMarkdown(text){
@@ -159,6 +165,15 @@ function markdownToHtml(markdown=''){
     if(line.startsWith('```')){flushParagraph();flushList();if(code.length)flushCode();else code.push('');continue;}
     if(code.length){code.push(line);continue;}
     if(!line.trim()){flushParagraph();flushList();continue;}
+
+    // Render standalone Markdown images as their own block, not inside a text paragraph.
+    const standaloneImage=line.trim().match(/^!\[([^\]]*)\]\((\S+?)(?:\s+['"]([^'"]*)['"])?\)$/);
+    if(standaloneImage){
+      flushParagraph();flushList();
+      const imageUrl=safeMediaUrl(standaloneImage[2]);
+      if(imageUrl)html.push(`<figure class="post-image"><img src="${esc(imageUrl)}" alt="${esc(standaloneImage[1])}" loading="lazy" decoding="async"></figure>`);
+      continue;
+    }
 
     // GitHub-flavored Markdown tables: a header row followed by a dash divider.
     if(line.includes('|')&&i+1<lines.length&&isTableDivider(lines[i+1])){
@@ -221,7 +236,7 @@ function render(){
   entries.forEach(entry=>{
     const card=document.createElement('button');
     card.type='button';card.className='entry-card'+(entry.cover?'':' no-cover');
-    if(entry.cover){const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.onerror=()=>image.remove();card.append(image);}
+    if(entry.cover){const frame=document.createElement('div');frame.className='entry-cover-frame';const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.style.objectPosition=`${entry.coverX}% ${entry.coverY}%`;image.style.transform=`scale(${entry.coverZoom})`;image.style.transformOrigin=`${entry.coverX}% ${entry.coverY}%`;image.onerror=()=>frame.remove();frame.append(image);card.append(frame);}
     const copy=document.createElement('div');copy.className='entry-card-copy';
     const title=document.createElement('h2');title.textContent=entry.title;
     const subtitle=document.createElement('p');subtitle.className='entry-subtitle';subtitle.textContent=entry.subtitle||'';if(!entry.subtitle)subtitle.hidden=true;
@@ -233,13 +248,14 @@ function render(){
 }
 async function loadEntries(){
   try{
-    const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${BRANCH}`,{headers:{Accept:'application/vnd.github+json'}});
+    const cacheBust=Date.now();
+    const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${BRANCH}&_=${cacheBust}`,{cache:'no-store',headers:{Accept:'application/vnd.github+json','Cache-Control':'no-cache'}});
     if(response.status===404){entries=[];statusLine.textContent='';render();return;}
     if(!response.ok)throw Error('Could not read blog entries');
     const files=await response.json();
     const markdownFiles=files.filter(file=>file.type==='file'&&file.name.toLowerCase().endsWith('.md'));
     const loaded=await Promise.all(markdownFiles.map(async file=>{
-      const result=await fetch(file.download_url);
+      const result=await fetch(`${file.download_url}${file.download_url.includes('?')?'&':'?'}_=${cacheBust}`,{cache:'no-store'});
       return result.ok?parseEntry(await result.text(),file.name):null;
     }));
     entries=loaded.filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
