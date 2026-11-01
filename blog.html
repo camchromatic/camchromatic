@@ -222,7 +222,7 @@ function excerpt(markdown){
   const preview=document.createElement('span');
   preview.innerHTML=inlineMarkdown(text);
   const walker=document.createTreeWalker(preview,NodeFilter.SHOW_TEXT);
-  let remaining=50,node,lastNode=null;
+  let remaining=150,node,lastNode=null;
   while((node=walker.nextNode())){
     lastNode=node;
     if(node.textContent.length>remaining){
@@ -234,24 +234,24 @@ function excerpt(markdown){
     if(remaining===0)break;
   }
   const visibleLength=preview.textContent.length;
-  if(visibleLength>50){
+  if(visibleLength>150){
     const trimWalker=document.createTreeWalker(preview,NodeFilter.SHOW_TEXT);
     let count=0,current;
     while((current=trimWalker.nextNode())){
-      const available=50-count;
+      const available=150-count;
       if(current.textContent.length>available){
         current.textContent=current.textContent.slice(0,Math.max(0,available));
         while((current=trimWalker.nextNode()))current.textContent='';
         break;
       }
       count+=current.textContent.length;
-      if(count>=50){
+      if(count>=150){
         while((current=trimWalker.nextNode()))current.textContent='';
         break;
       }
     }
     preview.append(document.createTextNode('…'));
-  }else if(visibleLength===50){
+  }else if(visibleLength===150){
     preview.append(document.createTextNode('…'));
   }
   return preview.innerHTML;
