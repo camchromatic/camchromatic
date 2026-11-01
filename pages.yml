@@ -1,0 +1,55 @@
+media:
+  input: media
+  output: /media
+  categories: [image]
+
+content:
+  - name: posts
+    label: Art Posts
+    type: collection
+    path: content/posts
+    filename: "{primary}.md"
+    format: yaml-frontmatter
+    fields:
+      - name: images
+        label: Images
+        type: image
+        required: true
+        options:
+          multiple:
+            max: 10
+          unique: true
+      - name: caption
+        label: Caption
+        type: text
+      - name: date
+        label: Publication Date
+        type: date
+        required: true
+
+  - name: blog
+    label: Blog Entries
+    type: collection
+    path: content/blog
+    filename: "{primary}.md"
+    format: yaml-frontmatter
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: subtitle
+        label: Subtitle
+        type: string
+      - name: date
+        label: Publication Date
+        type: date
+        required: true
+      - name: cover
+        label: Cover Image
+        type: image
+      - name: body
+        label: Entry
+        type: rich-text
+        options:
+          format: markdown

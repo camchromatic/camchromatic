@@ -89,7 +89,7 @@ function parseFrontMatter(text,filename){
   let images=Array.isArray(data.images)?data.images:[];
   if(!images.length&&data.image)images=[data.image];
   images=images.map(imagePath).filter(Boolean);
-  return images.length?{images,caption:data.caption||'',filename}:null;
+  return images.length?{images,caption:data.caption||'',date:data.date||'',filename}:null;
 }
 async function loadPosts(){
   try{
@@ -101,7 +101,7 @@ async function loadPosts(){
       const result=await fetch(file.download_url);
       return result.ok?parseFrontMatter(await result.text(),file.name):null;
     }));
-    posts=loaded.filter(Boolean);
+    posts=loaded.filter(Boolean).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.filename).localeCompare(String(a.filename)));
     statusLine.textContent=posts.length?'':'No artwork posts yet. Add one from your Pages CMS dashboard.';
     render();
   }catch(error){
