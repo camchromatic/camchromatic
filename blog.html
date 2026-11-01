@@ -100,20 +100,7 @@ function parseEntry(source,filename){
   }
   if(!meta.title)return null;
   const body=source.slice(match[0].length).trim();
-  const positionMap={
-    'top-left':'0% 0%','top-center':'50% 0%','top-right':'100% 0%',
-    'middle-left':'0% 50%','center':'50% 50%','middle-right':'100% 50%',
-    'bottom-left':'0% 100%','bottom-center':'50% 100%','bottom-right':'100% 100%'
-  };
-  let coverPosition=meta.cover_position||'center';
-  // Keep older posts' saved crop positions working until they are edited in Pages CMS.
-  if(!meta.cover_position&&(meta.cover_x!==undefined||meta.cover_y!==undefined)){
-    const x=clampNumber(meta.cover_x,0,100,50),y=clampNumber(meta.cover_y,0,100,50);
-    const col=x<25?'left':x>75?'right':'center';
-    const row=y<25?'top':y>75?'bottom':'middle';
-    coverPosition=row==='middle'?(col==='center'?'center':`middle-${col}`):`${row}-${col}`;
-  }
-  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),coverPosition:positionMap[coverPosition]?coverPosition:'center',body,filename};
+  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
 }
 function safeMediaUrl(value=''){
   let url=String(value||'').trim().replace(/^<|>$/g,'');
@@ -284,7 +271,7 @@ function render(){
   entries.forEach(entry=>{
     const card=document.createElement('button');
     card.type='button';card.className='entry-card'+(entry.cover?'':' no-cover');
-    if(entry.cover){const frame=document.createElement('div');frame.className='entry-cover-frame';const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';const cropPositions={'top-left':'0% 0%','top-center':'50% 0%','top-right':'100% 0%','middle-left':'0% 50%','center':'50% 50%','middle-right':'100% 50%','bottom-left':'0% 100%','bottom-center':'50% 100%','bottom-right':'100% 100%'};image.style.objectPosition=cropPositions[entry.coverPosition]||'50% 50%';image.onerror=()=>frame.remove();frame.append(image);card.append(frame);}
+    if(entry.cover){const frame=document.createElement('div');frame.className='entry-cover-frame';const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.onerror=()=>frame.remove();frame.append(image);card.append(frame);}
     const copy=document.createElement('div');copy.className='entry-card-copy';
     const title=document.createElement('h2');title.textContent=entry.title;
     const subtitle=document.createElement('p');subtitle.className='entry-subtitle';subtitle.textContent=entry.subtitle||'';if(!entry.subtitle)subtitle.hidden=true;
