@@ -43,7 +43,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 .article-body p{margin:.9em 0}
 .article-body ul,.article-body ol{padding-left:1.5em}
 .article-body blockquote{border-left:3px solid var(--line);padding-left:18px;color:var(--muted);margin:1.2em 0}
-.article-body img{max-width:100%;height:auto;border-radius:8px}
+.article-body img{display:block;max-width:100%;height:auto;border-radius:8px;margin:1.4em auto}
 .article-body pre{overflow:auto;background:var(--panel);padding:14px;border-radius:8px}
 .article-body code{background:var(--panel);padding:2px 5px;border-radius:4px}
 .table-wrap{width:100%;overflow-x:auto;margin:1.2em 0}
@@ -97,9 +97,20 @@ function parseEntry(source,filename){
   const body=source.slice(match[0].length).trim();
   return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
 }
+function safeMediaUrl(value=''){
+  const url=String(value||'').trim();
+  if(/^https?:\/\//i.test(url))return url;
+  if(url.startsWith('/'))return url;
+  // Pages CMS may write media paths with or without a leading slash.
+  if(/^(?:media|\.\.?\/media)\//i.test(url))return '/'+url.replace(/^\.\//,'');
+  return '';
+}
 function inlineMarkdown(text){
   let out=esc(text);
-  out=out.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|\/[^)\s]+)\)/g,'<img alt="$1" src="$2">');
+  out=out.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+['"][^)]*['"])?\)/g,(match,alt,rawUrl)=>{
+    const url=safeMediaUrl(rawUrl);
+    return url?`<img alt="${alt}" src="${esc(url)}" loading="lazy">`:'';
+  });
   out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   out=out.replace(/`([^`]+)`/g,'<code>$1</code>');
   out=out.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
@@ -180,7 +191,7 @@ function markdownToHtml(markdown=''){
 function excerpt(markdown){
   let text=String(markdown||'');
   text=text.replace(/```[\s\S]*?```/g,' ');
-  text=text.replace(/!\[([^\]]*)\]\([^)]+\)/g,'$1');
+  text=text.replace(/!\[([^\]]*)\]\([^)]+\)/g,' ');
   text=text.replace(/\[([^\]]+)\]\([^)]+\)/g,'$1');
   text=text.replace(/^\s*\|.*\|\s*$/gm,' ');
   text=text.replace(/^\s*#{1,6}\s+/gm,'');
