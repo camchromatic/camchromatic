@@ -9,8 +9,5 @@ cover: /media/Screenshot 2026-10-25 184036.png
 3. ++Under++
 4. ~~Strike~~
 
-> quote
-
-- Bullet
-  - Sub-Bullet
+> quote 
 
