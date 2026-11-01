@@ -119,6 +119,8 @@ function inlineMarkdown(text){
   });
   out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   out=out.replace(/`([^`]+)`/g,'<code>$1</code>');
+  out=out.replace(/\+\+([^+]+)\+\+/g,'<u>$1</u>');
+  out=out.replace(/~~([^~]+)~~/g,'<del>$1</del>');
   out=out.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
   out=out.replace(/__([^_]+)__/g,'<strong>$1</strong>');
   out=out.replace(/\*([^*]+)\*/g,'<em>$1</em>');
