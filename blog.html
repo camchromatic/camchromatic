@@ -215,11 +215,44 @@ function excerpt(markdown){
   text=text.replace(/^\s*>\s?/gm,'');
   text=text.replace(/^\s*[-*+]\s+/gm,'');
   text=text.replace(/^\s*\d+\.\s+/gm,'');
-  text=text.replace(/[*_`~]/g,'');
-  text=text.replace(/<[^>]*>/g,' ');
   text=text.replace(/\s+/g,' ').trim();
-  if(text.length>50)text=text.slice(0,50).trimEnd()+'…';
-  return esc(text);
+
+  const preview=document.createElement('span');
+  preview.innerHTML=inlineMarkdown(text);
+  const walker=document.createTreeWalker(preview,NodeFilter.SHOW_TEXT);
+  let remaining=50,node,lastNode=null;
+  while((node=walker.nextNode())){
+    lastNode=node;
+    if(node.textContent.length>remaining){
+      node.textContent=node.textContent.slice(0,remaining);
+      remaining=0;
+      break;
+    }
+    remaining-=node.textContent.length;
+    if(remaining===0)break;
+  }
+  const visibleLength=preview.textContent.length;
+  if(visibleLength>50){
+    const trimWalker=document.createTreeWalker(preview,NodeFilter.SHOW_TEXT);
+    let count=0,current;
+    while((current=trimWalker.nextNode())){
+      const available=50-count;
+      if(current.textContent.length>available){
+        current.textContent=current.textContent.slice(0,Math.max(0,available));
+        while((current=trimWalker.nextNode()))current.textContent='';
+        break;
+      }
+      count+=current.textContent.length;
+      if(count>=50){
+        while((current=trimWalker.nextNode()))current.textContent='';
+        break;
+      }
+    }
+    preview.append(document.createTextNode('…'));
+  }else if(visibleLength===50){
+    preview.append(document.createTextNode('…'));
+  }
+  return preview.innerHTML;
 }
 function openEntry(entry){
   document.getElementById('articleTitle').textContent=entry.title;
@@ -243,7 +276,7 @@ function render(){
     const title=document.createElement('h2');title.textContent=entry.title;
     const subtitle=document.createElement('p');subtitle.className='entry-subtitle';subtitle.textContent=entry.subtitle||'';if(!entry.subtitle)subtitle.hidden=true;
     const date=document.createElement('div');date.className='entry-date';date.textContent=entry.date;
-    const summary=document.createElement('p');summary.className='entry-excerpt';summary.textContent=excerpt(entry.body);
+    const summary=document.createElement('p');summary.className='entry-excerpt';summary.innerHTML=excerpt(entry.body);
     copy.append(title,subtitle,date,summary);card.append(copy);
     card.addEventListener('click',()=>openEntry(entry));entriesEl.append(card);
   });
