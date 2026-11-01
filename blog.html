@@ -113,9 +113,10 @@ function safeMediaUrl(value=''){
 }
 function inlineMarkdown(text){
   let out=esc(text);
-  out=out.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+['"][^)]*['"])?\)/g,(match,alt,rawUrl)=>{
-    const url=safeMediaUrl(rawUrl);
-    return url?`<img alt="${alt}" src="${esc(url)}" loading="lazy">`:'';
+  out=out.replace(/!\[([^\]]*)\]\(\s*(<[^>]+>|[^)\n]+?)(?:\s+['"]([^'"]*)['"])?\s*\)/g,(match,alt,rawUrl)=>{
+    const cleaned=String(rawUrl||'').trim().replace(/^<|>$/g,'').replace(/^\/<media\//i,'/media/');
+    const url=safeMediaUrl(cleaned);
+    return url?`<img alt="${esc(alt)}" src="${esc(url)}" loading="lazy">`:'';
   });
   out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   out=out.replace(/`([^`]+)`/g,'<code>$1</code>');
@@ -169,10 +170,11 @@ function markdownToHtml(markdown=''){
     if(!line.trim()){flushParagraph();flushList();continue;}
 
     // Render standalone Markdown images as their own block, not inside a text paragraph.
-    const standaloneImage=line.trim().match(/^!\[([^\]]*)\]\((\S+?)(?:\s+['"]([^'"]*)['"])?\)$/);
+    const standaloneImage=line.trim().match(/^!\[([^\]]*)\]\(\s*(<[^>]+>|.+?)\s*\)$/);
     if(standaloneImage){
       flushParagraph();flushList();
-      const imageUrl=safeMediaUrl(standaloneImage[2]);
+      const rawImageUrl=String(standaloneImage[2]||'').trim().replace(/^<|>$/g,'').replace(/^\/<media\//i,'/media/');
+      const imageUrl=safeMediaUrl(rawImageUrl);
       if(imageUrl)html.push(`<figure class="post-image"><img src="${esc(imageUrl)}" alt="${esc(standaloneImage[1])}" loading="lazy" decoding="async"></figure>`);
       continue;
     }
