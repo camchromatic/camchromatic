@@ -18,23 +18,16 @@ nav{display:flex;gap:22px;font-size:.9rem}a{color:var(--accent);text-decoration:
 h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
 .intro{color:var(--muted);max-width:600px;margin:0}
 .status{font-size:.84rem;color:var(--muted);margin:12px 0 18px}
-.entries{display:grid;gap:18px}
-.entry-card{display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);text-align:left;cursor:pointer;width:100%}
-.entry-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:7px;background:#181818}
-.entry-card.no-cover{grid-template-columns:1fr}
-.entry-card h2{font-size:1.35rem;line-height:1.2;margin:2px 0 8px}
-.entry-date{font-size:.8rem;color:var(--muted);margin-bottom:10px}
-.entry-excerpt{color:var(--muted);margin:0;max-height:8.5em;overflow:hidden;position:relative}
-.entry-excerpt h2,.entry-excerpt h3,.entry-excerpt h4{font-size:1rem;line-height:1.25;margin:.45em 0 .25em;color:var(--ink)}
-.entry-excerpt p{margin:.35em 0}
-.entry-excerpt strong{color:var(--ink);font-weight:700}
-.entry-excerpt em{font-style:italic}
-.entry-excerpt a{color:var(--accent);text-decoration:underline}
-.entry-excerpt ul,.entry-excerpt ol{margin:.3em 0;padding-left:1.4em}
-.entry-excerpt blockquote{margin:.4em 0;padding-left:12px;border-left:2px solid var(--line)}
-.entry-excerpt .table-wrap{max-width:100%;overflow:hidden}
-.entry-excerpt table{font-size:.82rem;border-collapse:collapse;max-width:100%}
-.entry-excerpt th,.entry-excerpt td{border:1px solid var(--line);padding:3px 6px}
+.entries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.entry-card{display:flex;flex-direction:column;gap:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);text-align:left;cursor:pointer;width:100%;min-width:0;overflow:hidden}
+.entry-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#181818}
+.entry-card.no-cover{padding-top:0}
+.entry-card-copy{padding:15px 16px 17px}
+.entry-card h2{font-size:1.2rem;line-height:1.2;margin:2px 0 5px}
+.entry-subtitle{font-size:.95rem;line-height:1.4;color:var(--muted);margin:0 0 8px}
+.entry-date{font-size:.8rem;color:var(--muted);margin-bottom:9px}
+.entry-excerpt{color:var(--muted);margin:0;line-height:1.45}
+.article-subtitle{font-size:1.1rem;color:var(--muted);margin:0 0 8px;line-height:1.45}
 .empty{padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
 footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:.85rem}
 .overlay{position:fixed;inset:0;background:#080808e8;display:none;align-items:flex-start;justify-content:center;padding:28px 18px;z-index:5;overflow-y:auto}
@@ -43,6 +36,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 .close{position:absolute;right:12px;top:10px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
 .article h1{font-size:clamp(2rem,4vw,3rem);margin:8px 42px 8px 0}
 .article .entry-date{margin-bottom:24px}
+.article-subtitle:empty{display:none}
 .article-cover{display:block;width:100%;max-height:480px;object-fit:contain;background:#181818;border-radius:8px;margin:0 0 28px}
 .article-body{overflow-wrap:anywhere}
 .article-body h2{font-size:1.35rem;line-height:1.2;margin:1.7em 0 .55em}
@@ -57,7 +51,8 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 .article-body th,.article-body td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
 .article-body th{background:var(--panel);font-weight:650}
 .article-body tr:nth-child(even) td{background:#ffffff08}
-@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.entry-card{grid-template-columns:1fr;gap:12px;padding:12px}.entry-card img{aspect-ratio:16/9}.overlay{padding:10px}.article{padding:38px 20px 28px}}
+@media(max-width:900px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.entries{grid-template-columns:1fr;gap:12px}.entry-card img{aspect-ratio:16/9}.entry-card-copy{padding:13px 14px 15px}.overlay{padding:10px}.article{padding:38px 20px 28px}}
 </style>
 </head>
 <body>
@@ -68,7 +63,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 <section class="entries" id="entries" aria-label="Blog entries"></section>
 </main>
 <footer><div class="wrap">© 2020-<span id="year"></span> CamChromatic</div></footer>
-<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Blog entry"><article class="article"><button class="close" id="close" aria-label="Close entry">×</button><div class="eyebrow">CamChromatic Journal</div><h1 id="articleTitle"></h1><div class="entry-date" id="articleDate"></div><img class="article-cover" id="articleCover" alt="" hidden><div class="article-body" id="articleBody"></div></article></div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Blog entry"><article class="article"><button class="close" id="close" aria-label="Close entry">×</button><div class="eyebrow">CamChromatic Journal</div><h1 id="articleTitle"></h1><p class="article-subtitle" id="articleSubtitle"></p><div class="entry-date" id="articleDate"></div><img class="article-cover" id="articleCover" alt="" hidden><div class="article-body" id="articleBody"></div></article></div>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
 const entriesEl=document.getElementById('entries');
@@ -100,7 +95,7 @@ function parseEntry(source,filename){
   }
   if(!meta.title)return null;
   const body=source.slice(match[0].length).trim();
-  return {title:meta.title,date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
+  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
 }
 function inlineMarkdown(text){
   let out=esc(text);
@@ -183,14 +178,24 @@ function markdownToHtml(markdown=''){
   return html.join('\n');
 }
 function excerpt(markdown){
-  const source=String(markdown||'').trim();
-  if(source.length<=520)return source;
-  const cutoff=source.slice(0,520);
-  const lastBreak=cutoff.lastIndexOf('\n');
-  return (lastBreak>260?cutoff.slice(0,lastBreak):cutoff).trimEnd()+'…';
+  let text=String(markdown||'');
+  text=text.replace(/```[\s\S]*?```/g,' ');
+  text=text.replace(/!\[([^\]]*)\]\([^)]+\)/g,'$1');
+  text=text.replace(/\[([^\]]+)\]\([^)]+\)/g,'$1');
+  text=text.replace(/^\s*\|.*\|\s*$/gm,' ');
+  text=text.replace(/^\s*#{1,6}\s+/gm,'');
+  text=text.replace(/^\s*>\s?/gm,'');
+  text=text.replace(/^\s*[-*+]\s+/gm,'');
+  text=text.replace(/^\s*\d+\.\s+/gm,'');
+  text=text.replace(/[*_`~]/g,'');
+  text=text.replace(/<[^>]*>/g,' ');
+  text=text.replace(/\s+/g,' ').trim();
+  if(text.length>50)text=text.slice(0,50).trimEnd()+'…';
+  return esc(text);
 }
 function openEntry(entry){
   document.getElementById('articleTitle').textContent=entry.title;
+  document.getElementById('articleSubtitle').textContent=entry.subtitle||'';
   document.getElementById('articleDate').textContent=entry.date;
   const cover=document.getElementById('articleCover');
   cover.hidden=!entry.cover;
@@ -206,11 +211,12 @@ function render(){
     const card=document.createElement('button');
     card.type='button';card.className='entry-card'+(entry.cover?'':' no-cover');
     if(entry.cover){const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.onerror=()=>image.remove();card.append(image);}
-    const copy=document.createElement('div');
+    const copy=document.createElement('div');copy.className='entry-card-copy';
     const title=document.createElement('h2');title.textContent=entry.title;
+    const subtitle=document.createElement('p');subtitle.className='entry-subtitle';subtitle.textContent=entry.subtitle||'';if(!entry.subtitle)subtitle.hidden=true;
     const date=document.createElement('div');date.className='entry-date';date.textContent=entry.date;
-    const summary=document.createElement('div');summary.className='entry-excerpt';summary.innerHTML=markdownToHtml(excerpt(entry.body));
-    copy.append(title,date,summary);card.append(copy);
+    const summary=document.createElement('p');summary.className='entry-excerpt';summary.textContent=excerpt(entry.body);
+    copy.append(title,subtitle,date,summary);card.append(copy);
     card.addEventListener('click',()=>openEntry(entry));entriesEl.append(card);
   });
 }
