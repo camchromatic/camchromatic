@@ -4,4 +4,6 @@ subtitle: Rambling
 date: 2026-11-01
 cover: /media/fakeaustralianaccent.png
 ---
-🐛ʟᴏʀᴇᴍ ɪᴘsᴜᴍ
+🐛ʟᴏʀᴇᴍ ɪᴘsᴜᴍ  
+🅸🅿🆂🆄🅼  
+ⓘⓟⓢⓤⓜ
