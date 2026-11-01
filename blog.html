@@ -100,7 +100,7 @@ function parseEntry(source,filename){
   }
   if(!meta.title)return null;
   const body=source.slice(match[0].length).trim();
-  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),coverZoom:clampNumber(meta.cover_zoom,1,3,1),coverX:clampNumber(meta.cover_x,0,100,50),coverY:clampNumber(meta.cover_y,0,100,50),body,filename};
+  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
 }
 function safeMediaUrl(value=''){
   let url=String(value||'').trim().replace(/^<|>$/g,'');
@@ -271,7 +271,7 @@ function render(){
   entries.forEach(entry=>{
     const card=document.createElement('button');
     card.type='button';card.className='entry-card'+(entry.cover?'':' no-cover');
-    if(entry.cover){const frame=document.createElement('div');frame.className='entry-cover-frame';const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.style.objectPosition=`${entry.coverX}% ${entry.coverY}%`;image.style.transform=`scale(${entry.coverZoom})`;image.style.transformOrigin=`${entry.coverX}% ${entry.coverY}%`;image.onerror=()=>frame.remove();frame.append(image);card.append(frame);}
+    if(entry.cover){const frame=document.createElement('div');frame.className='entry-cover-frame';const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.onerror=()=>frame.remove();frame.append(image);card.append(frame);}
     const copy=document.createElement('div');copy.className='entry-card-copy';
     const title=document.createElement('h2');title.textContent=entry.title;
     const subtitle=document.createElement('p');subtitle.className='entry-subtitle';subtitle.textContent=entry.subtitle||'';if(!entry.subtitle)subtitle.hidden=true;

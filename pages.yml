@@ -44,6 +44,30 @@ content:
       - name: cover
         label: Cover Image
         type: image
+      - name: cover_position
+        label: Preview Crop Position
+        type: select
+        description: Choose which part of the cover stays visible in the square blog preview. The full article keeps the original image.
+        options:
+          values:
+            - name: top-left
+              label: Top left
+            - name: top-center
+              label: Top centre
+            - name: top-right
+              label: Top right
+            - name: middle-left
+              label: Middle left
+            - name: center
+              label: Centre
+            - name: middle-right
+              label: Middle right
+            - name: bottom-left
+              label: Bottom left
+            - name: bottom-center
+              label: Bottom centre
+            - name: bottom-right
+              label: Bottom right
       - name: body
         label: Entry
         type: rich-text
