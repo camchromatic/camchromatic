@@ -4,29 +4,14 @@ subtitle: Rambling
 date: 2026-11-01
 cover: /media/Screenshot 2026-10-25 184036.png
 ---
-**Bold** *Italic* ++Under++ ~~Strike~~
+1. **Bold** 
+2. *Italic*
+3. ++Under++
+4. ~~Strike~~
 
-> qute
+> quote
 
 ```
 code
 ```
 
-
-| --- | 1 | 2 | 3 |
-| --- | --- | --- | --- |
-| --- | a | b | c |
-| --- | 1a | 2b | 3c |
-
-
-# h1
-
-![](</media/Screenshot 2026-10-25 184617.png>)
-
-![](</media/Screenshot 2026-10-25 184626.png>)
-
-# h2
-
-### h3
-
-Dolor ut est dolorum sit cillum. Tempore dolorum quod sunt
