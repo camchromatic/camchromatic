@@ -33,6 +33,9 @@ content:
         label: Title
         type: string
         required: true
+      - name: subtitle
+        label: Subtitle
+        type: string
       - name: date
         label: Publication Date
         type: date
