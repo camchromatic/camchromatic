@@ -44,8 +44,27 @@ content:
       - name: cover
         label: Cover Image
         type: image
+      - name: cover_zoom
+        label: Cover Preview Zoom (1–3; 1 = no zoom)
+        type: number
+        options:
+          min: 1
+          max: 3
+      - name: cover_x
+        label: Cover Preview Horizontal Position (0 = left, 50 = center, 100 = right)
+        type: number
+        options:
+          min: 0
+          max: 100
+      - name: cover_y
+        label: Cover Preview Vertical Position (0 = top, 50 = center, 100 = bottom)
+        type: number
+        options:
+          min: 0
+          max: 100
       - name: body
         label: Entry
         type: rich-text
         options:
           format: markdown
+          media: default
