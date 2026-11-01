@@ -63,7 +63,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 <div class="status" id="status" aria-live="polite">Loading entries…</div>
 <section class="entries" id="entries" aria-label="Blog entries"></section>
 </main>
-<footer><div class="wrap">© 2020-2026 CamChromatic</div></footer>
+<footer><div class="wrap">© 2026 Cam Garcia</div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Blog entry"><article class="article"><button class="close" id="close" aria-label="Close entry">×</button><div class="eyebrow">CamChromatic Journal</div><h1 id="articleTitle"></h1><p class="article-subtitle" id="articleSubtitle"></p><div class="entry-date" id="articleDate"></div><img class="article-cover" id="articleCover" alt="" hidden><div class="article-body" id="articleBody"></div></article></div>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
@@ -356,7 +356,6 @@ async function loadEntries(){
 document.getElementById('close').addEventListener('click',closeEntry);
 overlay.addEventListener('click',event=>{if(event.target===overlay)closeEntry();});
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeEntry();});
-document.getElementById('year').textContent=new Date().getFullYear();
 loadEntries();
 </script>
 </body>

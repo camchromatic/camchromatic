@@ -40,7 +40,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;colo
 <main class="wrap">
 <section class="hero" id="about"><div class="eyebrow">Digital & Traditional · Characters & Explorations · Jewellery & Crafts</div><h1>Creations by Cam Garcia</h1><p class="intro">Available for hire.</p></section>
 <div class="status" id="status" aria-live="polite">Loading artwork…</div><section class="grid" id="gallery" aria-label="Art gallery"></section>
-</main><footer><div class="wrap">© 2020-2026 CamChromatic</div></footer>
+</main><footer><div class="wrap">© 2026 Cam Garcia</div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Artwork details"><article class="post-view"><button class="close" id="close" aria-label="Close post">×</button><div class="carousel" id="carousel"><img id="viewImage" alt=""><button class="carousel-control prev" id="prevImage" aria-label="Previous image">‹</button><button class="carousel-control next" id="nextImage" aria-label="Next image">›</button><div class="image-count" id="imageCount"></div></div><div class="post-copy"><div class="caption" id="viewCaption"></div></div></article></div>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
@@ -177,6 +177,5 @@ function closePost(){overlay.classList.remove('open');document.body.style.overfl
 document.getElementById('close').addEventListener('click',closePost);
 overlay.addEventListener('click',event=>{if(event.target===overlay)closePost();});
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closePost();if(overlay.classList.contains('open')&&event.key==='ArrowLeft')changeImage(-1);if(overlay.classList.contains('open')&&event.key==='ArrowRight')changeImage(1);});
-document.getElementById('year').textContent=new Date().getFullYear();
 loadPosts();
 </script></body></html>
