@@ -1,9 +1,6 @@
 media:
-  - name: blog_images
-    label: Blog Images
-    input: media
-    output: /media
-    categories: [image]
+  input: media
+  output: /media
 
 content:
   - name: posts
@@ -18,7 +15,6 @@ content:
         type: image
         required: true
         options:
-          media: blog_images
           multiple:
             max: 10
           unique: true
@@ -37,9 +33,6 @@ content:
         label: Title
         type: string
         required: true
-      - name: subtitle
-        label: Subtitle
-        type: string
       - name: date
         label: Publication Date
         type: date
@@ -47,11 +40,9 @@ content:
       - name: cover
         label: Cover Image
         type: image
-        options:
-          media: blog_images
       - name: body
         label: Entry
         type: rich-text
         options:
           format: markdown
-          media: blog_images
+          media: false
