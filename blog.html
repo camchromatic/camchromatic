@@ -249,22 +249,71 @@ function render(){
 async function loadEntries(){
   try{
     const cacheBust=Date.now();
-    const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${BRANCH}&_=${cacheBust}`,{cache:'no-store',headers:{Accept:'application/vnd.github+json','Cache-Control':'no-cache'}});
-    if(response.status===404){entries=[];statusLine.textContent='';render();return;}
-    if(!response.ok)throw Error('Could not read blog entries');
+    const apiUrl=`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${BRANCH}`;
+    const response=await fetch(apiUrl,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
+    if(!response.ok){
+      let detail='';
+      try{const problem=await response.json();detail=problem.message||'';}catch{}
+      if(response.status===404)throw Error('GitHub could not find content/blog on the main branch. Check the folder name and branch.');
+      if(response.status===403)throw Error(detail||'GitHub API rate limit or access restriction. Please try again later.');
+      throw Error(detail||`GitHub returned HTTP ${response.status}.`);
+    }
+
     const files=await response.json();
-    const markdownFiles=files.filter(file=>file.type==='file'&&file.name.toLowerCase().endsWith('.md'));
-    const loaded=await Promise.all(markdownFiles.map(async file=>{
-      const result=await fetch(`${file.download_url}${file.download_url.includes('?')?'&':'?'}_=${cacheBust}`,{cache:'no-store'});
-      return result.ok?parseEntry(await result.text(),file.name):null;
+    if(!Array.isArray(files))throw Error(files.message||'GitHub returned an unexpected response instead of a file list.');
+
+    const markdownFiles=files.filter(file=>
+      file&&file.type==='file'&&typeof file.name==='string'&&file.name.toLowerCase().endsWith('.md')
+    );
+
+    if(markdownFiles.length===0){
+      entries=[];
+      statusLine.textContent='';
+      render();
+      return;
+    }
+
+    const results=await Promise.all(markdownFiles.map(async file=>{
+      const rawUrl=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/content/blog/${encodeURIComponent(file.name)}?v=${cacheBust}`;
+      const urls=[rawUrl,file.download_url].filter(Boolean);
+      let lastError='Could not download this file.';
+      for(const url of urls){
+        try{
+          const result=await fetch(url,{cache:'no-store'});
+          if(!result.ok){lastError=`HTTP ${result.status}`;continue;}
+          const source=await result.text();
+          const entry=parseEntry(source,file.name);
+          if(entry)return {entry};
+          return {error:`${file.name} is missing valid frontmatter or a title.`};
+        }catch(error){
+          lastError=error.message||lastError;
+        }
+      }
+      return {error:`${file.name}: ${lastError}`};
     }));
-    entries=loaded.filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-    statusLine.textContent='';
-    render();
+
+    entries=results.filter(result=>result.entry).map(result=>result.entry)
+      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+
+    if(entries.length){
+      statusLine.textContent='';
+      render();
+    }else{
+      const details=results.map(result=>result.error).filter(Boolean);
+      statusLine.textContent='Blog files were found, but none could be read as a post.';
+      entriesEl.innerHTML=`<div class="empty">${esc(details.join(' '))}</div>`;
+      console.error('Blog entry loading details:',details);
+    }
+
+    const failed=results.filter(result=>result.error).map(result=>result.error);
+    if(entries.length&&failed.length){
+      statusLine.textContent=`Loaded ${entries.length} post(s). ${failed.length} file(s) could not be read.`;
+      console.warn('Some blog files could not be loaded:',failed);
+    }
   }catch(error){
-    statusLine.textContent='Blog entries could not be loaded right now. Please refresh in a moment.';
-    entriesEl.innerHTML='<div class="empty">We couldn’t load the blog entries. Please try refreshing this page.</div>';
-    console.error(error);
+    statusLine.textContent='Blog entries could not be loaded.';
+    entriesEl.innerHTML=`<div class="empty">${esc(error.message||'Please refresh the page and try again.')}</div>`;
+    console.error('Blog loading error:',error);
   }
 }
 document.getElementById('close').addEventListener('click',closeEntry);
