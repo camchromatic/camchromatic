@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blog · CamChromatic</title>
+<style>
+:root{--bg:#232628;--panel:#191b1c;--ink:#e8e2d8;--muted:#b8aa98;--line:#514536;--accent:#2785ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,sans-serif}
+.wrap{max-width:1000px;margin:auto;padding:0 24px}
+header{border-bottom:1px solid var(--line)}
+.top{height:70px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:1.25rem;font-weight:500;letter-spacing:-.04em;text-decoration:none;display:flex;gap:0}
+nav{display:flex;gap:22px;font-size:.9rem}a{color:var(--accent);text-decoration:none}
+.hero{padding:44px 0 28px}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:.72rem;color:var(--muted);font-weight:700}
+h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
+.intro{color:var(--muted);max-width:600px;margin:0}
+.status{font-size:.84rem;color:var(--muted);margin:12px 0 18px}
+.entries{display:grid;gap:18px}
+.entry-card{display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;padding:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);text-align:left;cursor:pointer;width:100%}
+.entry-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:7px;background:#181818}
+.entry-card.no-cover{grid-template-columns:1fr}
+.entry-card h2{font-size:1.35rem;line-height:1.2;margin:2px 0 8px}
+.entry-date{font-size:.8rem;color:var(--muted);margin-bottom:10px}
+.entry-excerpt{color:var(--muted);margin:0}
+.empty{padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
+footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:.85rem}
+.overlay{position:fixed;inset:0;background:#080808e8;display:none;align-items:flex-start;justify-content:center;padding:28px 18px;z-index:5;overflow-y:auto}
+.overlay.open{display:flex}
+.article{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:14px;width:min(820px,100%);padding:42px clamp(22px,6vw,64px);margin:auto}
+.close{position:absolute;right:12px;top:10px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
+.article h1{font-size:clamp(2rem,4vw,3rem);margin:8px 42px 8px 0}
+.article .entry-date{margin-bottom:24px}
+.article-cover{display:block;width:100%;max-height:480px;object-fit:contain;background:#181818;border-radius:8px;margin:0 0 28px}
+.article-body{overflow-wrap:anywhere}
+.article-body h2,.article-body h3{line-height:1.2;margin:1.7em 0 .55em}
+.article-body p{margin:.9em 0}
+.article-body ul,.article-body ol{padding-left:1.5em}
+.article-body blockquote{border-left:3px solid var(--line);padding-left:18px;color:var(--muted);margin:1.2em 0}
+.article-body img{max-width:100%;height:auto;border-radius:8px}
+.article-body pre{overflow:auto;background:var(--panel);padding:14px;border-radius:8px}
+.article-body code{background:var(--panel);padding:2px 5px;border-radius:4px}
+@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.entry-card{grid-template-columns:1fr;gap:12px;padding:12px}.entry-card img{aspect-ratio:16/9}.overlay{padding:10px}.article{padding:38px 20px 28px}}
+</style>
+</head>
+<body>
+<header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html#gallery">Gallery</a><a href="blog.html">Blog</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
+<main class="wrap">
+<section class="hero"><div class="eyebrow">Notes & Updates</div><h1>Blog</h1><p class="intro">Thoughts, projects, experiments, and things worth sharing.</p></section>
+<div class="status" id="status" aria-live="polite">Loading entries…</div>
+<section class="entries" id="entries" aria-label="Blog entries"></section>
+</main>
+<footer><div class="wrap">© 2020-<span id="year"></span> CamChromatic</div></footer>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Blog entry"><article class="article"><button class="close" id="close" aria-label="Close entry">×</button><div class="eyebrow">CamChromatic Journal</div><h1 id="articleTitle"></h1><div class="entry-date" id="articleDate"></div><img class="article-cover" id="articleCover" alt="" hidden><div class="article-body" id="articleBody"></div></article></div>
+<script>
+const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
+const entriesEl=document.getElementById('entries');
+const statusLine=document.getElementById('status');
+const overlay=document.getElementById('overlay');
+let entries=[];
+
+function esc(value=''){
+  return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function unquote(value=''){
+  value=String(value).trim();
+  if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'")))value=value.slice(1,-1);
+  return value.replace(/\\n/g,'\n');
+}
+function mediaPath(value=''){
+  const path=unquote(value);
+  if(!path)return '';
+  if(/^https?:\/\//i.test(path))return path;
+  return path.startsWith('/')?path:'/'+path;
+}
+function parseEntry(source,filename){
+  const match=source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/);
+  if(!match)return null;
+  const meta={};
+  for(const line of match[1].split(/\r?\n/)){
+    const field=line.match(/^([A-Za-z0-9_-]+):\s*(.*?)\s*$/);
+    if(field)meta[field[1]]=unquote(field[2]);
+  }
+  if(!meta.title)return null;
+  const body=source.slice(match[0].length).trim();
+  return {title:meta.title,date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
+}
+function inlineMarkdown(text){
+  let out=esc(text);
+  out=out.replace(/!\[([^\]]*)\]\((https?:\/\/[^)\s]+|\/[^)\s]+)\)/g,'<img alt="$1" src="$2">');
+  out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  out=out.replace(/`([^`]+)`/g,'<code>$1</code>');
+  out=out.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  out=out.replace(/__([^_]+)__/g,'<strong>$1</strong>');
+  out=out.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  out=out.replace(/_([^_]+)_/g,'<em>$1</em>');
+  return out;
+}
+function markdownToHtml(markdown=''){
+  const lines=String(markdown).replace(/\r/g,'').split('\n');
+  const html=[];let paragraph=[],listType=null,code=[];
+  const flushParagraph=()=>{if(paragraph.length){html.push('<p>'+paragraph.map(inlineMarkdown).join('<br>')+'</p>');paragraph=[];}};
+  const flushList=()=>{if(listType){html.push(`</${listType}>`);listType=null;}};
+  const flushCode=()=>{if(code.length){html.push('<pre><code>'+esc(code.join('\n'))+'</code></pre>');code=[];}};
+  for(const line of lines){
+    if(line.startsWith('```')){flushParagraph();flushList();if(code.length)flushCode();else code.push('');continue;}
+    if(code.length){code.push(line);continue;}
+    if(!line.trim()){flushParagraph();flushList();continue;}
+    const heading=line.match(/^(#{1,3})\s+(.+)$/);
+    if(heading){flushParagraph();flushList();const level=heading[1].length;html.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);continue;}
+    if(/^---+$/.test(line.trim())){flushParagraph();flushList();html.push('<hr>');continue;}
+    const quote=line.match(/^>\s?(.*)$/);
+    if(quote){flushParagraph();flushList();html.push('<blockquote>'+inlineMarkdown(quote[1])+'</blockquote>');continue;}
+    const item=line.match(/^\s*[-*+]\s+(.+)$/);
+    const numbered=line.match(/^\s*\d+\.\s+(.+)$/);
+    if(item||numbered){
+      flushParagraph();const wanted=item?'ul':'ol';
+      if(listType!==wanted){flushList();listType=wanted;html.push(`<${listType}>`);}
+      html.push('<li>'+inlineMarkdown((item||numbered)[1])+'</li>');continue;
+    }
+    flushList();paragraph.push(line);
+  }
+  flushParagraph();flushList();flushCode();
+  return html.join('\n');
+}
+function excerpt(markdown){
+  return String(markdown||'').replace(/[#>*_`[\]()!-]/g,' ').replace(/\s+/g,' ').trim().slice(0,190);
+}
+function openEntry(entry){
+  document.getElementById('articleTitle').textContent=entry.title;
+  document.getElementById('articleDate').textContent=entry.date;
+  const cover=document.getElementById('articleCover');
+  cover.hidden=!entry.cover;
+  if(entry.cover){cover.src=entry.cover;cover.alt=entry.title;}
+  document.getElementById('articleBody').innerHTML=markdownToHtml(entry.body);
+  overlay.classList.add('open');document.body.style.overflow='hidden';
+}
+function closeEntry(){overlay.classList.remove('open');document.body.style.overflow='';}
+function render(){
+  entriesEl.innerHTML='';
+  if(!entries.length){entriesEl.innerHTML='<div class="empty">No blog entries yet. Add one from your Pages CMS dashboard.</div>';return;}
+  entries.forEach(entry=>{
+    const card=document.createElement('button');
+    card.type='button';card.className='entry-card'+(entry.cover?'':' no-cover');
+    if(entry.cover){const image=document.createElement('img');image.src=entry.cover;image.alt=entry.title;image.loading='lazy';image.onerror=()=>image.remove();card.append(image);}
+    const copy=document.createElement('div');
+    const title=document.createElement('h2');title.textContent=entry.title;
+    const date=document.createElement('div');date.className='entry-date';date.textContent=entry.date;
+    const summary=document.createElement('p');summary.className='entry-excerpt';summary.textContent=excerpt(entry.body);
+    copy.append(title,date,summary);card.append(copy);
+    card.addEventListener('click',()=>openEntry(entry));entriesEl.append(card);
+  });
+}
+async function loadEntries(){
+  try{
+    const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${BRANCH}`,{headers:{Accept:'application/vnd.github+json'}});
+    if(response.status===404){entries=[];statusLine.textContent='';render();return;}
+    if(!response.ok)throw Error('Could not read blog entries');
+    const files=await response.json();
+    const markdownFiles=files.filter(file=>file.type==='file'&&file.name.toLowerCase().endsWith('.md'));
+    const loaded=await Promise.all(markdownFiles.map(async file=>{
+      const result=await fetch(file.download_url);
+      return result.ok?parseEntry(await result.text(),file.name):null;
+    }));
+    entries=loaded.filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    statusLine.textContent='';
+    render();
+  }catch(error){
+    statusLine.textContent='Blog entries could not be loaded right now. Please refresh in a moment.';
+    entriesEl.innerHTML='<div class="empty">We couldn’t load the blog entries. Please try refreshing this page.</div>';
+    console.error(error);
+  }
+}
+document.getElementById('close').addEventListener('click',closeEntry);
+overlay.addEventListener('click',event=>{if(event.target===overlay)closeEntry();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeEntry();});
+document.getElementById('year').textContent=new Date().getFullYear();
+loadEntries();
+</script>
+</body>
+</html>
