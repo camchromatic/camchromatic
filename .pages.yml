@@ -8,7 +8,7 @@ content:
     label: Art Posts
     type: collection
     path: content/posts
-    filename: "{primary}.md"
+    filename: "{year}-{month}-{day}-{hour}{minute}{second}.md"
     format: yaml-frontmatter
     fields:
       - name: images
