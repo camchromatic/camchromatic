@@ -1,13 +1,26 @@
 ---
-title: Testing
+title: Testing 2
 subtitle: Sketchdump
 date: 2026-11-01
 cover: /media/drawing-cam-2026-10-10-02-04-1.png
-cover_zoom: 2
+cover_zoom: 3
 cover_x: 100
 cover_y: 50
 ---
-*Lorem* ++ipsum++ **dolor** sit amet consectetur adipiscing elit. Deleniti minus at dolor fugiat anim non ea sunt 
+**Bold** *Italic* ++Under++ ~~Strike~~
+
+# h1
+
+## h2
+
+### h3
+
+
+| a | e |  |
+| --- | --- | --- |
+|  | a | e |
+| e |  | a |
+
 
 ![](/media/dump4.png)
 
