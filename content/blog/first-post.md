@@ -19,9 +19,7 @@ code
 | --- | 1a | 2b | 3c |
 
 
-# h1  
-  
-
+# h1
 
 ![](</media/Screenshot 2026-10-25 184617.png>)
 
