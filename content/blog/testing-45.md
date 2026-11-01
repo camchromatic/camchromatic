@@ -4,4 +4,9 @@ subtitle: weewoo
 date: 2026-11-01
 cover: /media/drawing-cam-2026-10-09-23-43.png
 ---
-whatever man
+whatever man 
+
+![](/media/drawing-cam-2026-10-10-03-00.png)
+
+![](</media/drawing-cam-2026-10-10-01-51 (1).png>)
+
