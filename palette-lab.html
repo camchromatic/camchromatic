@@ -81,6 +81,7 @@ button.danger { color: var(--danger); }
 button.example-tag { border: 1px solid var(--line); cursor: pointer; }
 button.example-tag:hover { color: var(--ink); border-color: var(--muted); }
 .presets { display: flex; gap: 4px; }
+button.example-tag:disabled { opacity: .45; cursor: default; color: var(--muted); border-color: var(--line); }
 .grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
 .slot {
   aspect-ratio: 1; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; padding: 0;
@@ -112,6 +113,14 @@ input[type="text"], textarea {
 input[type="color"] { width: 44px; height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: var(--bg); cursor: pointer; }
 .slider { display: grid; grid-template-columns: 1.4em minmax(0, 1fr) 3.2em; gap: 10px; align-items: center; font: 500 13px var(--font-mono); font-variant-numeric: tabular-nums; }
 .slider output { text-align: right; color: var(--muted); }
+/* Adjust all: one compact row of three sliders */
+.adjust { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+.adjust .slider { flex: 1 1 130px; grid-template-columns: 0.8em minmax(0, 1fr) 3em; gap: 5px; font-size: 12px; }
+.adj-num { width: 100%; font: 500 12px/1 var(--font-mono); text-align: right; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 0 3px; height: 18px; -moz-appearance: textfield; appearance: textfield; }
+.adj-num::-webkit-inner-spin-button, .adj-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.adjust input[type="range"] { height: 10px; }
+.adjust input[type="range"]::-webkit-slider-thumb { width: 16px; height: 16px; }
+.adjust input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; }
 input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--slot-empty); }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); }
 input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); }
@@ -141,8 +150,11 @@ select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg label:has(input:checked) { background: var(--ink); color: var(--bg); }
 .seg label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
-/* Theme switch: small, set apart from Clear palette / Confirm */
-.theme-group { gap: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+/* Theme switch: small, top right beside the title */
+.theme-group { gap: 6px; }
+/* Undo … Confirm: their own full-width row under the title */
+.toolbar { flex-basis: 100%; }
+.icon-btn { font-size: 17px; padding-inline: 12px; }
 .theme-group .seg { border-radius: 8px; }
 .theme-group .seg label { padding: 5px 8px; font-size: 12px; }
 .slot.multi { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
@@ -173,7 +185,10 @@ button.sec-toggle:hover { color: var(--ink); }
 #tones, #shades { grid-auto-rows: var(--chip-h, 34px); }
 #tones .shade, #shades .shade { aspect-ratio: auto; height: 100%; }
 .harmonies { display: flex; flex-direction: column; gap: 6px; }
-.harmony-wrap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
+/* wheel beside the rows; in a narrow column the rows drop below the wheel */
+.harmony-wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center; }
+.harmony-wrap > .hwheel { flex: none; }
+.harmony-wrap > .harmonies { flex: 1 1 230px; min-width: 0; }
 .hwheel { position: relative; width: var(--wheel, 136px); aspect-ratio: 1; max-width: 100%; }
 .hring { position: absolute; inset: 0; border-radius: 50%; background: var(--slot-empty);
   -webkit-mask: radial-gradient(closest-side, transparent 57%, #000 59%); mask: radial-gradient(closest-side, transparent 57%, #000 59%); }
@@ -213,8 +228,13 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   header { align-items: center; }
   h1 { font-size: 32px; }
   .sub { margin-top: 4px; }
-  .actions-wrap { flex-direction: row; align-items: center; gap: 8px 20px; }
-  .theme-group { padding: 0 0 0 20px; border-top: 0; border-left: 1px solid var(--line); margin-left: 8px; }
+  .adjust { flex-wrap: nowrap; gap: 10px; }
+  .harmony-wrap { flex-wrap: nowrap; }
+  /* two toolbar rows under the title: keep them slim */
+  .actions-wrap { gap: 4px; }
+  .toolbar button, .toolbar .btn { padding-block: 6px; }
+  .harmony-wrap > .harmonies { flex-basis: 0; }
+  .adjust .slider { flex: 1 1 0; min-width: 0; }
   .bench { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
   .col { gap: 14px; }
   .col-image { grid-column: auto; }
@@ -222,9 +242,11 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   .col-image .stage { flex: 1; height: auto; min-height: 240px; }
   .panel { padding: 16px; gap: 12px; }
   .chip { height: 52px; }
-  :root { --chip-h: 26px; }
+  :root { --chip-h: 22px; }
   .harmonies { gap: 4px; }
-  .hchip { height: 24px; }
+  .hchip { height: 20px; }
+  .hwheel { --wheel: 120px; }
+  .harmony-row button.add { padding-block: 3px; }
   .shade { aspect-ratio: 2.2; }
   textarea { min-height: 56px; }
 }
@@ -249,6 +271,29 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   .shade { aspect-ratio: 3.2; }
   button, .btn, .seg label { padding-block: 8px; }
   .theme-group .seg label { padding-block: 5px; }
+  .adjust { padding-top: 4px; }
+  .tools { padding-top: 8px; }
+  /* room for the toolbar row under the title */
+  header { row-gap: 4px; }
+  h1 { font-size: 22px; }
+  .toolbar button, .toolbar .btn { padding-block: 4px; }
+  .panel { padding-block: 8px; }
+  /* room for the second toolbar row */
+  .actions-wrap { gap: 4px; }
+  #swName, #hex { padding-block: 4px; }
+  input[type="color"] { height: 30px; }
+  .hchip { height: 15px; }
+  .tools button, .tools select, .tools .seg label { padding-block: 4px; }
+  #adjReset { padding-block: 2px; }
+  #paletteName { font-size: 17px; }
+  .hwheel { --wheel: 92px; }
+  button.hname { padding-block: 0; }
+  .harmony-row button.add { padding-block: 1px; }
+  .hex-body button { padding-block: 4px; }
+  .tools .tool-group { height: 28px; }
+  .icon-btn { font-size: 15px; }
+  #pasteBox { height: 38px; min-height: 0; }
+  .tools button, .tools select, .tools .seg label { padding-block: 6px; }
   #paletteName { font-size: 19px; padding-bottom: 4px; }
   textarea { min-height: 40px; }
 }
@@ -260,26 +305,27 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
       <h1>Palette Lab</h1>
       <p class="sub">Make and edit your own Procreate <code>.swatches</code> files on your Desktop.</p>
     </div>
-    <div class="actions-wrap">
+    <div class="actions theme-group">
+      <span class="label">Theme</span>
+      <div class="seg" role="radiogroup" aria-label="Light or dark interface">
+        <label title="Follow your system setting"><input type="radio" name="theme" value="auto" checked>Auto</label>
+        <label><input type="radio" name="theme" value="light">Light</label>
+        <label title="Mid-grey: judge colors without a bright or black surround"><input type="radio" name="theme" value="gray">Gray</label>
+        <label><input type="radio" name="theme" value="dark">Dark</label>
+      </div>
+    </div>
+    <div class="actions-wrap toolbar">
       <div class="actions">
-        <button id="undoBtn" type="button" disabled title="Undo (Ctrl+Z)">↶ Undo</button>
-        <button id="redoBtn" type="button" disabled title="Redo (Ctrl+Y)">↷ Redo</button>
+        <button id="undoBtn" type="button" class="icon-btn" disabled title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+        <button id="redoBtn" type="button" class="icon-btn" disabled title="Redo (Ctrl+Y)" aria-label="Redo">↷</button>
         <label class="btn" for="fileInput">Load from file</label>
         <input type="file" id="fileInput" accept=".swatches,.zip" class="sr">
         <button id="saveBtn" type="button" class="primary">Export .swatches</button>
       </div>
       <div class="actions">
+        <button id="cardBtn" type="button" title="Save a PNG picture of the palette: name, swatches and hex codes">Export card</button>
         <button id="newBtn" type="button" class="danger" disabled>Clear palette</button>
         <label class="check"><input type="checkbox" id="clearConfirm"> Confirm</label>
-      </div>
-      <div class="actions theme-group">
-        <span class="label">Theme</span>
-        <div class="seg" role="radiogroup" aria-label="Light or dark interface">
-          <label title="Follow your system setting"><input type="radio" name="theme" value="auto" checked>Auto</label>
-          <label><input type="radio" name="theme" value="light">Light</label>
-          <label title="Mid-grey: judge colors without a bright or black surround"><input type="radio" name="theme" value="gray">Gray</label>
-          <label><input type="radio" name="theme" value="dark">Dark</label>
-        </div>
       </div>
     </div>
   </header>
@@ -303,6 +349,13 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
         <span id="count">0 / 30 colors</span>
         <span title="Shift-click or Ctrl-click to select several swatches. Right-click a swatch to delete it. Drag to move.">Shift/Ctrl-click to select · right-click to delete</span>
       </div>
+      <div class="adjust" role="group" aria-label="Adjust all colors" title="Shift every unlocked color at once. Sliders go back to 0 after any other change; Undo reverses an adjustment.">
+        <span class="label">Adjust</span>
+        <button id="adjReset" type="button" class="example-tag" disabled title="Put all three sliders back to 0 (your colors from before adjusting)">Reset</button>
+        <div class="slider" title="Hue shift in degrees, −180 to 180 (type a number or drag)"><span>H</span><input id="adjH" type="range" min="-180" max="180" step="1" value="0" aria-label="Shift hue of all colors"><input id="adjHNum" class="adj-num" type="number" min="-180" max="180" step="1" value="0" aria-label="Hue shift in degrees"></div>
+        <div class="slider" title="Saturation, −100 to 100 (type a number or drag)"><span>S</span><input id="adjS" type="range" min="-100" max="100" step="1" value="0" aria-label="Saturation of all colors"><input id="adjSNum" class="adj-num" type="number" min="-100" max="100" step="1" value="0" aria-label="Saturation change"></div>
+        <div class="slider" title="Lightness, −100 (black) to 100 (white) (type a number or drag)"><span>L</span><input id="adjL" type="range" min="-100" max="100" step="1" value="0" aria-label="Lightness of all colors"><input id="adjLNum" class="adj-num" type="number" min="-100" max="100" step="1" value="0" aria-label="Lightness change"></div>
+      </div>
       <div class="tools" role="toolbar" aria-label="Palette tools" title="Tools act on the whole palette, or only the selected slots when several are selected. Locked colors are never changed.">
         <div class="tool-group">
           <select id="sortBy" aria-label="Sort by">
@@ -322,7 +375,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
           </div>
         </div>
         <div class="tool-group">
-          <label class="label" for="previewMode">Preview</label>
+          <label class="label" for="previewMode" title="See the palette as people with color blindness would">Vision</label>
           <select id="previewMode">
             <option value="">Normal</option>
             <option value="grey">Greyscale</option>
@@ -524,6 +577,8 @@ let name = '';
 let swatches = new Array(SLOTS).fill(null);
 let selected = 0;
 let isExample = true;
+// "Adjust all" sliders: the palette before adjusting, and each adjusted swatch -> [its original, its color then]
+let adjBase = null, adjMap = new Map();
 // Key used for per-swatch names. Unconfirmed guess for Procreate; replaced by
 // whatever text key an opened file already uses for its swatches.
 const KNOWN_KEYS = ['hue', 'saturation', 'brightness', 'alpha', 'colorSpace'];
@@ -536,13 +591,11 @@ const selection = () => multi.size > 1 ? [...multi].sort((a, b) => a - b) : [sel
 // Locks live on the swatch (as _locked) so they travel with it and undo; stripped on export.
 const isLocked = i => !!swatches[i]?._locked;
 
-function loadExample() {
-  // cyan, magenta, yellow, black, red, green, blue, white
-  const hexes = ['#00FFFF','#FF00FF','#FFFF00','#000000','#FF0000','#00FF00','#0000FF','#FFFFFF'];
+// The page opens with an empty palette (presets fill it on request)
+function loadBlank() {
   fileWrapper = null; paletteIndex = 0; paletteExtra = {};
   name = 'Untitled';
   swatches = new Array(SLOTS).fill(null);
-  hexes.forEach((h, i) => swatches[i] = fromHex(h));
   selected = 0; isExample = true;
   render();
 }
@@ -633,6 +686,7 @@ function render() {
   const filled = sel.filter(i => swatches[i]);
   $('lockBtn').textContent = filled.length && filled.every(isLocked) ? (many ? 'Unlock selected' : 'Unlock') : (many ? 'Lock selected' : 'Lock');
   $('lockBtn').disabled = !filled.length;
+  if (adjBase) followAdjust();
   scheduleCommit();
   renderEditor();
 }
@@ -974,6 +1028,72 @@ $('swName').addEventListener('input', e => {
 $('swName').addEventListener('blur', renderEditor);
 $('clearBtn').addEventListener('click', clearSelection);
 $('paletteName').addEventListener('input', e => { name = e.target.value; isExample = false; scheduleCommit(); });
+// ---- adjust all: hue shift, saturation and lightness (HSL) for every unlocked color ----
+// Each move is applied to the palette as it was when adjusting began (adjBase), so
+// dragging back to 0 gives the original colors. If the same colors are only moved
+// (Sort, dragging), the originals move with them; any other change resets the sliders.
+const adjKey = sw => `${sw.hue},${sw.saturation},${sw.brightness},${swName(sw)}`;
+function followAdjust() {
+  const filled = swatches.filter(Boolean);
+  const moved = filled.length === adjMap.size && filled.every(sw => adjMap.get(sw)?.[1] === adjKey(sw));
+  if (moved) adjBase = swatches.map(sw => sw && adjMap.get(sw)[0]);
+  else resetAdjust();
+}
+function hsbToHsl(s, v) { const l = v * (1 - s / 2); return [l, l === 0 || l === 1 ? 0 : (v - l) / Math.min(l, 1 - l)]; }
+function hslToHsb(s, l) { const v = l + s * Math.min(l, 1 - l); return [v === 0 ? 0 : 2 * (1 - l / v), v]; }
+const clamp01 = x => Math.min(1, Math.max(0, x));
+function resetAdjust() {
+  adjBase = null; adjMap = new Map();
+  for (const k of ['H', 'S', 'L']) $('adj' + k).value = 0;
+  showAdjust();
+}
+// copy slider values into the number boxes (leaving alone the one being typed in)
+function showAdjust() {
+  let any = false;
+  for (const k of ['H', 'S', 'L']) {
+    const box = $('adj' + k + 'Num');
+    if (box !== document.activeElement) box.value = $('adj' + k).value;
+    if (+$('adj' + k).value) any = true;
+  }
+  $('adjReset').disabled = !any;
+}
+function applyAdjust() {
+  if (!adjBase) { commitNow(); adjBase = JSON.parse(JSON.stringify(swatches)); }
+  const dh = $('adjH').value / 360, ds = $('adjS').value / 100, dl = $('adjL').value / 100;
+  const prev = swatches;
+  swatches = adjBase.map((sw, i) => {
+    if (!sw || isLocked(i)) return prev[i];
+    const { _locked, ...orig } = sw;   // the lock lives on the current swatch, not the saved original
+    let [l, s] = hsbToHsl(orig.saturation, orig.brightness);
+    s = clamp01(s * (1 + ds));                          // scales, so greys stay grey
+    l = clamp01(dl > 0 ? l + (1 - l) * dl : l * (1 + dl)); // +100 = white, -100 = black
+    const [sat, bri] = hslToHsb(s, l);
+    return { ...orig, hue: ((orig.hue + dh) % 1 + 1) % 1, saturation: clamp01(sat), brightness: clamp01(bri) };
+  });
+  adjMap = new Map();
+  swatches.forEach((sw, i) => { if (sw) adjMap.set(sw, [adjBase[i], adjKey(sw)]); });
+  showAdjust(); isExample = false; render();
+}
+// Reset: back to the colors from before adjusting (one Undo step)
+$('adjReset').addEventListener('click', () => {
+  if (!adjBase) return;
+  for (const k of ['H', 'S', 'L']) $('adj' + k).value = 0;
+  applyAdjust(); commitNow();
+});
+for (const k of ['H', 'S', 'L']) {
+  const range = $('adj' + k), box = $('adj' + k + 'Num');
+  // no commit on 'change': arrow keys fire it on every press, so steps are grouped by the usual pause instead
+  range.addEventListener('input', applyAdjust);
+  // typed values apply as you type (half-typed ones like "-" wait); Enter or leaving the box tidies it up
+  box.addEventListener('input', () => {
+    const v = Number(box.value);
+    if (box.value.trim() === '' || !Number.isFinite(v)) return;
+    range.value = Math.min(+range.max, Math.max(+range.min, Math.round(v)));
+    applyAdjust();
+  });
+  box.addEventListener('change', () => { box.value = range.value; commitNow(); });
+}
+
 // ---- preset palettes: each color goes to its own slot (so rows line up); locked slots keep theirs ----
 const hsb = (h, s, b) => ({ hue: h, saturation: s, brightness: b, alpha: 1, colorSpace: 0 });
 const PRESETS = {
@@ -1383,6 +1503,58 @@ function saveError(err) {
   else toast("Saving isn't available in this view.");
 }
 
+// ---- preview card: a PNG of the palette (name on top, swatches in their slots, hex under each) ----
+const CARD = { cols: 10, sw: 96, gap: 18, pad: 56, titleH: 64, labelH: 26, nameH: 18, scale: 2 };
+async function drawCard() {
+  const last = swatches.reduce((m, sw, i) => sw ? i : m, -1);
+  const rows = Math.floor(last / CARD.cols) + 1;              // trailing empty rows are left off
+  const hasNames = swatches.some(sw => sw && swName(sw));
+  const cellH = CARD.sw + CARD.labelH + (hasNames ? CARD.nameH : 0);
+  const W = CARD.pad * 2 + CARD.cols * CARD.sw + (CARD.cols - 1) * CARD.gap;
+  const H = CARD.pad * 2 + CARD.titleH + rows * cellH + (rows - 1) * CARD.gap;
+  const cv = document.createElement('canvas');
+  cv.width = W * CARD.scale; cv.height = H * CARD.scale;
+  const g = cv.getContext('2d'); g.scale(CARD.scale, CARD.scale);
+  await document.fonts.ready;
+  const css = getComputedStyle(document.documentElement);
+  const font = v => css.getPropertyValue(v).trim();
+  g.fillStyle = '#F6F5F2'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#1C1B1A'; g.textBaseline = 'alphabetic';
+  g.font = `700 40px ${font('--font-display')}`;
+  g.fillText(name.trim() || 'Untitled', CARD.pad, CARD.pad + 38, W - CARD.pad * 2);
+  for (let i = 0; i <= last; i++) {
+    const sw = swatches[i]; if (!sw) continue;                // empty slots stay as blank space
+    const x = CARD.pad + (i % CARD.cols) * (CARD.sw + CARD.gap);
+    const y = CARD.pad + CARD.titleH + Math.floor(i / CARD.cols) * (cellH + CARD.gap);
+    g.beginPath(); g.roundRect(x, y, CARD.sw, CARD.sw, 12);
+    g.fillStyle = toHex(sw); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; g.stroke();   // keeps white swatches visible
+    g.fillStyle = '#1C1B1A'; g.font = `500 15px ${font('--font-mono')}`;
+    g.fillText(toHex(sw), x, y + CARD.sw + 20, CARD.sw);
+    if (swName(sw)) {
+      g.fillStyle = '#6B6965'; g.font = `500 13px ${font('--font-body')}`;
+      g.fillText(swName(sw), x, y + CARD.sw + 20 + CARD.nameH, CARD.sw);
+    }
+  }
+  return new Promise(res => cv.toBlob(res, 'image/png'));
+}
+$('cardBtn').addEventListener('click', async () => {
+  if (!swatches.some(Boolean)) { toast('Add at least one color before saving a card.'); return; }
+  const blob = await drawCard();
+  const file = (name.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, '-') + ' card.png';
+  const downloads = await downloadsReady;
+  if (!downloads) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = file;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(`Saved ${file}`);
+    return;
+  }
+  try { await downloads.save({ filename: file, data: blob }); toast(`Saved ${file}`); }
+  catch (err) { saveError(err); }
+});
+
 let toastTimer;
 function toast(msg, ms = 4200) {
   const t = $('toast'); t.textContent = msg; t.hidden = false;
@@ -1466,6 +1638,6 @@ document.querySelectorAll('input[name="theme"]').forEach(r => {
 });
 applyTheme(savedTheme);
 
-loadExample();
+loadBlank();
 steps = [snap()]; histIndex = 0; updateHistoryButtons();
 </script>
