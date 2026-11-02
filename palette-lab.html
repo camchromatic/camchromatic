@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Swatch Lab</title>
+<title>Palette Lab</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -80,6 +80,7 @@ button.danger { color: var(--danger); }
 .example-tag { display: inline-block; font: 500 11px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; background: var(--slot-empty); color: var(--muted); }
 button.example-tag { border: 1px solid var(--line); cursor: pointer; }
 button.example-tag:hover { color: var(--ink); border-color: var(--muted); }
+.presets { display: flex; gap: 4px; }
 .grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
 .slot {
   aspect-ratio: 1; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; padding: 0;
@@ -140,6 +141,10 @@ select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg label:has(input:checked) { background: var(--ink); color: var(--bg); }
 .seg label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
+/* Theme switch: small, set apart from Clear palette / Confirm */
+.theme-group { gap: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.theme-group .seg { border-radius: 8px; }
+.theme-group .seg label { padding: 5px 8px; font-size: 12px; }
 .slot.multi { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
 .slot.selected.multi { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
 .slot.locked::after {
@@ -209,6 +214,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   h1 { font-size: 32px; }
   .sub { margin-top: 4px; }
   .actions-wrap { flex-direction: row; align-items: center; gap: 8px 20px; }
+  .theme-group { padding: 0 0 0 20px; border-top: 0; border-left: 1px solid var(--line); margin-left: 8px; }
   .bench { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
   .col { gap: 14px; }
   .col-image { grid-column: auto; }
@@ -242,6 +248,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   .harmonies { gap: 3px; }
   .shade { aspect-ratio: 3.2; }
   button, .btn, .seg label { padding-block: 8px; }
+  .theme-group .seg label { padding-block: 5px; }
   #paletteName { font-size: 19px; padding-bottom: 4px; }
   textarea { min-height: 40px; }
 }
@@ -250,7 +257,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
 <div class="wrap">
   <header>
     <div>
-      <h1>Swatch Lab</h1>
+      <h1>Palette Lab</h1>
       <p class="sub">Make and edit your own Procreate <code>.swatches</code> files on your Desktop.</p>
     </div>
     <div class="actions-wrap">
@@ -265,7 +272,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
         <button id="newBtn" type="button" class="danger" disabled>Clear palette</button>
         <label class="check"><input type="checkbox" id="clearConfirm"> Confirm</label>
       </div>
-      <div class="actions">
+      <div class="actions theme-group">
         <span class="label">Theme</span>
         <div class="seg" role="radiogroup" aria-label="Light or dark interface">
           <label title="Follow your system setting"><input type="radio" name="theme" value="auto" checked>Auto</label>
@@ -283,7 +290,11 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
       <div class="name-row">
         <div class="row" style="justify-content:space-between">
           <label class="label col-title" for="paletteName">Palette name</label>
-          <button id="exampleTag" type="button" class="example-tag" title="Load the 8-color starter palette (Undo brings yours back)">Example palette</button>
+          <div class="presets" role="group" aria-label="Preset palettes">
+            <button type="button" class="example-tag" data-preset="grays" title="10 neutral, 10 cool and 10 warm grays, light to dark (Undo brings yours back)">Grays</button>
+            <button type="button" class="example-tag" data-preset="basic" title="6 hues in 5 shades each, light to dark (Undo brings yours back)">Basic</button>
+            <button type="button" class="example-tag" data-preset="random" title="30 random colors, new ones each click (Undo brings yours back)">Random</button>
+          </div>
         </div>
         <input id="paletteName" type="text" maxlength="60" autocomplete="off">
       </div>
@@ -963,12 +974,27 @@ $('swName').addEventListener('input', e => {
 $('swName').addEventListener('blur', renderEditor);
 $('clearBtn').addEventListener('click', clearSelection);
 $('paletteName').addEventListener('input', e => { name = e.target.value; isExample = false; scheduleCommit(); });
-$('exampleTag').addEventListener('click', () => {
+// ---- preset palettes: each color goes to its own slot (so rows line up); locked slots keep theirs ----
+const hsb = (h, s, b) => ({ hue: h, saturation: s, brightness: b, alpha: 1, colorSpace: 0 });
+const PRESETS = {
+  // one row each, light to dark: neutral (white to black), cool (blue-grey), warm (brown-grey);
+  // the tinted rows stop short of white/black so they don't repeat the neutral ends
+  grays: () => [[0, 0, 1, 0], [0.6, 0.12, 0.95, 0.12], [0.08, 0.14, 0.95, 0.12]].flatMap(([h, s, hi, lo]) =>
+    Array.from({ length: 10 }, (_, i) => hsb(h, s, hi - (hi - lo) * i / 9))),
+  // red, yellow, green, cyan, blue, magenta; each pale tint -> full -> deep shade
+  basic: () => [0, 1, 2, 3, 4, 5].flatMap(k =>
+    [[0.3, 1], [0.6, 1], [1, 1], [1, 0.7], [1, 0.42]].map(([s, b]) => hsb(k / 6, s, b))),
+  random: () => Array.from({ length: SLOTS }, () => hsb(Math.random(), Math.random(), Math.random())),
+};
+document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => {
   commitNow();
-  multi = new Set(); anchor = 0;
-  loadExample(); commitNow();
-  toast('Loaded the example palette. Undo brings back yours.');
-});
+  const label = btn.textContent;
+  PRESETS[btn.dataset.preset]().forEach((c, i) => { if (!isLocked(i)) swatches[i] = c; });
+  multi = new Set(); selected = anchor = 0;
+  name = label; isExample = true;
+  render(); commitNow();
+  toast(`Loaded ${label}${swatches.some((_, i) => isLocked(i)) ? ' (locked colors kept)' : ''}. Undo brings back yours.`);
+}));
 grid.addEventListener('keydown', e => {
   const cols = 10; let n = selected;
   if (e.key === 'ArrowRight') n++; else if (e.key === 'ArrowLeft') n--;
