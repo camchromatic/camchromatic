@@ -1,0 +1,1412 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palette Bench</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* Layout: one-screen workbench on desktop — palette + hex codes | color editor | image picker (fills the height);
+   two columns on tablets, one on phones. */
+:root {
+  /* Procreate light interface (matched by eye: neutral greys, Procreate blue) */
+  --bg: #e4e4e6;
+  --surface: #f8f8f8;
+  --ink: #1c1c1e;
+  --muted: #6c6c70;
+  --line: #d1d1d6;
+  --accent: #0a7cff;
+  --accent-ink: #ffffff;
+  --slot-empty: #e9e9eb;
+  --danger: #d6342c;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Procreate dark interface (matched by eye) */
+    --bg: #111111; --surface: #1f1f1f; --ink: #f2f2f2; --muted: #9a9a9e; --line: #363636;
+    --accent: #2f8cff; --accent-ink: #ffffff; --slot-empty: #2a2a2a; --danger: #ff5f57;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111111; --surface: #1f1f1f; --ink: #f2f2f2; --muted: #9a9a9e; --line: #363636;
+  --accent: #2f8cff; --accent-ink: #ffffff; --slot-empty: #2a2a2a; --danger: #ff5f57;
+  color-scheme: dark;
+}
+/* Gray: neutral mid-grey between light and dark, so colors aren't skewed by a bright or black surround */
+:root[data-theme="gray"] {
+  --bg: #4a4a4d; --surface: #575759; --ink: #f4f4f5; --muted: #d0d0d4; --line: #6c6c70;
+  --accent: #2f8cff; --accent-ink: #ffffff; --slot-empty: #505053; --danger: #ff8a80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 5vw, 40px); line-height: 1; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 6px 0 0; max-width: 60ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.actions-wrap { display: flex; flex-direction: column; gap: 8px; }
+button, .btn {
+  font: 600 14px/1 var(--font-body); padding: 10px 14px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+button:hover, .btn:hover { border-color: var(--muted); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, .slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button:disabled { opacity: .45; cursor: default; }
+button.danger { color: var(--danger); }
+.bench { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.col-image { grid-column: 1 / -1; }
+@media (max-width: 760px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.hex-body { display: flex; flex-direction: column; gap: 8px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.label { font: 500 11px/1 var(--font-body); text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.name-row { display: flex; flex-direction: column; gap: 6px; }
+#paletteName {
+  font: 700 22px/1.2 var(--font-display); color: var(--ink); background: transparent; border: none;
+  border-bottom: 1px dashed var(--line); padding: 2px 0 6px; width: 100%;
+}
+.example-tag { display: inline-block; font: 500 11px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; background: var(--slot-empty); color: var(--muted); }
+button.example-tag { border: 1px solid var(--line); cursor: pointer; }
+button.example-tag:hover { color: var(--ink); border-color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.slot {
+  aspect-ratio: 1; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; padding: 0;
+  background: var(--slot-empty); position: relative;
+}
+.slot.empty { border: 1px dashed var(--line); background: transparent; }
+.slot.selected { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.slot.drop { box-shadow: 0 0 0 2px var(--accent); }
+.slot.dragging { opacity: .35; }
+/* insert mode: a bar in the gap where the swatch will land */
+.slot.ins-before::before, .slot.ins-after::before {
+  content: ""; position: absolute; top: -4px; bottom: -4px; width: 4px; border-radius: 2px;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--surface); pointer-events: none; z-index: 1;
+}
+.slot.ins-before::before { left: -5px; }
+.slot.ins-after::before { right: -5px; }
+.grid-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.chip { height: 72px; border-radius: 12px; border: 1px solid var(--line); background: var(--slot-empty); display: flex; align-items: flex-start; padding: 8px; }
+.chip span { font: 500 13px/1 var(--font-mono); background: var(--surface); color: var(--ink); padding: 5px 7px; border-radius: 6px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+input[type="text"], textarea {
+  font: 400 14px/1.4 var(--font-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+#hex { width: 9.5em; text-transform: uppercase; }
+#swName { font-family: var(--font-body); font-size: 15px; width: 100%; }
+#fillCount { width: 4.2em; font: 500 14px/1 var(--font-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px; }
+#fillCount:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#swName:disabled { opacity: .5; }
+input[type="color"] { width: 44px; height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: var(--bg); cursor: pointer; }
+.slider { display: grid; grid-template-columns: 1.4em minmax(0, 1fr) 3.2em; gap: 10px; align-items: center; font: 500 13px var(--font-mono); font-variant-numeric: tabular-nums; }
+.slider output { text-align: right; color: var(--muted); }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; border-radius: 99px; border: 1px solid var(--line); background: var(--slot-empty); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); }
+input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink); }
+textarea { width: 100%; min-height: 70px; resize: vertical; }
+.hint { color: var(--muted); font-size: 13px; margin: 0; }
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 500; max-width: calc(100% - 32px);
+}
+.col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.picker-panel > .row:first-child { justify-content: space-between; }
+.stage { position: relative; border-radius: 12px; overflow: hidden; background: var(--bg); border: 1px solid var(--line); height: clamp(220px, 34vh, 340px); display: grid; place-items: center; }
+#imgView { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+#imgView.grabbing { cursor: grabbing; }
+.stage .empty-msg { color: var(--muted); font-size: 14px; padding: 24px; text-align: center; margin: 0; max-width: 46ch; }
+.zoom-bar { position: absolute; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+.zoom-bar button { padding: 6px 10px; border: none; }
+.zoom-bar span { font: 500 12px var(--font-mono); font-variant-numeric: tabular-nums; min-width: 4.5ch; text-align: center; color: var(--muted); }
+.loupe { position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink); pointer-events: none; transform: translate(-50%, -130%); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); cursor: pointer; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding-top: 14px; border-top: 1px solid var(--line); }
+.tool-group { display: flex; align-items: center; gap: 6px; }
+select { font: 500 14px/1 var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 8px; }
+select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg label { padding: 9px 12px; font: 600 14px/1 var(--font-body); cursor: pointer; color: var(--muted); background: var(--surface); }
+.seg label:has(input:checked) { background: var(--ink); color: var(--bg); }
+.seg label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.slot.multi { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+.slot.selected.multi { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.slot.locked::after {
+  content: ""; position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 7.5V5a3.5 3.5 0 0 1 7 0v2.5' fill='none' stroke='%23000' stroke-width='3.4'/%3E%3Cpath d='M4.5 7.5V5a3.5 3.5 0 0 1 7 0v2.5' fill='none' stroke='%23fff' stroke-width='1.8'/%3E%3Crect x='2.5' y='7' width='11' height='8.5' rx='1.6' fill='%23fff' stroke='%23000' stroke-width='1.1'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+.shades { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.shade { aspect-ratio: 1.6; max-width: 100%; padding: 0; border-radius: 6px; border: 1px solid var(--line); background: var(--slot-empty); }
+.shade.current { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink); }
+.shade:disabled { opacity: .5; cursor: default; }
+.chip-block { display: flex; flex-direction: column; gap: 6px; }
+.chip-block > .label { text-transform: none; letter-spacing: .01em; font-size: 12px; }
+.label.col-title { font-size: 14px; font-weight: 700; letter-spacing: .07em; color: var(--ink); }
+.lab-section { display: flex; flex-direction: column; gap: inherit; }
+.sec-body { display: flex; flex-direction: column; gap: inherit; }
+.sec-body[hidden] { display: none; }
+button.sec-toggle { display: flex; align-items: center; gap: 6px; padding: 0; line-height: 1; margin: 0; border: 0; background: none; color: var(--muted); text-align: left; cursor: pointer; width: 100%; }
+button.sec-toggle:hover { color: var(--ink); }
+/* a small chevron drawn with borders: points down when open, right when collapsed */
+.sec-toggle .caret { flex: none; width: 6px; height: 6px; margin: 0 3px 3px 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+.sec-toggle[aria-expanded="false"] .caret { transform: rotate(-45deg); margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .sec-toggle .caret { transition: none; } }
+.divider { border: 0; border-top: 1px solid var(--muted); opacity: .45; margin: 2px 0; width: 100%; }
+#hues .shade { aspect-ratio: auto; height: 100%; min-height: 14px; }
+#hues { grid-auto-rows: var(--chip-h, 34px); }
+#tones, #shades { grid-auto-rows: var(--chip-h, 34px); }
+#tones .shade, #shades .shade { aspect-ratio: auto; height: 100%; }
+.harmonies { display: flex; flex-direction: column; gap: 6px; }
+.harmony-wrap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.hwheel { position: relative; width: var(--wheel, 136px); aspect-ratio: 1; max-width: 100%; }
+.hring { position: absolute; inset: 0; border-radius: 50%; background: var(--slot-empty);
+  -webkit-mask: radial-gradient(closest-side, transparent 57%, #000 59%); mask: radial-gradient(closest-side, transparent 57%, #000 59%); }
+#hwheelSvg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; touch-action: none; }
+#hwheelSvg .spoke { stroke: var(--muted); stroke-width: .8; }
+#hwheelSvg .dot { stroke: var(--surface); stroke-width: 2; }
+#hwheelSvg .dot-ring { fill: none; stroke: var(--ink); stroke-width: 1; pointer-events: none; }
+#hwheelSvg .drag { cursor: grab; }
+#hwheelSvg .fixed { stroke-dasharray: 2 1.5; }
+#hwheelSvg .readout { fill: var(--ink); font: 600 11px var(--font-mono); text-anchor: middle; dominant-baseline: middle; }
+#hwheelSvg .readout-sub { fill: var(--muted); font: 500 7px var(--font-body); text-anchor: middle; dominant-baseline: middle; }
+.harmony-row { display: grid; grid-template-columns: 6.6em minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+button.hname { font: 500 13px/1.1 var(--font-body); color: var(--muted); background: none; border: 0; border-radius: 6px; padding: 3px 5px; text-align: left; margin-left: -5px; }
+button.hname:hover { color: var(--ink); }
+button.hname[aria-pressed="true"] { color: var(--ink); background: var(--slot-empty); font-weight: 700; }
+.hchips { display: flex; gap: 4px; min-width: 0; }
+.hchip { flex: 1; min-width: 0; height: 28px; padding: 0; border-radius: 6px; border: 1px solid var(--line); background: var(--slot-empty); }
+.hchip.base { box-shadow: inset 0 0 0 2px var(--surface); cursor: default; opacity: 1; }
+.hchip:disabled:not(.base) { opacity: .5; cursor: default; }
+.harmony-row button.add { padding: 6px 8px; font-size: 12px; }
+.hchip:not(.base):not(:disabled), .shade:not(:disabled) { cursor: grab; touch-action: none; }
+.drag-ghost {
+  position: fixed; z-index: 50; width: 40px; height: 40px; border-radius: 8px; pointer-events: none;
+  border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--ink); transform: translate(-50%, -50%);
+}
+body.color-dragging, body.color-dragging * { cursor: grabbing !important; user-select: none; }
+body.pv-grey .previewable { filter: grayscale(1); }
+body.pv-protan .previewable { filter: url(#cb-protan); }
+body.pv-deutan .previewable { filter: url(#cb-deutan); }
+body.pv-tritan .previewable { filter: url(#cb-tritan); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (prefers-reduced-motion: no-preference) { .slot { transition: box-shadow .12s; } }
+/* Desktop: everything on one screen */
+@media (min-width: 1200px) {
+  body { padding-block: 16px 16px; }
+  .wrap { max-width: 1640px; gap: 14px; }
+  header { align-items: center; }
+  h1 { font-size: 32px; }
+  .sub { margin-top: 4px; }
+  .actions-wrap { flex-direction: row; align-items: center; gap: 8px 20px; }
+  .bench { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
+  .col { gap: 14px; }
+  .col-image { grid-column: auto; }
+  .col-image .picker-panel { flex: 1; }
+  .col-image .stage { flex: 1; height: auto; min-height: 240px; }
+  .panel { padding: 16px; gap: 12px; }
+  .chip { height: 52px; }
+  :root { --chip-h: 26px; }
+  .harmonies { gap: 4px; }
+  .hchip { height: 24px; }
+  .shade { aspect-ratio: 2.2; }
+  textarea { min-height: 56px; }
+}
+/* Short desktop screens (laptops up to ~1080p under the browser bars): tighten further */
+@media (min-width: 1200px) and (max-height: 920px) {
+  body { padding-block: 10px 10px; }
+  .wrap, .bench, .col { gap: 10px; }
+  h1 { font-size: 26px; }
+  .sub { display: none; }
+  .panel { padding: 10px 14px; gap: 6px; }
+  .divider { margin: 0; }
+  .chip { height: 48px; padding: 6px; }
+  .hchip { height: 18px; }
+  .hwheel { --wheel: 104px; }
+  button.hname { font-size: 12px; padding: 1px 5px; }
+  .harmony-row button.add { padding-block: 3px; }
+  :root { --chip-h: 15px; }
+  /* chip rows: label beside the chips, short labels only */
+  .chip-block { display: grid; grid-template-columns: 5.4em minmax(0, 1fr); align-items: center; gap: 6px; }
+  .name-label { display: none; }
+  .harmonies { gap: 3px; }
+  .shade { aspect-ratio: 3.2; }
+  button, .btn, .seg label { padding-block: 8px; }
+  #paletteName { font-size: 19px; padding-bottom: 4px; }
+  textarea { min-height: 40px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Palette Bench</h1>
+      <p class="sub">Make and edit your own Procreate <code>.swatches</code> files on your Desktop.</p>
+    </div>
+    <div class="actions-wrap">
+      <div class="actions">
+        <button id="undoBtn" type="button" disabled title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button id="redoBtn" type="button" disabled title="Redo (Ctrl+Y)">↷ Redo</button>
+        <label class="btn" for="fileInput">Load from file</label>
+        <input type="file" id="fileInput" accept=".swatches,.zip" class="sr">
+        <button id="saveBtn" type="button" class="primary">Export .swatches</button>
+      </div>
+      <div class="actions">
+        <button id="newBtn" type="button" class="danger" disabled>Clear palette</button>
+        <label class="check"><input type="checkbox" id="clearConfirm"> Confirm</label>
+      </div>
+      <div class="actions">
+        <span class="label">Theme</span>
+        <div class="seg" role="radiogroup" aria-label="Light or dark interface">
+          <label title="Follow your system setting"><input type="radio" name="theme" value="auto" checked>Auto</label>
+          <label><input type="radio" name="theme" value="light">Light</label>
+          <label title="Mid-grey: judge colors without a bright or black surround"><input type="radio" name="theme" value="gray">Gray</label>
+          <label><input type="radio" name="theme" value="dark">Dark</label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="bench">
+    <div class="col">
+    <section class="panel" aria-label="Palette">
+      <div class="name-row">
+        <div class="row" style="justify-content:space-between">
+          <label class="label col-title" for="paletteName">Palette name</label>
+          <button id="exampleTag" type="button" class="example-tag" title="Load the 8-color starter palette (Undo brings yours back)">Example palette</button>
+        </div>
+        <input id="paletteName" type="text" maxlength="60" autocomplete="off">
+      </div>
+      <div id="grid" class="grid previewable" role="listbox" aria-multiselectable="true" aria-label="Swatches, 30 slots"></div>
+      <div class="grid-meta">
+        <span id="count">0 / 30 colors</span>
+        <span title="Shift-click or Ctrl-click to select several swatches. Right-click a swatch to delete it. Drag to move.">Shift/Ctrl-click to select · right-click to delete</span>
+      </div>
+      <div class="tools" role="toolbar" aria-label="Palette tools" title="Tools act on the whole palette, or only the selected slots when several are selected. Locked colors are never changed.">
+        <div class="tool-group">
+          <select id="sortBy" aria-label="Sort by">
+            <option value="hue">Hue</option>
+            <option value="brightness">Brightness</option>
+            <option value="saturation">Saturation</option>
+          </select>
+          <button id="sortBtn" type="button">Sort palette</button>
+        </div>
+        <button id="lockBtn" type="button">Lock</button>
+        <button id="blendBtn" type="button" disabled title="Select two or more slots first">Blend selected</button>
+        <div class="tool-group">
+          <span class="label">Drag</span>
+          <div class="seg" role="radiogroup" aria-label="When dragging a swatch">
+            <label title="Dropping on a swatch swaps the two"><input type="radio" name="dragMode" id="dragSwap" value="swap" checked>Swap</label>
+            <label title="A bar shows where the swatch will go; the rest shift along"><input type="radio" name="dragMode" id="dragInsert" value="insert">Insert</label>
+          </div>
+        </div>
+        <div class="tool-group">
+          <label class="label" for="previewMode">Preview</label>
+          <select id="previewMode">
+            <option value="">Normal</option>
+            <option value="grey">Greyscale</option>
+            <option value="protan" title="Protanopia">Red-blind</option>
+            <option value="deutan" title="Deuteranopia">Green-blind</option>
+            <option value="tritan" title="Tritanopia">Blue-blind</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="panel hex-panel" aria-label="Hex codes">
+      <div class="hex-body">
+        <label class="label col-title" for="pasteBox">Import/export palette hex codes</label>
+        <textarea id="pasteBox" spellcheck="false" placeholder="#F2C14E #F78154 #4D9078 …" title="Paste hex codes here, or export the palette to this box"></textarea>
+        <div class="row">
+          <button id="pasteBtn" type="button">Import from list</button>
+          <button id="copyBtn" type="button">Export to list</button>
+        </div>      </div>
+    </section>
+    </div>
+
+    <section class="panel" aria-label="Selected color">
+      <span class="label col-title">Color lab</span>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="label name-label" for="swName">Color name</label>
+        <input id="swName" type="text" maxlength="60" autocomplete="off" placeholder="Color name (optional)" title="Leave blank and Procreate suggests a name">
+      </div>
+      <div id="chip" class="chip previewable"><span id="chipText">Empty</span></div>
+      <hr class="divider">
+      <div class="lab-section" data-sec="finetune">
+        <button type="button" class="sec-toggle label" aria-expanded="true" aria-controls="sec-finetune" title="Color picker, hex code and H/S/B sliders."><span class="caret" aria-hidden="true"></span>Fine-tune</button>
+        <div class="sec-body" id="sec-finetune">
+        <div class="row">
+          <input id="picker" type="color" aria-label="Color picker">
+          <input id="hex" type="text" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex code">
+          <button id="clearBtn" type="button" class="danger">Clear slot</button>
+        </div>
+        <label class="slider"><span>H</span><input id="h" type="range" min="0" max="360" step="1"><output id="hOut">0°</output></label>
+        <label class="slider"><span>S</span><input id="s" type="range" min="0" max="100" step="1"><output id="sOut">0%</output></label>
+        <label class="slider"><span>B</span><input id="b" type="range" min="0" max="100" step="1"><output id="bOut">0%</output></label>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="lab-section" data-sec="variations">
+        <button type="button" class="sec-toggle label" aria-expanded="true" aria-controls="sec-variations" title="Steps of hue, tone and shade from this color."><span class="caret" aria-hidden="true"></span>Variations</button>
+        <div class="sec-body" id="sec-variations">
+        <div class="chip-block">
+          <span class="label" title="Hue in 30° steps. Click to use, or drag onto a slot.">Degrees</span>
+          <div id="hues" class="shades previewable"></div>
+        </div>
+        <div class="chip-block">
+          <span class="label" title="Grey to full color.">Tones</span>
+          <div id="tones" class="shades previewable"></div>
+        </div>
+        <div class="chip-block">
+          <span class="label" title="Darker to lighter.">Shades</span>
+          <div id="shades" class="shades previewable"></div>
+        </div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="lab-section" data-sec="harmonies">
+        <button type="button" class="sec-toggle label" aria-expanded="true" aria-controls="sec-harmonies" title="Drag the wheel dots to change angles. Click a color to add it."><span class="caret" aria-hidden="true"></span>Harmonies</button>
+        <div class="sec-body" id="sec-harmonies">
+          <div class="harmony-wrap">
+            <div class="hwheel previewable" id="hwheel">
+              <div class="hring" id="hring"></div>
+              <svg id="hwheelSvg" viewBox="0 0 100 100" role="img" aria-label="Harmony wheel: drag the dots to change the angle"></svg>
+            </div>
+            <div id="harmonies" class="harmonies previewable"></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <div class="col col-image">
+    <section class="panel picker-panel" aria-label="Pick colors from an image">
+      <div class="row">
+        <span class="label col-title">Color picker</span>
+        <div class="row">
+          <label class="btn" for="imgInput">Choose image</label>
+          <button id="clearImgBtn" type="button" hidden>Clear image</button>
+          <input type="file" id="imgInput" accept="image/*" class="sr">
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <canvas id="imgView" hidden></canvas>
+        <div id="loupe" class="loupe" hidden></div>
+        <p class="empty-msg" id="imgEmpty">Drop, paste or choose an image.<br>Click to pick · drag to move · scroll to zoom</p>
+        <div class="zoom-bar" id="zoomBar" hidden>
+          <button id="zoomOut" type="button" aria-label="Zoom out">−</button>
+          <span id="zoomLevel">100%</span>
+          <button id="zoomIn" type="button" aria-label="Zoom in">+</button>
+          <button id="zoomFit" type="button">Fit</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="tool-group">
+          <select id="mood" aria-label="Mood for filling from the image">
+            <option value="balanced">Balanced</option>
+            <option value="colorful">Colorful</option>
+            <option value="bright">Bright</option>
+            <option value="muted">Muted</option>
+            <option value="deep">Deep</option>
+            <option value="dark">Dark</option>
+          </select>
+          <button id="fillImgBtn" type="button" disabled>Fill palette from image</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="tool-group">
+          <span class="label">Colors</span>
+          <div class="seg" role="radiogroup" aria-label="How many colors to make">
+            <label title="Row 1"><input type="radio" name="fillPreset" value="10">10</label>
+            <label title="Rows 1–2"><input type="radio" name="fillPreset" value="20">20</label>
+            <label title="All 3 rows"><input type="radio" name="fillPreset" value="30" checked>30</label>
+          </div>
+          <input id="fillCount" type="number" min="1" max="30" value="30" aria-label="Number of colors, 1 to 30">
+        </div>
+        <label class="check" title="After picking a color from the image, move on to the next slot"><input type="checkbox" id="autoNext" checked> Auto-advance</label>
+      </div>
+    </section>
+    </div>
+  </div>
+
+</div>
+<div id="toast" class="toast" hidden></div>
+<!-- Color-vision simulations (Machado et al. 2009, full severity) used by the Preview menu -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="cb-protan"><feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/></filter>
+  <filter id="cb-deutan"><feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"/></filter>
+  <filter id="cb-tritan"><feColorMatrix type="matrix" values="1.255528 -0.076749 -0.178779 0 0  -0.078411 0.930809 0.147602 0 0  0.004733 0.691367 0.303900 0 0  0 0 0 1 0"/></filter>
+</svg>
+
+<script>
+const SLOTS = 30;
+const $ = id => document.getElementById(id);
+
+// ---- color maths (Procreate stores HSB, each 0–1) ----
+function hsbToRgb(h, s, v) {
+  const i = Math.floor(h * 6), f = h * 6 - i;
+  const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  const [r, g, b] = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][((i % 6) + 6) % 6];
+  return [r, g, b].map(x => Math.round(x * 255));
+}
+function rgbToHsb(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  let h = 0;
+  if (d) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6; if (h < 0) h += 1;
+  }
+  return { hue: h, saturation: max ? d / max : 0, brightness: max };
+}
+const toHex = sw => '#' + hsbToRgb(sw.hue, sw.saturation, sw.brightness).map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+function parseHex(str) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(str.trim());
+  if (!m) return null;
+  let h = m[1]; if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16));
+}
+const fromHex = hex => { const rgb = parseHex(hex); return rgb ? { ...rgbToHsb(...rgb), alpha: 1, colorSpace: 0 } : null; };
+const fromRgb = rgb => ({ ...rgbToHsb(...rgb), alpha: 1, colorSpace: 0 });
+const swRgb = sw => hsbToRgb(sw.hue, sw.saturation, sw.brightness);
+
+// OKLab: a color space where equal steps look equal, used for blends, shades and image fills
+function rgbToOklab([r, g, b]) {
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  r = lin(r); g = lin(g); b = lin(b);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+          1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+          0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s];
+}
+function oklabToRgb([L, A, B]) {
+  const l = (L + 0.3963377774 * A + 0.2158037573 * B) ** 3;
+  const m = (L - 0.1055613458 * A - 0.0638541728 * B) ** 3;
+  const s = (L - 0.0894841775 * A - 1.2914855480 * B) ** 3;
+  const out = c => { c = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(Math.max(c, 0), 1 / 2.4) - 0.055; return Math.round(Math.min(1, Math.max(0, c)) * 255); };
+  return [out(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+          out(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+          out(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)];
+}
+const labDist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+
+// ---- state ----
+let fileWrapper = null;   // the full parsed Swatches.json (kept so unknown fields survive a save)
+let paletteIndex = 0;
+let paletteExtra = {};    // other keys on the palette object we don't edit
+let name = '';
+let swatches = new Array(SLOTS).fill(null);
+let selected = 0;
+let isExample = true;
+// Key used for per-swatch names. Unconfirmed guess for Procreate; replaced by
+// whatever text key an opened file already uses for its swatches.
+const KNOWN_KEYS = ['hue', 'saturation', 'brightness', 'alpha', 'colorSpace'];
+let nameKey = 'name';
+const swName = sw => (sw && typeof sw[nameKey] === 'string') ? sw[nameKey] : '';
+// Multi-select: `selected` is the slot shown in the editor; `multi` holds extra
+// selected slots (empty when only one slot is selected).
+let multi = new Set(), anchor = 0;
+const selection = () => multi.size > 1 ? [...multi].sort((a, b) => a - b) : [selected];
+// Locks live on the swatch (as _locked) so they travel with it and undo; stripped on export.
+const isLocked = i => !!swatches[i]?._locked;
+
+function loadExample() {
+  // cyan, magenta, yellow, black, red, green, blue, white
+  const hexes = ['#00FFFF','#FF00FF','#FFFF00','#000000','#FF0000','#00FF00','#0000FF','#FFFFFF'];
+  fileWrapper = null; paletteIndex = 0; paletteExtra = {};
+  name = 'Untitled';
+  swatches = new Array(SLOTS).fill(null);
+  hexes.forEach((h, i) => swatches[i] = fromHex(h));
+  selected = 0; isExample = true;
+  render();
+}
+
+// ---- rendering ----
+const grid = $('grid');
+for (let i = 0; i < SLOTS; i++) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'slot'; b.dataset.i = i; b.draggable = true;
+  b.setAttribute('role', 'option');
+  b.addEventListener('click', e => clickSlot(i, e));
+  // right-click deletes this swatch (undo brings it back)
+  b.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    if (!swatches[i]) return;
+    if (isLocked(i)) { toast(`Slot ${i + 1} is locked. Unlock it to delete it.`); return; }
+    swatches[i] = null; isExample = false; render();
+  });
+  b.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/x-slot', String(i)); e.dataTransfer.effectAllowed = 'move';
+    b.classList.add('dragging');
+  });
+  b.addEventListener('dragend', () => { b.classList.remove('dragging'); clearDropMarks(); });
+  b.addEventListener('dragover', e => {
+    if (!e.dataTransfer.types.includes('text/x-slot')) return;
+    e.preventDefault();
+    clearDropMarks();
+    if ($('dragInsert').checked) {
+      // left half of a swatch = insert before it, right half = after it
+      const r = b.getBoundingClientRect();
+      b.classList.add(e.clientX < r.left + r.width / 2 ? 'ins-before' : 'ins-after');
+    } else b.classList.add('drop');
+  });
+  b.addEventListener('dragleave', () => b.classList.remove('drop', 'ins-before', 'ins-after'));
+  b.addEventListener('drop', e => {
+    const after = b.classList.contains('ins-after');
+    clearDropMarks();
+    const from = Number(e.dataTransfer.getData('text/x-slot'));
+    if (Number.isNaN(from)) return;
+    e.preventDefault(); e.stopPropagation();
+    if ($('dragInsert').checked) {
+      // the gap the bar showed, then allow for the dragged swatch leaving its old place
+      const gap = i + (after ? 1 : 0);
+      const to = gap > from ? gap - 1 : gap;
+      if (to !== from) moveSlot(from, to, true);
+    } else if (from !== i) moveSlot(from, i, false);
+  });
+  grid.appendChild(b);
+}
+
+function clearDropMarks() {
+  grid.querySelectorAll('.drop, .ins-before, .ins-after').forEach(el => el.classList.remove('drop', 'ins-before', 'ins-after'));
+}
+
+function clickSlot(i, e) {
+  if (e.shiftKey) {
+    multi = new Set();
+    for (let k = Math.min(anchor, i); k <= Math.max(anchor, i); k++) multi.add(k);
+  } else if (e.ctrlKey || e.metaKey) {
+    if (!multi.size) multi.add(selected);
+    if (multi.has(i) && multi.size > 1) multi.delete(i); else multi.add(i);
+    anchor = i;
+  } else {
+    multi = new Set(); anchor = i;
+  }
+  selected = multi.size && !multi.has(i) ? [...multi][0] : i;
+  if (multi.size < 2) multi = new Set();
+  render();
+}
+
+function render() {
+  $('paletteName').value = name;
+  [...grid.children].forEach((el, i) => {
+    const sw = swatches[i];
+    el.classList.toggle('empty', !sw);
+    el.classList.toggle('selected', i === selected);
+    el.classList.toggle('multi', multi.has(i));
+    el.classList.toggle('locked', isLocked(i));
+    el.setAttribute('aria-selected', i === selected || multi.has(i));
+    el.style.background = sw ? toHex(sw) : '';
+    el.setAttribute('aria-label', `Slot ${i + 1}: ${sw ? [swName(sw), toHex(sw)].filter(Boolean).join(', ') : 'empty'}`);
+    el.title = sw ? [swName(sw), toHex(sw)].filter(Boolean).join(' · ') : '';
+  });
+  $('count').textContent = `${swatches.filter(Boolean).length} / ${SLOTS} colors`;
+  const many = multi.size > 1, sel = selection();
+  $('sortBtn').textContent = many ? `Sort ${sel.length} selected` : 'Sort palette';
+  $('blendBtn').disabled = !many;
+  const filled = sel.filter(i => swatches[i]);
+  $('lockBtn').textContent = filled.length && filled.every(isLocked) ? (many ? 'Unlock selected' : 'Unlock') : (many ? 'Lock selected' : 'Lock');
+  $('lockBtn').disabled = !filled.length;
+  scheduleCommit();
+  renderEditor();
+}
+
+// Seven steps from darker to lighter around a color, keeping its hue (in OKLab).
+function shadesOf(sw) {
+  const [L, A, B] = rgbToOklab(swRgb(sw));
+  return [-3, -2, -1, 0, 1, 2, 3].map(k => {
+    if (!k) return swRgb(sw);
+    const t = Math.abs(k) / 4;
+    // darker: lower lightness; lighter: raise lightness and ease off the color so it stays printable
+    return k < 0 ? oklabToRgb([L * (1 - t * 0.85), A * (1 - t * 0.3), B * (1 - t * 0.3)])
+                 : oklabToRgb([L + (1 - L) * t * 0.9, A * (1 - t * 0.7), B * (1 - t * 0.7)]);
+  });
+}
+// Drag a color chip (shade or harmony) onto a palette slot. Uses pointer events so it
+// works with mouse, pen and touch. A press without moving still counts as a click.
+function makeColorDraggable(btn, getRgb) {
+  let start = null, ghost = null, over = null, justDragged = false;
+  const setOver = el => { if (over === el) return; over?.classList.remove('drop'); over = el; over?.classList.add('drop'); };
+  const finish = () => { ghost?.remove(); ghost = null; setOver(null); start = null; document.body.classList.remove('color-dragging'); };
+  btn.addEventListener('pointerdown', e => {
+    if (btn.disabled || e.button > 0) return;
+    start = { x: e.clientX, y: e.clientY };
+    btn.setPointerCapture(e.pointerId);
+  });
+  btn.addEventListener('pointermove', e => {
+    if (!start) return;
+    if (!ghost) {
+      if (Math.hypot(e.clientX - start.x, e.clientY - start.y) < 5) return;
+      ghost = document.createElement('div'); ghost.className = 'drag-ghost';
+      ghost.style.background = `rgb(${getRgb().join(',')})`;
+      document.body.appendChild(ghost); document.body.classList.add('color-dragging');
+    }
+    ghost.style.left = e.clientX + 'px'; ghost.style.top = e.clientY + 'px';
+    setOver(document.elementFromPoint(e.clientX, e.clientY)?.closest('.slot') || null);
+  });
+  btn.addEventListener('pointerup', () => {
+    if (ghost) {
+      justDragged = true;
+      if (over) dropColor(Number(over.dataset.i), getRgb());
+    }
+    finish();
+  });
+  btn.addEventListener('pointercancel', finish);
+  // swallow the click that follows a drag, so a drop isn't also treated as a click
+  btn.addEventListener('click', e => { if (justDragged) { justDragged = false; e.stopImmediatePropagation(); } });
+}
+function dropColor(i, rgb) {
+  if (isLocked(i)) { toast(`Slot ${i + 1} is locked. Unlock it to change it.`); return; }
+  // the selection stays put, so the shades and harmonies don't jump to the dropped color
+  swatches[i] = fromRgb(rgb);
+  isExample = false; render();
+}
+
+// Seven steps from neutral grey to the full color, at the same lightness (in OKLab).
+function tonesOf(sw) {
+  const [L, A, B] = rgbToOklab(swRgb(sw));
+  return [0, 1, 2, 3, 4, 5, 6].map(k => k === 6 ? swRgb(sw) : oklabToRgb([L, A * k / 6, B * k / 6]));
+}
+// The selected color's hue turned in 30° steps: itself first, then 11 more around the wheel.
+const huesOf = sw => [...Array(12).keys()].map(k => k ? hsbToRgb((sw.hue + k / 12) % 1, sw.saturation, sw.brightness) : swRgb(sw));
+// a row of clickable, draggable chips; `current` marks the selected color's own chip
+function buildChipRow(box, current, count = 7) {
+  box.style.gridTemplateColumns = `repeat(${count}, minmax(0, 1fr))`;
+  for (let k = 0; k < count; k++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'shade' + (k === current ? ' current' : '');
+    makeColorDraggable(b, () => b.dataset.rgb.split(',').map(Number));
+    b.addEventListener('click', () => { if (b.dataset.rgb) setSelected(rgbToHsb(...b.dataset.rgb.split(',').map(Number))); });
+    box.appendChild(b);
+  }
+}
+function fillChipRow(box, sw, cols, current) {
+  [...box.children].forEach((b, k) => {
+    b.disabled = !sw;
+    b.dataset.rgb = sw ? cols[k].join(',') : '';
+    b.style.background = sw ? `rgb(${cols[k].join(',')})` : '';
+    const hx = sw ? '#' + cols[k].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase() : '';
+    b.title = sw ? (k === current ? `Current color ${hx}` : `Use ${hx}`) : '';
+    b.setAttribute('aria-label', b.title || 'No color selected');
+  });
+}
+const shadeBox = $('shades'), toneBox = $('tones'), hueBox = $('hues');
+buildChipRow(hueBox, 0, 12);
+buildChipRow(toneBox, 6);
+buildChipRow(shadeBox, 3);
+
+// Color-wheel harmonies: hue turns (in degrees) from the selected color, same saturation and brightness.
+// Split, analogous and square/rectangle have an adjustable angle, set by dragging dots on the wheel.
+const harmonyAngles = { split: 30, analog: 30, square: 90 };
+try { Object.assign(harmonyAngles, JSON.parse(localStorage.getItem('pb-harmony-angles') || '{}')); } catch {}
+const HARMONIES = [
+  { key: 'comp',   label: 'Complement',     full: 'Complementary',                 turns: () => [180] },
+  { key: 'split',  label: 'Split comp.',    full: 'Split complementary',           turns: () => [180 - harmonyAngles.split, 180 + harmonyAngles.split] },
+  { key: 'analog', label: 'Analogous',      full: 'Analogous',                     turns: () => [-harmonyAngles.analog, harmonyAngles.analog] },
+  { key: 'triad',  label: 'Triadic',        full: 'Triadic',                       turns: () => [120, 240] },
+  { key: 'square', label: 'Square / rect.', full: 'Square / rectangle (tetradic)', turns: () => [harmonyAngles.square, 180, 180 + harmonyAngles.square] }
+];
+let activeHarmony = 'analog';
+const harmonyColors = (sw, turns) => turns.map(t => ({ hue: ((sw.hue + t / 360) % 1 + 1) % 1, saturation: sw.saturation, brightness: sw.brightness }));
+// put colors into the first empty, unlocked slots; returns the slot numbers used
+function addToEmpty(cols) {
+  const used = [];
+  for (const c of cols) {
+    const i = swatches.findIndex((s, k) => !s && !used.includes(k));
+    if (i < 0) break;
+    swatches[i] = { ...c, alpha: 1, colorSpace: 0 };
+    used.push(i);
+  }
+  isExample = false; render();
+  if (!used.length) toast('The palette is full. Clear a slot to add more.');
+  else toast(`Added to slot${used.length > 1 ? 's' : ''} ${used.map(i => i + 1).join(', ')}` + (used.length < cols.length ? `. ${cols.length - used.length} didn't fit.` : '.'));
+}
+const harmonyBox = $('harmonies');
+HARMONIES.forEach(h => {
+  const row = document.createElement('div'); row.className = 'harmony-row';
+  const nm = document.createElement('button'); nm.type = 'button'; nm.className = 'hname'; nm.textContent = h.label;
+  nm.title = `${h.full}: show on the wheel`;
+  nm.setAttribute('aria-pressed', h.key === activeHarmony);
+  nm.addEventListener('click', () => { activeHarmony = h.key; renderEditor(); });
+  const chips = document.createElement('div'); chips.className = 'hchips';
+  for (let k = 0; k <= h.turns().length; k++) {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'hchip' + (k ? '' : ' base');
+    if (k) makeColorDraggable(b, () => parseHex(b.dataset.hex));
+    if (k) b.addEventListener('click', () => { const sw = swatches[selected]; if (sw) addToEmpty([harmonyColors(sw, [h.turns()[k - 1]])[0]]); });
+    else b.disabled = true;
+    chips.appendChild(b);
+  }
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'add'; add.textContent = 'Add all';
+  add.setAttribute('aria-label', `Add all ${h.full.toLowerCase()} colors`);
+  add.addEventListener('click', () => { const sw = swatches[selected]; if (sw) addToEmpty(harmonyColors(sw, h.turns())); });
+  row.append(nm, chips, add);
+  harmonyBox.appendChild(row);
+});
+
+// ---- harmony wheel ----
+// Hue 0 at the top, going clockwise (the same way CSS conic gradients run).
+const wheelSvg = $('hwheelSvg'), SVGNS = 'http://www.w3.org/2000/svg';
+const DOT_R = 40;   // radius of the dot track, in the 100x100 viewBox
+const polar = deg => [50 + DOT_R * Math.sin(deg * Math.PI / 180), 50 - DOT_R * Math.cos(deg * Math.PI / 180)];
+const svgEl = (tag, attrs) => { const el = document.createElementNS(SVGNS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); return el; };
+function renderWheel(sw) {
+  const view = sw || { hue: 0, saturation: 0, brightness: 0.6 };
+  const stops = [...Array(13).keys()].map(k => `rgb(${hsbToRgb((k % 12) / 12, Math.max(view.saturation, .35), Math.max(view.brightness, .45)).join(',')})`);
+  $('hring').style.background = sw ? `conic-gradient(${stops.join(',')})` : '';
+  wheelSvg.replaceChildren();
+  if (!sw) return;
+  const h = HARMONIES.find(x => x.key === activeHarmony), turns = h.turns(), base = sw.hue * 360;
+  const adjustable = h.key === 'split' || h.key === 'analog' || h.key === 'square';
+  const pts = [{ k: -1, deg: base, col: sw }, ...turns.map((t, k) => ({ k, deg: base + t, col: harmonyColors(sw, [t])[0] }))];
+  pts.forEach(pt => { const [x, y] = polar(pt.deg); wheelSvg.append(svgEl('line', { class: 'spoke', x1: 50, y1: 50, x2: x, y2: y })); });
+  pts.forEach(pt => {
+    const [x, y] = polar(pt.deg);
+    const fixed = pt.k >= 0 && (!adjustable || (h.key === 'square' && pt.k === 1));
+    const c = svgEl('circle', { cx: x, cy: y, r: pt.k < 0 ? 7.5 : 6, fill: toHex(pt.col), class: 'dot' + (fixed ? ' fixed' : ' drag'), 'data-k': pt.k });
+    const title = svgEl('title', {});
+    title.textContent = pt.k < 0 ? 'Your color: drag to turn its hue' : fixed ? 'Fixed by this harmony' : 'Drag to change the angle';
+    c.append(title);
+    wheelSvg.append(c);
+    if (pt.k < 0) wheelSvg.append(svgEl('circle', { cx: x, cy: y, r: 9.5, class: 'dot-ring' }));
+  });
+  const txt = h.key === 'split' ? `±${harmonyAngles.split}°` : h.key === 'analog' ? `±${harmonyAngles.analog}°`
+    : h.key === 'square' ? `${harmonyAngles.square}°` : h.key === 'comp' ? '180°' : '120°';
+  const read = svgEl('text', { x: 50, y: 47, class: 'readout' }); read.textContent = txt;
+  const sub = svgEl('text', { x: 50, y: 58, class: 'readout-sub' }); sub.textContent = h.label.replace(' / rect.', '');
+  wheelSvg.append(read, sub);
+}
+// dragging: which dot (-1 = the base color), and the angle under the pointer
+let wheelDrag = null;
+const pointerDeg = e => {
+  const r = wheelSvg.getBoundingClientRect();
+  return (Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))) * 180 / Math.PI + 360) % 360;
+};
+wheelSvg.addEventListener('pointerdown', e => {
+  const dot = e.target.closest('.drag');
+  if (!dot || !swatches[selected]) return;
+  wheelDrag = Number(dot.dataset.k);
+  wheelSvg.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+wheelSvg.addEventListener('pointermove', e => {
+  if (wheelDrag === null) return;
+  const sw = swatches[selected]; if (!sw) return;
+  const deg = pointerDeg(e);
+  if (wheelDrag < 0) { setSelected({ hue: deg / 360 }); return; }   // turning the base color itself (refused if locked)
+  const rel = (deg - sw.hue * 360 + 360) % 360;                       // 0..360 from the base color
+  const signed = rel > 180 ? rel - 360 : rel;                           // -180..180
+  const clamp = (v, lo, hi) => Math.round(Math.min(hi, Math.max(lo, v)));
+  if (activeHarmony === 'split') harmonyAngles.split = clamp(wheelDrag === 0 ? 180 - rel : rel - 180, 5, 90);
+  else if (activeHarmony === 'analog') harmonyAngles.analog = clamp(wheelDrag === 0 ? -signed : signed, 5, 90);
+  else if (activeHarmony === 'square') harmonyAngles.square = clamp(wheelDrag === 0 ? rel : (rel - 180 + 360) % 360, 10, 170);
+  renderEditor();
+});
+const endWheelDrag = () => {
+  if (wheelDrag === null) return;
+  wheelDrag = null;
+  try { localStorage.setItem('pb-harmony-angles', JSON.stringify(harmonyAngles)); } catch {}
+};
+wheelSvg.addEventListener('pointerup', endWheelDrag);
+wheelSvg.addEventListener('pointercancel', endWheelDrag);
+
+function renderEditor() {
+  const sw = swatches[selected];
+  [...harmonyBox.children].forEach((row, r) => {
+    const turns = HARMONIES[r].turns(), cols = sw ? [sw, ...harmonyColors(sw, turns)] : [];
+    row.querySelector('.hname').setAttribute('aria-pressed', HARMONIES[r].key === activeHarmony);
+    [...row.querySelector('.hchips').children].forEach((b, k) => {
+      const hx = sw ? toHex(cols[k]) : '';
+      b.style.background = hx;
+      b.dataset.hex = hx;
+      if (k) b.disabled = !sw;
+      b.title = !sw ? '' : k ? `Add ${hx}` : `Selected color ${hx}`;
+      b.setAttribute('aria-label', b.title || 'No color selected');
+    });
+    row.querySelector('.add').disabled = !sw;
+  });
+  renderWheel(sw);
+  fillChipRow(hueBox, sw, sw && huesOf(sw), 0);
+  fillChipRow(shadeBox, sw, sw && shadesOf(sw), 3);
+  fillChipRow(toneBox, sw, sw && tonesOf(sw), 6);
+  $('clearBtn').disabled = !sw;
+  const view = sw || { hue: 0, saturation: 0, brightness: 0.5 };
+  const hex = sw ? toHex(sw) : '';
+  $('chip').style.background = sw ? hex : '';
+  $('chipText').textContent = sw ? [swName(sw), hex].filter(Boolean).join(' · ') : 'Empty slot · pick a color to fill it';
+  $('swName').disabled = !sw;
+  // a locked color can't be edited here (its name still can)
+  ['picker', 'hex', 'h', 's', 'b'].forEach(id => { $(id).disabled = isLocked(selected); });
+  if (document.activeElement !== $('swName')) $('swName').value = swName(sw);
+  $('picker').value = sw ? hex.toLowerCase() : '#808080';
+  if (document.activeElement !== $('hex')) $('hex').value = hex;
+  $('h').value = Math.round(view.hue * 360);
+  $('s').value = Math.round(view.saturation * 100);
+  $('b').value = Math.round(view.brightness * 100);
+  $('hOut').textContent = $('h').value + '°';
+  $('sOut').textContent = $('s').value + '%';
+  $('bOut').textContent = $('b').value + '%';
+  // slider tracks show what each slider would do
+  const H = view.hue, S = view.saturation, B = view.brightness;
+  const rgb = (h, s, b) => `rgb(${hsbToRgb(h, s, b).join(',')})`;
+  $('h').style.background = `linear-gradient(to right, ${[0,1,2,3,4,5,6].map(k => rgb(k / 6 % 1, Math.max(S, .15), Math.max(B, .3))).join(',')})`;
+  $('s').style.background = `linear-gradient(to right, ${rgb(H, 0, B)}, ${rgb(H, 1, B)})`;
+  $('b').style.background = `linear-gradient(to right, #000, ${rgb(H, S, 1)})`;
+}
+
+// Change the selected slot's color. Refuses (and returns false) when the slot is locked.
+function setSelected(sw) {
+  if (isLocked(selected)) {
+    toast(`Slot ${selected + 1} is locked. Unlock it to change its color.`);
+    renderEditor();
+    return false;
+  }
+  const old = swatches[selected] || {};
+  swatches[selected] = { ...old, alpha: old.alpha ?? 1, colorSpace: old.colorSpace ?? 0, ...sw };
+  isExample = false;
+  render();
+  return true;
+}
+
+function moveSlot(from, to, insert = $('dragInsert').checked) {
+  if (insert) {
+    // take it out and slot it in, shifting the colors in between along by one
+    const [item] = swatches.splice(from, 1);
+    swatches.splice(to, 0, item);
+  } else {
+    const tmp = swatches[to]; swatches[to] = swatches[from]; swatches[from] = tmp;
+  }
+  multi = new Set(); selected = anchor = to; render();
+}
+
+// clear the selected slots, leaving locked ones alone
+function clearSelection() {
+  const sel = selection(), skipped = sel.filter(isLocked).length;
+  sel.forEach(i => { if (!isLocked(i)) swatches[i] = null; });
+  render();
+  if (skipped) toast(`${skipped} locked color${skipped === 1 ? ' was' : 's were'} kept. Unlock to clear.`);
+}
+
+// ---- palette tools ----
+const GREY = 0.08;   // below this saturation a color counts as grey for hue sorting
+const sortKeys = {
+  // greys have no real hue, so they go after the colors, dark to light
+  hue: sw => sw.saturation < GREY || sw.brightness < 0.06 ? 2 + sw.brightness : sw.hue,
+  brightness: sw => rgbToOklab(swRgb(sw))[0],
+  saturation: sw => sw.saturation
+};
+$('sortBtn').addEventListener('click', () => {
+  const slots = (multi.size > 1 ? selection() : [...Array(SLOTS).keys()]).filter(i => !isLocked(i));
+  const key = sortKeys[$('sortBy').value];
+  const cols = slots.map(i => swatches[i]).filter(Boolean).sort((a, b) => key(a) - key(b));
+  commitNow();
+  slots.forEach((i, k) => { swatches[i] = cols[k] || null; });
+  isExample = false; render(); commitNow();
+  toast(`Sorted by ${$('sortBy').selectedOptions[0].text.toLowerCase()}. Undo puts it back.`);
+});
+$('lockBtn').addEventListener('click', () => {
+  const filled = selection().filter(i => swatches[i]);
+  const lock = !filled.every(isLocked);
+  filled.forEach(i => { if (lock) swatches[i]._locked = true; else delete swatches[i]._locked; });
+  render();
+});
+$('blendBtn').addEventListener('click', () => {
+  const sel = selection(), a = sel[0], b = sel[sel.length - 1];
+  if (!swatches[a] || !swatches[b]) { toast('Blend needs a color in the first and last selected slots.'); return; }
+  const la = rgbToOklab(swRgb(swatches[a])), lb = rgbToOklab(swRgb(swatches[b]));
+  commitNow();
+  for (let k = a + 1; k < b; k++) {
+    if (isLocked(k)) continue;
+    const t = (k - a) / (b - a);
+    swatches[k] = fromRgb(oklabToRgb(la.map((v, j) => v + (lb[j] - v) * t)));
+  }
+  isExample = false; render(); commitNow();
+  toast(`Blended slots ${a + 1} to ${b + 1}.`);
+});
+$('previewMode').addEventListener('change', e => {
+  document.body.classList.remove('pv-grey', 'pv-protan', 'pv-deutan', 'pv-tritan');
+  if (e.target.value) {
+    document.body.classList.add('pv-' + e.target.value);
+    toast('Preview only. Your colors and exported file are unchanged.');
+  }
+});
+
+// ---- editor events ----
+$('picker').addEventListener('input', e => setSelected(rgbToHsb(...parseHex(e.target.value))));
+$('hex').addEventListener('input', e => { const rgb = parseHex(e.target.value); if (rgb) setSelected(rgbToHsb(...rgb)); });
+$('hex').addEventListener('blur', renderEditor);
+['h', 's', 'b'].forEach(id => $(id).addEventListener('input', () => setSelected({
+  hue: (Number($('h').value) % 360) / 360, saturation: $('s').value / 100, brightness: $('b').value / 100
+})));
+$('swName').addEventListener('input', e => {
+  const sw = swatches[selected]; if (!sw) return;
+  if (e.target.value.trim()) sw[nameKey] = e.target.value; else delete sw[nameKey];
+  isExample = false; render();
+});
+$('swName').addEventListener('blur', renderEditor);
+$('clearBtn').addEventListener('click', clearSelection);
+$('paletteName').addEventListener('input', e => { name = e.target.value; isExample = false; scheduleCommit(); });
+$('exampleTag').addEventListener('click', () => {
+  commitNow();
+  multi = new Set(); anchor = 0;
+  loadExample(); commitNow();
+  toast('Loaded the example palette. Undo brings back yours.');
+});
+grid.addEventListener('keydown', e => {
+  const cols = 10; let n = selected;
+  if (e.key === 'ArrowRight') n++; else if (e.key === 'ArrowLeft') n--;
+  else if (e.key === 'ArrowDown') n += cols; else if (e.key === 'ArrowUp') n -= cols;
+  else if (e.key === 'Delete' || e.key === 'Backspace') { clearSelection(); e.preventDefault(); return; }
+  else return;
+  e.preventDefault();
+  multi = new Set();
+  selected = anchor = Math.min(SLOTS - 1, Math.max(0, n)); render(); grid.children[selected].focus();
+});
+$('pasteBtn').addEventListener('click', () => {
+  const found = $('pasteBox').value.match(/#?\b[0-9a-f]{6}\b|#[0-9a-f]{3}\b/gi) || [];
+  if (!found.length) { toast('No hex codes found. Use codes like #F2C14E.'); return; }
+  commitNow();
+  const used = fillUnlocked(found.map(fromHex).filter(Boolean));
+  isExample = false; render(); commitNow();
+  toast(`Palette filled with ${used} color${used === 1 ? '' : 's'}` + (used < found.length ? ` (${found.length - used} didn't fit)` : '') + '. Undo brings back the old one.');
+});
+// Put colors into the unlocked slots in order; unlocked slots left over are emptied.
+// Returns how many colors were placed.
+function fillUnlocked(cols, slots = [...Array(SLOTS).keys()]) {
+  let k = 0;
+  for (const i of slots) {
+    if (isLocked(i)) continue;
+    swatches[i] = k < cols.length ? cols[k++] : null;
+  }
+  multi = new Set(); selected = anchor = 0;
+  return k;
+}
+$('copyBtn').addEventListener('click', () => {
+  const text = swatches.filter(Boolean).map(toHex).join(' ');
+  if (!text) { toast('The palette is empty, so there is nothing to copy.'); return; }
+  const box = $('pasteBox');
+  box.value = text;
+  const n = swatches.filter(Boolean).length;
+  const selectBox = () => { box.focus(); box.select(); toast('Hex codes are selected in the box. Press Ctrl+C to copy.'); };
+  try {
+    navigator.clipboard.writeText(text)
+      .then(() => toast(`Copied ${n} hex code${n === 1 ? '' : 's'}. They're in the box too.`))
+      .catch(selectBox);
+  } catch { selectBox(); }
+});
+$('clearConfirm').addEventListener('change', e => { $('newBtn').disabled = !e.target.checked; });
+$('newBtn').addEventListener('click', () => {
+  if (!$('clearConfirm').checked) return;
+  $('clearConfirm').checked = false; $('newBtn').disabled = true;
+  const kept = swatches.filter(sw => sw?._locked).length;
+  toast('Palette cleared' + (kept ? `, except ${kept} locked color${kept === 1 ? '' : 's'}` : '') + '. Press Undo to bring it back.');
+  fileWrapper = null; paletteIndex = 0; paletteExtra = {}; nameKey = 'name';
+  name = 'Untitled'; fillUnlocked([]); isExample = false; render();
+});
+
+// ---- open ----
+async function openFile(file) {
+  try {
+    const zip = await JSZip.loadAsync(file);
+    const entry = zip.file('Swatches.json') || Object.values(zip.files).find(f => /\.json$/i.test(f.name) && !f.dir);
+    if (!entry) throw new Error('no-json');
+    const data = JSON.parse(await entry.async('string'));
+    const list = Array.isArray(data) ? data : [data];
+    const pal = list[0];
+    if (!pal || !Array.isArray(pal.swatches)) throw new Error('bad-json');
+    commitNow();
+    fileWrapper = data; paletteIndex = 0;
+    const { name: n, swatches: sws, ...rest } = pal;
+    paletteExtra = rest;
+    name = n || file.name.replace(/\.(swatches|zip)$/i, '');
+    swatches = new Array(SLOTS).fill(null);
+    sws.slice(0, SLOTS).forEach((sw, i) => { if (sw && typeof sw.hue === 'number') swatches[i] = sw; });
+    const named = swatches.find(sw => sw && Object.keys(sw).some(k => !KNOWN_KEYS.includes(k) && typeof sw[k] === 'string'));
+    nameKey = named ? Object.keys(named).find(k => !KNOWN_KEYS.includes(k) && typeof named[k] === 'string') : 'name';
+    multi = new Set(); selected = anchor = 0; isExample = false; render();
+    let msg = `Opened “${name}”`;
+    if (list.length > 1) msg += ` (this file has ${list.length} palettes; editing the first)`;
+    if (sws.length > SLOTS) msg += ` (only the first ${SLOTS} colors are shown)`;
+    toast(msg);
+  } catch (err) {
+    toast("That file couldn't be read. Pick a .swatches file exported from Procreate.");
+  }
+}
+$('fileInput').addEventListener('change', e => { if (e.target.files[0]) openFile(e.target.files[0]); e.target.value = ''; });
+document.addEventListener('dragover', e => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); });
+document.addEventListener('drop', e => {
+  if (!e.dataTransfer.files.length) return;
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f.type.startsWith('image/')) loadImage(f); else openFile(f);
+});
+
+// ---- pick from image ----
+// `canvas` holds the image's own pixels off screen (used for sampling);
+// `view` is the visible window that shows it zoomed and panned.
+const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d', { willReadFrequently: true });
+const view = $('imgView'), vctx = view.getContext('2d'), loupe = $('loupe'), stage = $('stage');
+let hasImage = false, zoom = 1, panX = 0, panY = 0;
+
+function loadImage(file) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    const scale = Math.min(1, 3000 / Math.max(img.width, img.height));
+    canvas.width = Math.round(img.width * scale); canvas.height = Math.round(img.height * scale);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    hasImage = true;
+    view.hidden = false; $('zoomBar').hidden = false; $('imgEmpty').hidden = true;
+    $('fillImgBtn').disabled = false; $('clearImgBtn').hidden = false;
+    sizeView(); fitImage();
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); toast("That image couldn't be opened. Try a PNG or JPG."); };
+  img.src = url;
+}
+function sizeView() {
+  const dpr = window.devicePixelRatio || 1;
+  view.width = Math.max(1, Math.round(stage.clientWidth * dpr));
+  view.height = Math.max(1, Math.round(stage.clientHeight * dpr));
+}
+const fitZoom = () => Math.min(stage.clientWidth / canvas.width, stage.clientHeight / canvas.height);
+function fitImage() {
+  zoom = fitZoom();
+  panX = (stage.clientWidth - canvas.width * zoom) / 2;
+  panY = (stage.clientHeight - canvas.height * zoom) / 2;
+  drawView();
+}
+function drawView() {
+  if (!hasImage) return;
+  const dpr = view.width / Math.max(1, stage.clientWidth);
+  vctx.setTransform(1, 0, 0, 1, 0, 0);
+  vctx.clearRect(0, 0, view.width, view.height);
+  // show crisp pixels when zoomed in close
+  vctx.imageSmoothingEnabled = zoom < 3;
+  vctx.setTransform(zoom * dpr, 0, 0, zoom * dpr, panX * dpr, panY * dpr);
+  vctx.drawImage(canvas, 0, 0);
+  $('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+}
+// zoom while keeping the point under (sx, sy) in place
+function zoomAt(factor, sx, sy) {
+  const nz = Math.min(32, Math.max(fitZoom() / 2, zoom * factor));
+  panX = sx - (sx - panX) * nz / zoom;
+  panY = sy - (sy - panY) * nz / zoom;
+  zoom = nz; drawView();
+}
+const zoomCentre = f => zoomAt(f, stage.clientWidth / 2, stage.clientHeight / 2);
+$('zoomIn').addEventListener('click', () => zoomCentre(1.5));
+$('zoomOut').addEventListener('click', () => zoomCentre(1 / 1.5));
+$('zoomFit').addEventListener('click', fitImage);
+new ResizeObserver(() => { if (hasImage) { sizeView(); drawView(); } }).observe(stage);
+view.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = stage.getBoundingClientRect();
+  zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top);
+}, { passive: false });
+
+function sampleAt(e) {
+  const r = stage.getBoundingClientRect();
+  const sx = e.clientX - r.left, sy = e.clientY - r.top;
+  const x = Math.floor((sx - panX) / zoom), y = Math.floor((sy - panY) / zoom);
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) { loupe.hidden = true; return null; }
+  // average a 3×3 patch so one stray pixel doesn't win, unless zoomed in enough to aim at one
+  const rad = zoom >= 4 ? 0 : 1;
+  const x0 = Math.max(0, x - rad), y0 = Math.max(0, y - rad);
+  const w = Math.min(rad * 2 + 1, canvas.width - x0), h = Math.min(rad * 2 + 1, canvas.height - y0);
+  const d = ctx.getImageData(x0, y0, w, h).data;
+  let rr = 0, gg = 0, bb = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4) { if (d[i + 3] < 10) continue; rr += d[i]; gg += d[i + 1]; bb += d[i + 2]; n++; }
+  if (!n) { loupe.hidden = true; return null; }
+  const rgb = [rr / n, gg / n, bb / n].map(Math.round);
+  loupe.style.left = sx + 'px'; loupe.style.top = sy + 'px';
+  // split loupe: new color on top, the slot's current color underneath
+  const cur = swatches[selected] ? toHex(swatches[selected]) : 'var(--slot-empty)';
+  loupe.style.background = `linear-gradient(to bottom, rgb(${rgb.join(',')}) 50%, ${cur} 50%)`;
+  loupe.hidden = false;
+  return rgb;
+}
+
+// A tap or click without moving picks a color; dragging pans; two fingers pinch-zoom.
+const pointers = new Map();
+let downAt = null, moved = false, pinchDist = 0;
+view.addEventListener('pointerdown', e => {
+  view.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) { downAt = { x: e.clientX, y: e.clientY }; moved = false; }
+  else { moved = true; pinchDist = 0; loupe.hidden = true; }
+});
+view.addEventListener('pointermove', e => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) { if (e.pointerType === 'mouse') sampleAt(e); return; }
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size >= 2) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    const r = stage.getBoundingClientRect();
+    if (pinchDist) zoomAt(d / pinchDist, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+    pinchDist = d;
+    return;
+  }
+  if (!moved && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 4) moved = true;
+  if (moved) {
+    panX += e.clientX - prev.x; panY += e.clientY - prev.y;
+    view.classList.add('grabbing'); loupe.hidden = true; drawView();
+  }
+});
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  const wasOnly = pointers.size === 1;
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinchDist = 0;
+  view.classList.remove('grabbing');
+  if (!wasOnly || moved || e.type !== 'pointerup') return;
+  const rgb = sampleAt(e);
+  if (!rgb) return;
+  if (e.pointerType !== 'mouse') setTimeout(() => { loupe.hidden = true; }, 600);
+  if (!setSelected(rgbToHsb(...rgb))) return;
+  if ($('autoNext').checked && selected < SLOTS - 1) { selected++; render(); }
+}
+view.addEventListener('pointerup', endPointer);
+view.addEventListener('pointercancel', endPointer);
+view.addEventListener('pointerleave', () => { if (!pointers.size) loupe.hidden = true; });
+// Fill from image: sample pixels, keep the ones that suit the mood, group them into
+// `count` color clusters (k-means in OKLab), then use the real pixel nearest each
+// cluster's centre so no invented colors appear. Most common colors come first.
+const MOODS = {
+  colorful: h => h.saturation * (h.brightness > 0.3 ? 1 : 0.2),
+  bright:   h => h.brightness * 0.6 + h.saturation * 0.4,
+  muted:    h => 1 - Math.abs(h.saturation - 0.25) * 2 - Math.abs(h.brightness - 0.6),
+  deep:     h => h.saturation - Math.abs(h.brightness - 0.4),
+  dark:     h => 1 - h.brightness
+};
+function extractColors(count, mood) {
+  const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const px = canvas.width * canvas.height;
+  let pool = [];
+  for (let t = 0; t < 9000; t++) {
+    const i = Math.floor(Math.random() * px) * 4;
+    if (d[i + 3] > 200) pool.push([d[i], d[i + 1], d[i + 2]]);
+  }
+  if (!pool.length) return [];
+  if (MOODS[mood]) {
+    const score = MOODS[mood];
+    pool = pool.map(rgb => ({ rgb, s: score(rgbToHsb(...rgb)) }))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, Math.max(count * 20, Math.round(pool.length * 0.3)))
+      .map(p => p.rgb);
+  }
+  const pts = pool.map(rgbToOklab);
+  // k-means++ start: spread the first centres out, with some randomness for a fresh mix each time
+  const centres = [pts[Math.floor(Math.random() * pts.length)]];
+  const near = pts.map(p => labDist2(p, centres[0]));
+  while (centres.length < Math.min(count, pts.length)) {
+    const total = near.reduce((a, b) => a + b, 0);
+    if (!total) break;   // every remaining pixel is identical to a centre
+    let r = Math.random() * total, i = 0;
+    while ((r -= near[i]) > 0 && i < pts.length - 1) i++;
+    centres.push(pts[i]);
+    pts.forEach((p, j) => { near[j] = Math.min(near[j], labDist2(p, pts[i])); });
+  }
+  let owner = new Array(pts.length).fill(0);
+  for (let iter = 0; iter < 8; iter++) {
+    owner = pts.map(p => { let best = 0, bd = Infinity; centres.forEach((c, k) => { const dd = labDist2(p, c); if (dd < bd) { bd = dd; best = k; } }); return best; });
+    centres.forEach((c, k) => {
+      const mine = pts.filter((_, j) => owner[j] === k);
+      if (mine.length) centres[k] = [0, 1, 2].map(a => mine.reduce((s, p) => s + p[a], 0) / mine.length);
+    });
+  }
+  return centres.map((c, k) => {
+    let best = -1, bd = Infinity;
+    pts.forEach((p, j) => { if (owner[j] === k) { const dd = labDist2(p, c); if (dd < bd) { bd = dd; best = j; } } });
+    return { rgb: best >= 0 ? pool[best] : oklabToRgb(c), size: owner.filter(o => o === k).length };
+  }).filter(c => c.size).sort((a, b) => b.size - a.size).map(c => c.rgb);
+}
+// "Colors": the preset buttons and the number box stay in step
+const fillCountValue = () => Math.min(SLOTS, Math.max(1, Math.round(Number($('fillCount').value) || SLOTS)));
+document.querySelectorAll('input[name="fillPreset"]').forEach(r => r.addEventListener('change', () => { $('fillCount').value = r.value; }));
+$('fillCount').addEventListener('input', () => {
+  const v = String(fillCountValue());
+  document.querySelectorAll('input[name="fillPreset"]').forEach(r => { r.checked = r.value === v; });
+});
+$('fillCount').addEventListener('blur', () => { $('fillCount').value = fillCountValue(); });
+$('fillImgBtn').addEventListener('click', () => {
+  // A limited palette of N colors: the first N slots, top row to bottom. Locked colors in
+  // those slots count toward N; every other unlocked slot is emptied.
+  const n = fillCountValue();
+  const open = [...Array(n).keys()].filter(i => !isLocked(i)).length;
+  if (!open) { toast(`The first ${n} slots are all locked. Unlock some or pick a bigger number.`); return; }
+  const cols = extractColors(open, $('mood').value);
+  if (!cols.length) { toast('No solid colors found in this image.'); return; }
+  commitNow();
+  fillUnlocked(cols.map(fromRgb));
+  isExample = false; render(); commitNow();
+  const made = swatches.slice(0, n).filter(Boolean).length;
+  toast(`Made a palette of ${made} color${made === 1 ? '' : 's'} (${$('mood').selectedOptions[0].text.toLowerCase()}). Press again for a new mix, or Undo.`);
+});
+$('clearImgBtn').addEventListener('click', () => {
+  hasImage = false;
+  canvas.width = canvas.height = 0;
+  vctx.setTransform(1, 0, 0, 1, 0, 0); vctx.clearRect(0, 0, view.width, view.height);
+  view.hidden = true; $('zoomBar').hidden = true; loupe.hidden = true; $('imgEmpty').hidden = false;
+  $('fillImgBtn').disabled = true; $('clearImgBtn').hidden = true;
+});
+$('imgInput').addEventListener('change', e => { if (e.target.files[0]) loadImage(e.target.files[0]); e.target.value = ''; });
+document.addEventListener('paste', e => {
+  if (e.target === $('pasteBox')) return;
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (item) { e.preventDefault(); loadImage(item.getAsFile()); }
+});
+
+// ---- save ----
+function buildJson() {
+  const clean = sw => { if (!sw) return null; const { _locked, ...rest } = sw; return rest; };
+  const pal = { ...paletteExtra, name: name.trim() || 'Untitled', swatches: swatches.map(clean) };
+  // trim trailing empty slots, as Procreate's own exports do
+  while (pal.swatches.length && !pal.swatches[pal.swatches.length - 1]) pal.swatches.pop();
+  if (Array.isArray(fileWrapper)) { const out = fileWrapper.slice(); out[paletteIndex] = pal; return JSON.stringify(out); }
+  return JSON.stringify([pal]);
+}
+// a .zip holding one finished file (stored as-is, since a .swatches file is already compressed)
+async function wrapInZip(blob, fileName) {
+  const outer = new JSZip();
+  outer.file(fileName, blob);
+  return outer.generateAsync({ type: 'blob', compression: 'STORE' });
+}
+const downloadsReady = window.claude?.use ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
+
+$('saveBtn').addEventListener('click', async () => {
+  if (!swatches.some(Boolean)) { toast('Add at least one color before saving.'); return; }
+  const zip = new JSZip();
+  zip.file('Swatches.json', buildJson());
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+  const base = (name.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, '-');
+  const downloads = await downloadsReady;
+  if (!downloads) {
+    // opened as a normal web page: a plain link download works
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = base + '.swatches';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(`Saved ${base}.swatches`);
+    return;
+  }
+  try {
+    await downloads.save({ filename: base + '.swatches', data: blob });
+    toast(`Saved ${base}.swatches`);
+  } catch (err) {
+    if (err?.code === 'rejected_extension') {
+      // Claude can't save a .swatches file directly, so put the real .swatches file inside a .zip
+      try {
+        await downloads.save({ filename: base + '.zip', data: await wrapInZip(blob, base + '.swatches') });
+        toast(`Saved ${base}.zip. Unzip it to get ${base}.swatches.`, 8000);
+      } catch (e2) { saveError(e2); }
+    } else saveError(err);
+  }
+});
+function saveError(err) {
+  if (err?.code === 'declined') toast('Save cancelled.');
+  else if (err?.code === 'rate_limited') toast('A save box is already open. Finish that one first.');
+  else toast("Saving isn't available in this view.");
+}
+
+let toastTimer;
+function toast(msg, ms = 4200) {
+  const t = $('toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, ms);
+}
+
+// ---- undo / redo ----
+// Each step is a snapshot of the palette. Changes are grouped until editing
+// pauses briefly, so one slider drag or one typed name is a single step.
+let steps = null, histIndex = 0, commitTimer;
+const snap = () => JSON.stringify({ name, swatches, nameKey });
+function commitNow() {
+  clearTimeout(commitTimer);
+  if (!steps) return;
+  const s = snap();
+  if (s === steps[histIndex]) return;
+  steps = steps.slice(0, histIndex + 1);
+  steps.push(s);
+  if (steps.length > 200) steps.shift();
+  histIndex = steps.length - 1;
+  updateHistoryButtons();
+}
+function scheduleCommit() {
+  if (!steps) return;
+  clearTimeout(commitTimer);
+  commitTimer = setTimeout(commitNow, 500);
+}
+function restore(i) {
+  histIndex = i;
+  const s = JSON.parse(steps[i]);
+  name = s.name; swatches = s.swatches; nameKey = s.nameKey;
+  isExample = false; render();
+  clearTimeout(commitTimer);
+  updateHistoryButtons();
+}
+function updateHistoryButtons() {
+  $('undoBtn').disabled = histIndex <= 0;
+  $('redoBtn').disabled = histIndex >= steps.length - 1;
+}
+function undo() { commitNow(); if (histIndex > 0) restore(histIndex - 1); }
+function redo() { commitNow(); if (histIndex < steps.length - 1) restore(histIndex + 1); }
+$('undoBtn').addEventListener('click', undo);
+$('redoBtn').addEventListener('click', redo);
+document.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  // let text boxes keep their own typing undo
+  if (e.target.matches('input[type="text"], textarea')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+});
+
+// ---- collapsible Color lab parts (remembered in this browser) ----
+document.querySelectorAll('.lab-section').forEach(sec => {
+  const btn = sec.querySelector('.sec-toggle'), body = sec.querySelector('.sec-body'), key = 'pb-sec-' + sec.dataset.sec;
+  const set = open => { btn.setAttribute('aria-expanded', open); body.hidden = !open; };
+  try { if (localStorage.getItem(key) === 'closed') set(false); } catch {}
+  btn.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') !== 'true';
+    set(open);
+    try { localStorage.setItem(key, open ? 'open' : 'closed'); } catch {}
+  });
+});
+
+// ---- theme: Light/Dark match Procreate's interface; Gray sits between; Auto follows the system (or the Claude viewer's own choice) ----
+const hostTheme = document.documentElement.getAttribute('data-theme');
+function applyTheme(t) {
+  const root = document.documentElement;
+  if (t === 'light' || t === 'gray' || t === 'dark') root.setAttribute('data-theme', t);
+  else if (hostTheme) root.setAttribute('data-theme', hostTheme);
+  else root.removeAttribute('data-theme');
+}
+let savedTheme = 'auto';
+try { savedTheme = localStorage.getItem('pb-theme') || 'auto'; } catch {}
+document.querySelectorAll('input[name="theme"]').forEach(r => {
+  r.checked = r.value === savedTheme;
+  r.addEventListener('change', () => {
+    applyTheme(r.value);
+    try { localStorage.setItem('pb-theme', r.value); } catch {}
+  });
+});
+applyTheme(savedTheme);
+
+loadExample();
+steps = [snap()]; histIndex = 0; updateHistoryButtons();
+</script>
