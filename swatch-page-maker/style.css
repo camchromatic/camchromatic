@@ -1,0 +1,144 @@
+/* Light colours */
+:root {
+  --bg: #f6f4f1;
+  --card: #ffffff;
+  --field: #ffffff;
+  --text: #222222;
+  --muted: #6b6b6b;
+  --line: #d8d4ce;
+  --warn: #a33333;
+  --accent: #5b3fa8;
+  --accent-soft: #f1ecfb;
+  --on-accent: #ffffff;
+  color-scheme: light;
+}
+/* Gray colours: soft mid-grey, between light and dark */
+:root[data-mode="gray"] {
+  --bg: #8e8c91;
+  --card: #a7a5aa;
+  --field: #bab8bd;
+  --text: #161519;
+  --muted: #34323a;
+  --line: #7b797f;
+  --warn: #7a1a1a;
+  --accent: #3e2a7a;
+  --accent-soft: #c3bcd6;
+  --on-accent: #ffffff;
+  color-scheme: light;
+}
+
+/* Dark colours */
+:root[data-mode="dark"] {
+  --bg: #16151a;
+  --card: #211f26;
+  --field: #2a2830;
+  --text: #ecebef;
+  --muted: #a9a5b0;
+  --line: #3b3842;
+  --warn: #f08a8a;
+  --accent: #a58bf0;
+  --accent-soft: #2e2840;
+  --on-accent: #16151a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, "Segoe UI", sans-serif;
+  line-height: 1.4;
+}
+
+/* Theme bar */
+.topbar { max-width: 1400px; margin: 0 auto; padding: 12px 16px 0; display: flex; justify-content: flex-end; }
+.look { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button {
+  background: var(--card); color: var(--text); border-radius: 0;
+  padding: 6px 12px; font-size: 0.85rem;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent); color: var(--on-accent); }
+
+header { padding: 8px 16px 8px; max-width: 1400px; margin: 0 auto; }
+header h1 { margin: 0 0 4px; font-size: 1.6rem; }
+header p { margin: 0; color: var(--muted); }
+
+/* Half and half: settings on the left, preview on the right (stacked on narrow screens). */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  main { grid-template-columns: 1fr 1fr; }
+  /* Keep the preview in view while scrolling the settings. */
+  .preview-panel { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+}
+
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.panel.wide { grid-column: 1 / -1; }
+.panel h2 { margin: 0 0 12px; font-size: 1.1rem; }
+
+label { display: block; margin-bottom: 10px; font-size: 0.9rem; }
+input[type=number], input[type=text], select, textarea {
+  display: block; width: 100%; margin-top: 4px; padding: 6px; font: inherit;
+  background: var(--field); color: var(--text); border: 1px solid var(--line); border-radius: 5px;
+}
+textarea { resize: vertical; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row label { flex: 1 1 120px; }
+.check { display: flex; gap: 8px; align-items: center; }
+.label-style { align-items: center; margin-bottom: 10px; font-size: 0.9rem; }
+.label-style label { flex: 0 0 auto; margin-bottom: 0; }
+.label-style select { display: inline-block; width: auto; margin-top: 0; padding: 3px 6px; }
+.label-style input[type=color] { width: 32px; height: 24px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: none; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+
+.panel h3 { margin: 14px 0 2px; font-size: 1rem; }
+.options { display: grid; gap: 6px; }
+.option {
+  display: flex; gap: 10px; align-items: center; margin: 0;
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; cursor: pointer;
+}
+.option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.option small { color: var(--muted); display: block; }
+
+.note { color: var(--muted); font-size: 0.85rem; margin: 6px 0; }
+.note.warn { color: var(--warn); }
+
+button {
+  background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px;
+  padding: 10px 18px; font: inherit; cursor: pointer;
+}
+button:hover { filter: brightness(1.1); }
+.buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+/* Pages: number box with an "Auto" tick beside it. */
+.pages-input { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.pages-input input[type=number] { margin-top: 0; flex: 1; }
+.pages-input input[type=number]:disabled { opacity: 0.7; }
+#pages-note, #palettes-note { display: block; margin: 2px 0 0; }
+/* Sheet details: one thin row of title and description (wraps on phones). */
+.details { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.details label { margin-bottom: 0; }
+.details-title { flex: 1 1 200px; }
+.details-desc { flex: 2 1 260px; }
+.details-desc textarea { min-height: 34px; }
+.divider { border: 0; border-top: 1px solid var(--line); margin: 14px 0; }
+
+/* Preview: one picture per printed page, the whole sheet of paper (white in every theme). */
+#preview { overflow-x: auto; }
+.page { margin-bottom: 18px; }
+.page-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+.paper {
+  display: block; width: 100%; max-width: 640px; height: auto;
+  background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}

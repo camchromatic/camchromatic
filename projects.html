@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Projects · CamChromatic</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#232628;--panel:#191b1c;--ink:#e8e2d8;--muted:#b8aa98;--line:#514536;--accent:#2785ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
+.wrap{max-width:1160px;margin:auto;padding:0 24px}header{border-bottom:1px solid var(--line);background:var(--bg)}
+.top{height:70px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:2.1rem;font-weight:500;letter-spacing:-.04em;text-decoration:none;display:flex;gap:0}
+nav{display:flex;gap:22px;font-size:.9rem}@media(max-width:700px){.top{height:auto;flex-wrap:wrap;gap:6px 0;padding:12px 0}nav{gap:16px;flex-wrap:wrap}}nav a, nav a:visited{color:#fff}nav a:hover{color:#fff;opacity:.8}a{color:var(--accent);text-decoration:none}
+.hero{padding:44px 0 28px}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:.72rem;color:var(--muted);font-weight:700}
+h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
+.intro{color:var(--muted);max-width:540px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.project-card{display:block;background:var(--panel);color:var(--ink);border-radius:10px;overflow:hidden;min-width:0;transition:transform .15s}
+.project-card:hover{transform:translateY(-3px)}
+.project-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top left;background:#39332a}
+.project-card .text{padding:14px 16px 18px}.project-card h2{font-size:1.15rem;margin:0 0 4px;letter-spacing:-.02em}.project-card p{margin:0;color:var(--muted);font-size:.9rem}
+footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:.85rem}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{gap:12px}}
+</style>
+</head>
+<body>
+<header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html#gallery">Home</a><a href="blog.html">Blog</a><a href="about.html">About</a><a href="projects.html">Projects</a><a href="contact.html">Contact</a></nav></div></header>
+<main class="wrap">
+<section class="hero"><div class="eyebrow">Projects by</div><h1>Cam Garcia</h1><p class="intro">Free tools I've made for artists.</p></section>
+<section class="grid" aria-label="Projects">
+<a class="project-card" href="palette-lab.html"><img src="media/projects/palette-lab.png" alt="Screenshot of Palette Lab" loading="lazy"><div class="text"><h2>Palette Lab</h2><p>Build, tweak and save color palettes.</p></div></a>
+<a class="project-card" href="swatch-page-maker/"><img src="media/projects/swatch-page-maker.png" alt="Screenshot of Swatch Page Maker" loading="lazy"><div class="text"><h2>Swatch Page Maker</h2><p>Print-ready swatch sheets for your art supplies (Excel or PDF).</p></div></a>
+</section>
+</main><footer><div class="wrap">© 2026 Cam Garcia</div></footer>
+</body></html>

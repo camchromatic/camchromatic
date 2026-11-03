@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Swatch Page Maker</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script>
+    // Apply the saved look before the page draws, so it doesn't flash.
+    try {
+      const saved = JSON.parse(localStorage.getItem("spm-look") || "{}");
+      if (["light", "gray", "dark"].includes(saved.mode)) document.documentElement.dataset.mode = saved.mode;
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="look">
+      <div class="seg" role="group" aria-label="Page colors">
+        <button type="button" data-mode="light">Light</button>
+        <button type="button" data-mode="gray">Gray</button>
+        <button type="button" data-mode="dark">Dark</button>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <h1>Swatch Page Maker</h1>
+    <p>Pick a layout and download a print-ready swatch sheet (Excel or PDF).</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Layout</h2>
+      <!-- Sheet details first: title and description print at the top of every page. -->
+      <div class="details">
+        <label class="details-title">Title (optional) <input id="title" type="text" maxlength="80" placeholder="e.g. Paint markers 240"></label>
+        <label class="details-desc">Description (optional) <textarea id="description" rows="1" maxlength="300" placeholder="e.g. Brand, paper, date swatched"></textarea></label>
+      </div>
+      <hr class="divider">
+      <label>Page type
+        <select id="page-type">
+          <option value="grid">Swatch grid</option>
+          <option value="strips">Palette strips</option>
+          <option value="mixing">Mixing grid (alcohol or watercolor markers)</option>
+        </select>
+      </label>
+      <div class="row">
+        <label id="medium-row">Medium
+          <select id="medium">
+            <option value="">None (blank grid)</option>
+          </select>
+        </label>
+        <label id="brand-row" hidden>Brand
+          <select id="brand"></select>
+        </label>
+        <label id="set-row" hidden>Set
+          <select id="preset"></select>
+        </label>
+        <label id="order-row" hidden>Order
+          <select id="order">
+            <option value="color">By color</option>
+            <option value="number">By number</option>
+          </select>
+        </label>
+      </div>
+      <label id="legacy-row" class="check" hidden><input id="legacy-codes" type="checkbox"> Use legacy (old) color codes</label>
+      <label id="no-codes-row" class="check" hidden><input id="no-codes" type="checkbox"> Leave color codes blank (keep the set's size only)</label>
+      <div class="row">
+        <label id="total-row">Total swatches <input id="total" type="number" min="1" max="2000" value="240"></label>
+        <label id="strip-colours-row" hidden>Colors per palette
+          <select id="strip-colours">
+            <option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option>
+          </select>
+        </label>
+        <label id="palettes-row" hidden>Palettes
+          <input id="palettes" type="number" min="1" max="500" value="24">
+          <small id="palettes-note" class="note"></small>
+        </label>
+        <label id="mix-colours-row" hidden>Colors in grid
+          <select id="mix-colours">
+            <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option>
+            <option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+        </label>
+        <label id="pages-row">Pages
+          <span class="pages-input">
+            <input id="pages" type="number" min="1" max="10" value="1">
+            <span id="auto-pages-row" class="check"><input id="auto-pages" type="checkbox" checked> Auto</span>
+          </span>
+          <small id="pages-note" class="note"></small>
+        </label>
+      </div>
+      <div class="row">
+        <label>Paper
+          <select id="paper">
+            <option value="letter" selected>US Letter (8.5 x 11 in)</option>
+            <option value="a4">A4</option>
+          </select>
+        </label>
+        <label>Orientation
+          <select id="orientation">
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
+          </select>
+        </label>
+        <label>Swatch position
+          <select id="align">
+            <option value="left">Left</option>
+            <option value="center" selected>Center</option>
+            <option value="right">Right</option>
+          </select>
+        </label>
+      </div>
+      <div id="grid-only">
+      <label class="check"><input id="headers" type="checkbox"> Group headers (a title row above each group)</label>
+      <label class="check"><input id="spares" type="checkbox" checked> Spare blank swatches (extra empty boxes that fill out a group)</label>
+      <label>Swatch spacing
+        <select id="spacing">
+          <option value="none">None (swatches touch)</option>
+          <option value="small">Small gap</option>
+          <option value="large">Large gap</option>
+        </select>
+      </label>
+      <label>Sections per swatch
+        <select id="sections">
+          <option value="1">1 (one box)</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+      </label>
+      </div>
+      <div class="row label-style">
+        <span>Label style</span>
+        <label class="check"><input id="label-bold" type="checkbox"> <b>Bold</b></label>
+        <label class="check"><input id="label-italic" type="checkbox"> <i>Italic</i></label>
+        <label class="check">Size
+          <select id="label-size">
+            <option value="8">Small</option>
+            <option value="10" selected>Normal</option>
+            <option value="11">Large</option>
+          </select>
+        </label>
+        <label class="check">Color <input id="label-color" type="color" value="#808080"></label>
+      </div>
+      <div id="layout-pick">
+        <h3>Pick a layout</h3>
+        <p class="note">Each option splits your swatches into groups. Best fit on the paper is first.</p>
+        <div id="options" class="options"></div>
+      </div>
+      <p id="page-type-note" class="note" hidden></p>
+      <hr class="divider">
+      <div class="buttons">
+        <button id="download">Download .xlsx</button>
+        <button id="download-pdf">Download PDF</button>
+      </div>
+    </section>
+
+    <section class="panel preview-panel">
+      <h2>Preview</h2>
+      <div id="preview"></div>
+    </section>
+  </main>
+
+  <script src="presets.js"></script>
+  <script src="presets-copic.js"></script>
+  <script src="presets-ohuhu.js"></script>
+  <script src="presets-sharpie.js"></script>
+  <script src="presets-posca.js"></script>
+  <script src="presets-ohuhu-other.js"></script>
+  <script src="presets-enmy.js"></script>
+  <script src="presets-faber-pencils.js"></script>
+  <script src="presets-arrtx.js"></script>
+  <script src="presets-artistro.js"></script>
+  <script src="presets-faber-pens.js"></script>
+  <script src="presets-blick.js"></script>
+  <script src="presets-masters-touch.js"></script>
+  <script src="presets-artists-loft.js"></script>
+  <script src="presets-winsor-newton.js"></script>
+  <script src="presets-olo.js"></script>
+  <script src="presets-chameleon.js"></script>
+  <script src="presets-wn-watercolor.js"></script>
+  <script src="presets-qor.js"></script>
+  <script src="presets-prima.js"></script>
+  <script src="presets-daniel-smith.js"></script>
+  <script src="presets-karin.js"></script>
+  <script src="presets-prismacolor.js"></script>
+  <script src="presets-prismacolor-pencils.js"></script>
+  <script src="presets-polychromos.js"></script>
+  <script src="presets-pitt-brush.js"></script>
+  <script src="presets-kuretake.js"></script>
+  <script src="presets-mildliner.js"></script>
+  <script src="presets-karin-markers.js"></script>
+  <script src="presets-collections.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
