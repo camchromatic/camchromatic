@@ -49,3 +49,25 @@ content:
         type: rich-text
         options:
           format: markdown
+
+  - name: updates
+    label: Site Updates
+    type: collection
+    path: content/updates
+    filename: "{year}-{month}-{day}-{hour}{minute}{second}.md"
+    format: yaml-frontmatter
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        required: true
+      - name: text
+        label: Text
+        type: text
+      - name: link
+        label: Link (optional, e.g. projects.html or a full web address)
+        type: string
