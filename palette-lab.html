@@ -4,8 +4,6 @@
 <title>Palette Lab</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* Layout: one-screen workbench on desktop — palette + hex codes | color editor | image picker (fills the height);
@@ -21,9 +19,10 @@
   --accent-ink: #ffffff;
   --slot-empty: #e9e9eb;
   --danger: #d6342c;
-  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "DM Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Arial everywhere (Cam's call), hex codes and the exported card included */
+  --font-display: Arial, Helvetica, sans-serif;
+  --font-body: Arial, Helvetica, sans-serif;
+  --font-mono: Arial, Helvetica, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -53,6 +52,7 @@ body {
 }
 .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+code, kbd { font-family: var(--font-mono); }
 h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 5vw, 40px); line-height: 1; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
 .sub { color: var(--muted); margin: 6px 0 0; max-width: 60ch; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -77,6 +77,7 @@ button.danger { color: var(--danger); }
   font: 700 22px/1.2 var(--font-display); color: var(--ink); background: transparent; border: none;
   border-bottom: 1px dashed var(--line); padding: 2px 0 6px; width: 100%;
 }
+#paletteName::placeholder { color: var(--muted); font-weight: 400; opacity: 1; }
 .example-tag { display: inline-block; font: 500 11px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; background: var(--slot-empty); color: var(--muted); }
 button.example-tag { border: 1px solid var(--line); cursor: pointer; }
 button.example-tag:hover { color: var(--ink); border-color: var(--muted); }
@@ -99,8 +100,19 @@ button.example-tag:disabled { opacity: .45; cursor: default; color: var(--muted)
 .slot.ins-before::before { left: -5px; }
 .slot.ins-after::before { right: -5px; }
 .grid-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-.chip { height: 72px; border-radius: 12px; border: 1px solid var(--line); background: var(--slot-empty); display: flex; align-items: flex-start; padding: 8px; }
-.chip span { font: 500 13px/1 var(--font-mono); background: var(--surface); color: var(--ink); padding: 5px 7px; border-radius: 6px; }
+/* two color bars: the slot's saved color above, the lab color below */
+.chip-pair { display: flex; flex-direction: column; gap: 4px; height: 76px; }
+.chip { flex: 1; min-height: 0; border-radius: 9px; border: 1px solid var(--line); background: var(--slot-empty); display: flex; align-items: center; padding: 0 6px; }
+.chip span { font: 500 12px/1 var(--font-mono); background: var(--surface); color: var(--ink); padding: 4px 6px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#replaceBtn { margin-left: auto; font-size: 12px; padding: 4px 9px; background: var(--surface); }
+#replaceBtn:disabled { opacity: .6; }
+#replaceBtn.primary { background: var(--accent); }
+.pins-row { display: flex; gap: 6px; align-items: stretch; }
+#pinBtn { font-size: 12px; padding: 2px 10px; flex: none; }
+.pins { flex: 1; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.pin { height: max(var(--chip-h, 26px), 18px); padding: 0; border-radius: 6px; border: 1px solid var(--line); touch-action: none; }
+.pin.empty { background: transparent; border-style: dashed; }
+.pin.drop { box-shadow: 0 0 0 2px var(--accent); }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 input[type="text"], textarea {
   font: 400 14px/1.4 var(--font-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
@@ -112,7 +124,6 @@ input[type="text"], textarea {
 #swName:disabled { opacity: .5; }
 input[type="color"] { width: 44px; height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: var(--bg); cursor: pointer; }
 .slider { display: grid; grid-template-columns: 1.4em minmax(0, 1fr) 3.2em; gap: 10px; align-items: center; font: 500 13px var(--font-mono); font-variant-numeric: tabular-nums; }
-.slider output { text-align: right; color: var(--muted); }
 /* Adjust all: one compact row of three sliders */
 .adjust { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-top: 10px; border-top: 1px solid var(--line); }
 .adjust .slider { flex: 1 1 130px; grid-template-columns: 0.8em minmax(0, 1fr) 3em; gap: 5px; font-size: 12px; }
@@ -152,6 +163,24 @@ select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
 /* Theme switch: small, top right beside the title */
 .theme-group { gap: 6px; }
+#helpBtn { width: 26px; height: 26px; padding: 0; border-radius: 50%; font-weight: 700; font-size: 13px; margin-right: 6px; flex: none; }
+/* hint over the empty palette; clicks go through to the slots */
+.grid-wrap { position: relative; }
+.start-hint { position: absolute; inset: 0; margin: auto; width: fit-content; max-width: 86%; height: fit-content; pointer-events: none;
+  background: var(--surface); color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13px; line-height: 1.4; text-align: center; box-shadow: 0 4px 16px rgb(0 0 0 / .12); }
+.start-hint b { color: var(--ink); font-weight: 600; }
+.start-hint[hidden] { display: none; }
+/* tips and shortcuts */
+#helpDlg { width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 16px 22px 20px; }
+#helpDlg::backdrop { background: rgb(0 0 0 / .45); }
+.help-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.help-head h2 { margin: 0; font: 600 18px var(--font-display, var(--font-body)); }
+#helpClose { width: 30px; height: 30px; padding: 0; }
+.help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px 26px; }
+.help-grid h3 { margin: 0 0 5px; font: 600 11px var(--font-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.help-grid ul { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.42; }
+.help-grid li + li { margin-top: 3px; }
+.help-grid kbd { font: 500 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--bg); }
 /* Undo … Confirm: their own full-width row under the title */
 .toolbar { flex-basis: 100%; }
 .icon-btn { font-size: 17px; padding-inline: 12px; }
@@ -224,6 +253,8 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
 /* Desktop: everything on one screen */
 @media (min-width: 1200px) {
   body { padding-block: 16px 16px; }
+  .name-label { display: none; }   /* the name box's placeholder says what it is */
+  .panel.lab-panel { gap: 10px; }        /* room for the name row and the pins */
   .wrap { max-width: 1640px; gap: 14px; }
   header { align-items: center; }
   h1 { font-size: 32px; }
@@ -241,7 +272,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   .col-image .picker-panel { flex: 1; }
   .col-image .stage { flex: 1; height: auto; min-height: 240px; }
   .panel { padding: 16px; gap: 12px; }
-  .chip { height: 52px; }
+  .chip-pair { height: 56px; }
   :root { --chip-h: 22px; }
   .harmonies { gap: 4px; }
   .hchip { height: 20px; }
@@ -258,7 +289,8 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   .sub { display: none; }
   .panel { padding: 10px 14px; gap: 6px; }
   .divider { margin: 0; }
-  .chip { height: 48px; padding: 6px; }
+  .chip-pair { height: 48px; }
+  #replaceBtn { padding-block: 2px; }
   .hchip { height: 18px; }
   .hwheel { --wheel: 104px; }
   button.hname { font-size: 12px; padding: 1px 5px; }
@@ -266,7 +298,6 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   :root { --chip-h: 15px; }
   /* chip rows: label beside the chips, short labels only */
   .chip-block { display: grid; grid-template-columns: 5.4em minmax(0, 1fr); align-items: center; gap: 6px; }
-  .name-label { display: none; }
   .harmonies { gap: 3px; }
   .shade { aspect-ratio: 3.2; }
   button, .btn, .seg label { padding-block: 8px; }
@@ -281,6 +312,8 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   /* room for the second toolbar row */
   .actions-wrap { gap: 4px; }
   #swName, #hex { padding-block: 4px; }
+  #swName { padding-block: 3px; }
+  .panel.lab-panel { gap: 4px; }
   input[type="color"] { height: 30px; }
   .hchip { height: 15px; }
   .tools button, .tools select, .tools .seg label { padding-block: 4px; }
@@ -306,12 +339,12 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
       <p class="sub">Make and edit your own Procreate <code>.swatches</code> files on your Desktop.</p>
     </div>
     <div class="actions theme-group">
+      <button id="helpBtn" type="button" title="Tips and shortcuts" aria-label="Tips and shortcuts" aria-haspopup="dialog">?</button>
       <span class="label">Theme</span>
       <div class="seg" role="radiogroup" aria-label="Light or dark interface">
-        <label title="Follow your system setting"><input type="radio" name="theme" value="auto" checked>Auto</label>
+        <label><input type="radio" name="theme" value="dark" checked>Dark</label>
+        <label title="Mid-gray: judge colors without a bright or black surround"><input type="radio" name="theme" value="gray">Gray</label>
         <label><input type="radio" name="theme" value="light">Light</label>
-        <label title="Mid-grey: judge colors without a bright or black surround"><input type="radio" name="theme" value="gray">Gray</label>
-        <label><input type="radio" name="theme" value="dark">Dark</label>
       </div>
     </div>
     <div class="actions-wrap toolbar">
@@ -342,9 +375,12 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
             <button type="button" class="example-tag" data-preset="random" title="30 random colors, new ones each click (Undo brings yours back)">Random</button>
           </div>
         </div>
-        <input id="paletteName" type="text" maxlength="60" autocomplete="off">
+        <input id="paletteName" type="text" maxlength="60" autocomplete="off" placeholder="Palette name (optional)" title="Left blank, files and cards are named Untitled">
       </div>
-      <div id="grid" class="grid previewable" role="listbox" aria-multiselectable="true" aria-label="Swatches, 30 slots"></div>
+      <div class="grid-wrap">
+        <div id="grid" class="grid previewable" role="listbox" aria-multiselectable="true" aria-label="Swatches, 30 slots"></div>
+        <p id="startHint" class="start-hint">Empty palette. Start with a preset (<b>Grays</b>, <b>Basic</b>, <b>Random</b>), <b>Load from file</b>, or drop in an image and press <b>Fill palette from image</b>.</p>
+      </div>
       <div class="grid-meta">
         <span id="count">0 / 30 colors</span>
         <span title="Shift-click or Ctrl-click to select several swatches. Right-click a swatch to delete it. Drag to move.">Shift/Ctrl-click to select · right-click to delete</span>
@@ -399,13 +435,20 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
     </section>
     </div>
 
-    <section class="panel" aria-label="Selected color">
+    <section class="panel lab-panel" aria-label="Selected color">
       <span class="label col-title">Color lab</span>
       <div style="display:flex;flex-direction:column;gap:6px">
         <label class="label name-label" for="swName">Color name</label>
         <input id="swName" type="text" maxlength="60" autocomplete="off" placeholder="Color name (optional)" title="Leave blank and Procreate suggests a name">
       </div>
-      <div id="chip" class="chip previewable"><span id="chipText">Empty</span></div>
+      <div class="chip-pair">
+        <div id="chipSaved" class="chip previewable" title="The color saved in this palette slot"><span id="chipSavedText">Empty</span></div>
+        <div id="chip" class="chip previewable" title="The color you're changing here; Replace swatch saves it"><span id="chipText">Empty</span><button id="replaceBtn" type="button" disabled>Replace swatch</button></div>
+      </div>
+      <div class="pins-row">
+        <button id="pinBtn" type="button" title="Hold the color above aside in a pin">Pin</button>
+        <div id="pins" class="pins previewable" aria-label="Pinned colors"></div>
+      </div>
       <hr class="divider">
       <div class="lab-section" data-sec="finetune">
         <button type="button" class="sec-toggle label" aria-expanded="true" aria-controls="sec-finetune" title="Color picker, hex code and H/S/B sliders."><span class="caret" aria-hidden="true"></span>Fine-tune</button>
@@ -415,9 +458,9 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
           <input id="hex" type="text" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Hex code">
           <button id="clearBtn" type="button" class="danger">Clear slot</button>
         </div>
-        <label class="slider"><span>H</span><input id="h" type="range" min="0" max="360" step="1"><output id="hOut">0°</output></label>
-        <label class="slider"><span>S</span><input id="s" type="range" min="0" max="100" step="1"><output id="sOut">0%</output></label>
-        <label class="slider"><span>B</span><input id="b" type="range" min="0" max="100" step="1"><output id="bOut">0%</output></label>
+        <div class="slider" title="Hue in degrees, 0 to 360 (type a number or drag)"><span>H</span><input id="h" type="range" min="0" max="360" step="1" aria-label="Hue"><input id="hNum" class="adj-num" type="number" min="0" max="360" step="1" aria-label="Hue in degrees"></div>
+        <div class="slider" title="Saturation in %, 0 to 100 (type a number or drag)"><span>S</span><input id="s" type="range" min="0" max="100" step="1" aria-label="Saturation"><input id="sNum" class="adj-num" type="number" min="0" max="100" step="1" aria-label="Saturation in percent"></div>
+        <div class="slider" title="Brightness in %, 0 to 100 (type a number or drag)"><span>B</span><input id="b" type="range" min="0" max="100" step="1" aria-label="Brightness"><input id="bNum" class="adj-num" type="number" min="0" max="100" step="1" aria-label="Brightness in percent"></div>
         </div>
       </div>
       <hr class="divider">
@@ -498,7 +541,6 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
           </div>
           <input id="fillCount" type="number" min="1" max="30" value="30" aria-label="Number of colors, 1 to 30">
         </div>
-        <label class="check" title="After picking a color from the image, move on to the next slot"><input type="checkbox" id="autoNext" checked> Auto-advance</label>
       </div>
     </section>
     </div>
@@ -506,6 +548,58 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
 
 </div>
 <div id="toast" class="toast" hidden></div>
+<dialog id="helpDlg" aria-labelledby="helpTitle">
+  <div class="help-head">
+    <h2 id="helpTitle">Tips and shortcuts</h2>
+    <button id="helpClose" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="help-grid">
+    <section>
+      <h3>Palette</h3>
+      <ul>
+        <li>Click a swatch to select it. <b>Shift-click</b> selects a range, <b>Ctrl-click</b> (⌘ on Mac) adds or removes one.</li>
+        <li><b>Drag</b> a swatch to move it. Swap or Insert is set under the palette.</li>
+        <li><b>Right-click</b> a swatch, or press <kbd>Delete</kbd>, to clear it.</li>
+        <li><kbd>Arrow keys</kbd> move between swatches.</li>
+        <li><b>Lock</b> keeps colors safe from presets, sorting, Adjust, fills and opening a file.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Color lab</h3>
+      <ul>
+        <li>The top bar is the saved swatch, the bottom bar is the color you're trying. Nothing is saved until <b>Replace swatch</b> (or <kbd>Enter</kbd> in the hex or number boxes).</li>
+        <li>Click a Degrees, Tones or Shades chip to try it. <b>Drag</b> any chip onto a swatch to save it there.</li>
+        <li>Harmonies: click a color to add it to the first empty slot. Drag the wheel's dots to change the angle.</li>
+        <li>Click a section title to fold it away.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Pins</h3>
+      <ul>
+        <li><b>Pin</b> holds the lab color aside (or click an empty pin).</li>
+        <li>Click a pin to load it into the lab. <b>Drag</b> pins to swap them, or onto a swatch.</li>
+        <li>Drag a swatch into a pin. <b>Right-click</b> a pin to remove it.</li>
+        <li>Pins stay in this browser between visits.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Image</h3>
+      <ul>
+        <li>Drop, paste (<kbd>Ctrl+V</kbd>) or choose an image.</li>
+        <li>Click it to pick a color into the lab. Drag to move, scroll or pinch to zoom.</li>
+        <li><b>Fill palette from image</b> makes a whole palette: pick a mood and how many colors.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Files and keys</h3>
+      <ul>
+        <li>Drop a <code>.swatches</code> file anywhere on the page to open it.</li>
+        <li><kbd>Ctrl+Z</kbd> undo, <kbd>Ctrl+Y</kbd> or <kbd>Ctrl+Shift+Z</kbd> redo.</li>
+        <li><b>Export card</b> saves a picture of the palette with its hex codes.</li>
+      </ul>
+    </section>
+  </div>
+</dialog>
 <!-- Color-vision simulations (Machado et al. 2009, full severity) used by the Preview menu -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <filter id="cb-protan"><feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/></filter>
@@ -576,6 +670,7 @@ let paletteExtra = {};    // other keys on the palette object we don't edit
 let name = '';
 let swatches = new Array(SLOTS).fill(null);
 let selected = 0;
+let draft = null, draftOf = null, draftSlot = -1;   // the Color lab's unsaved color (see setDraft)
 let isExample = true;
 // "Adjust all" sliders: the palette before adjusting, and each adjusted swatch -> [its original, its color then]
 let adjBase = null, adjMap = new Map();
@@ -594,7 +689,7 @@ const isLocked = i => !!swatches[i]?._locked;
 // The page opens with an empty palette (presets fill it on request)
 function loadBlank() {
   fileWrapper = null; paletteIndex = 0; paletteExtra = {};
-  name = 'Untitled';
+  name = '';   // blank: the box shows "Palette name (optional)"; saves still say Untitled
   swatches = new Array(SLOTS).fill(null);
   selected = 0; isExample = true;
   render();
@@ -680,6 +775,7 @@ function render() {
     el.title = sw ? [swName(sw), toHex(sw)].filter(Boolean).join(' · ') : '';
   });
   $('count').textContent = `${swatches.filter(Boolean).length} / ${SLOTS} colors`;
+  $('startHint').hidden = swatches.some(Boolean);
   const many = multi.size > 1, sel = selection();
   $('sortBtn').textContent = many ? `Sort ${sel.length} selected` : 'Sort palette';
   $('blendBtn').disabled = !many;
@@ -704,12 +800,12 @@ function shadesOf(sw) {
 }
 // Drag a color chip (shade or harmony) onto a palette slot. Uses pointer events so it
 // works with mouse, pen and touch. A press without moving still counts as a click.
-function makeColorDraggable(btn, getRgb) {
+function makeColorDraggable(btn, getRgb, fromPin = -1) {
   let start = null, ghost = null, over = null, justDragged = false;
   const setOver = el => { if (over === el) return; over?.classList.remove('drop'); over = el; over?.classList.add('drop'); };
   const finish = () => { ghost?.remove(); ghost = null; setOver(null); start = null; document.body.classList.remove('color-dragging'); };
   btn.addEventListener('pointerdown', e => {
-    if (btn.disabled || e.button > 0) return;
+    if (btn.disabled || btn.classList.contains('empty') || e.button > 0) return;
     start = { x: e.clientX, y: e.clientY };
     btn.setPointerCapture(e.pointerId);
   });
@@ -722,12 +818,13 @@ function makeColorDraggable(btn, getRgb) {
       document.body.appendChild(ghost); document.body.classList.add('color-dragging');
     }
     ghost.style.left = e.clientX + 'px'; ghost.style.top = e.clientY + 'px';
-    setOver(document.elementFromPoint(e.clientX, e.clientY)?.closest('.slot') || null);
+    setOver(document.elementFromPoint(e.clientX, e.clientY)?.closest('.slot, .pin') || null);
   });
   btn.addEventListener('pointerup', () => {
     if (ghost) {
       justDragged = true;
-      if (over) dropColor(Number(over.dataset.i), getRgb());
+      if (over?.classList.contains('pin')) dropOnPin(Number(over.dataset.p), getRgb(), fromPin);
+      else if (over) dropColor(Number(over.dataset.i), getRgb());
     }
     finish();
   });
@@ -741,6 +838,69 @@ function dropColor(i, rgb) {
   swatches[i] = fromRgb(rgb);
   isExample = false; render();
 }
+
+// ---- pinned colors: 10 colors held aside in the Color lab (remembered in this browser, not in Undo) ----
+const PINS = 10, pinBox = $('pins');
+let pins = new Array(PINS).fill(null);
+try {
+  const saved = JSON.parse(localStorage.getItem('pb-pins') || '[]');
+  if (Array.isArray(saved)) saved.slice(0, PINS).forEach((p, k) => {
+    if (p && [p.hue, p.saturation, p.brightness].every(v => Number.isFinite(v) && v >= 0 && v <= 1)) pins[k] = { hue: p.hue, saturation: p.saturation, brightness: p.brightness };
+  });
+} catch {}
+const pinOf = sw => ({ hue: sw.hue, saturation: sw.saturation, brightness: sw.brightness });
+function setPins(next) {
+  pins = next;
+  try { localStorage.setItem('pb-pins', JSON.stringify(pins)); } catch {}
+  renderPins();
+}
+function renderPins() {
+  [...pinBox.children].forEach((b, k) => {
+    const p = pins[k], hx = p ? toHex(p) : '';
+    b.classList.toggle('empty', !p);
+    b.style.background = hx;
+    b.title = p ? `${hx}: click to load into the lab · drag to move · right-click to remove` : 'Empty pin: click to pin the lab color here';
+    b.setAttribute('aria-label', p ? `Pin ${k + 1}: ${hx}` : `Pin ${k + 1}: empty`);
+  });
+}
+function dropOnPin(p, rgb, from) {
+  const next = pins.slice();
+  if (from >= 0) { if (from === p) return; [next[from], next[p]] = [next[p], next[from]]; }   // pin onto pin: swap
+  else next[p] = pinOf(rgbToHsb(...rgb));
+  setPins(next);
+}
+for (let k = 0; k < PINS; k++) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'pin empty'; b.dataset.p = k;
+  makeColorDraggable(b, () => hsbToRgb(pins[k].hue, pins[k].saturation, pins[k].brightness), k);
+  b.addEventListener('click', () => {
+    if (pins[k]) { setDraft(pins[k]); return; }
+    const sw = labColor();
+    if (sw) { const next = pins.slice(); next[k] = pinOf(sw); setPins(next); }
+  });
+  b.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    if (pins[k]) { const next = pins.slice(); next[k] = null; setPins(next); }
+  });
+  // palette swatches can be dragged in too
+  b.addEventListener('dragover', e => { if (e.dataTransfer.types.includes('text/x-slot')) { e.preventDefault(); b.classList.add('drop'); } });
+  b.addEventListener('dragleave', () => b.classList.remove('drop'));
+  b.addEventListener('drop', e => {
+    b.classList.remove('drop');
+    const sw = swatches[Number(e.dataTransfer.getData('text/x-slot'))];
+    if (!sw) return;
+    e.preventDefault();
+    const next = pins.slice(); next[k] = pinOf(sw); setPins(next);
+  });
+  pinBox.appendChild(b);
+}
+renderPins();
+$('pinBtn').addEventListener('click', () => {
+  const sw = labColor(); if (!sw) return;
+  const k = pins.findIndex(p => !p);
+  if (k < 0) { toast('All 10 pins are full. Right-click a pin to remove it, or drag a color onto one to swap it.'); return; }
+  const next = pins.slice(); next[k] = pinOf(sw); setPins(next);
+});
 
 // Seven steps from neutral grey to the full color, at the same lightness (in OKLab).
 function tonesOf(sw) {
@@ -756,7 +916,7 @@ function buildChipRow(box, current, count = 7) {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'shade' + (k === current ? ' current' : '');
     makeColorDraggable(b, () => b.dataset.rgb.split(',').map(Number));
-    b.addEventListener('click', () => { if (b.dataset.rgb) setSelected(rgbToHsb(...b.dataset.rgb.split(',').map(Number))); });
+    b.addEventListener('click', () => { if (b.dataset.rgb) setDraft(rgbToHsb(...b.dataset.rgb.split(',').map(Number))); });
     box.appendChild(b);
   }
 }
@@ -788,11 +948,12 @@ const HARMONIES = [
 ];
 let activeHarmony = 'analog';
 const harmonyColors = (sw, turns) => turns.map(t => ({ hue: ((sw.hue + t / 360) % 1 + 1) % 1, saturation: sw.saturation, brightness: sw.brightness }));
-// put colors into the first empty, unlocked slots; returns the slot numbers used
+// put colors into the first empty, unlocked slots; returns the slot numbers used.
+// An empty selected slot holding an unsaved lab color is skipped, so that color isn't lost.
 function addToEmpty(cols) {
   const used = [];
   for (const c of cols) {
-    const i = swatches.findIndex((s, k) => !s && !used.includes(k));
+    const i = swatches.findIndex((s, k) => !s && !used.includes(k) && !(draft && k === selected));
     if (i < 0) break;
     swatches[i] = { ...c, alpha: 1, colorSpace: 0 };
     used.push(i);
@@ -813,13 +974,13 @@ HARMONIES.forEach(h => {
     const b = document.createElement('button'); b.type = 'button';
     b.className = 'hchip' + (k ? '' : ' base');
     if (k) makeColorDraggable(b, () => parseHex(b.dataset.hex));
-    if (k) b.addEventListener('click', () => { const sw = swatches[selected]; if (sw) addToEmpty([harmonyColors(sw, [h.turns()[k - 1]])[0]]); });
+    if (k) b.addEventListener('click', () => { const sw = labColor(); if (sw) addToEmpty([harmonyColors(sw, [h.turns()[k - 1]])[0]]); });
     else b.disabled = true;
     chips.appendChild(b);
   }
   const add = document.createElement('button'); add.type = 'button'; add.className = 'add'; add.textContent = 'Add all';
   add.setAttribute('aria-label', `Add all ${h.full.toLowerCase()} colors`);
-  add.addEventListener('click', () => { const sw = swatches[selected]; if (sw) addToEmpty(harmonyColors(sw, h.turns())); });
+  add.addEventListener('click', () => { const sw = labColor(); if (sw) addToEmpty(harmonyColors(sw, h.turns())); });
   row.append(nm, chips, add);
   harmonyBox.appendChild(row);
 });
@@ -864,16 +1025,16 @@ const pointerDeg = e => {
 };
 wheelSvg.addEventListener('pointerdown', e => {
   const dot = e.target.closest('.drag');
-  if (!dot || !swatches[selected]) return;
+  if (!dot || !labColor()) return;
   wheelDrag = Number(dot.dataset.k);
   wheelSvg.setPointerCapture(e.pointerId);
   e.preventDefault();
 });
 wheelSvg.addEventListener('pointermove', e => {
   if (wheelDrag === null) return;
-  const sw = swatches[selected]; if (!sw) return;
+  const sw = labColor(); if (!sw) return;
   const deg = pointerDeg(e);
-  if (wheelDrag < 0) { setSelected({ hue: deg / 360 }); return; }   // turning the base color itself (refused if locked)
+  if (wheelDrag < 0) { setDraft({ hue: deg / 360 }); return; }   // turning the base color itself
   const rel = (deg - sw.hue * 360 + 360) % 360;                       // 0..360 from the base color
   const signed = rel > 180 ? rel - 360 : rel;                           // -180..180
   const clamp = (v, lo, hi) => Math.round(Math.min(hi, Math.max(lo, v)));
@@ -890,8 +1051,21 @@ const endWheelDrag = () => {
 wheelSvg.addEventListener('pointerup', endWheelDrag);
 wheelSvg.addEventListener('pointercancel', endWheelDrag);
 
+// The Color lab works on a draft of the selected color: playing with it leaves the palette
+// alone until Replace swatch. The draft is dropped when another slot is picked or the slot
+// itself changes (undo, clear, image pick...).
+const labColor = () => draft || swatches[selected];
+function setDraft(part) {
+  const base = labColor() || { hue: 0, saturation: 0, brightness: 0.5 };
+  draft = { hue: base.hue, saturation: base.saturation, brightness: base.brightness, ...part };
+  draftOf = swatches[selected]; draftSlot = selected;
+  const orig = swatches[selected];
+  if (orig && toHex(orig) === toHex(draft)) draft = null;   // back where it started: nothing to save
+  renderEditor();
+}
 function renderEditor() {
-  const sw = swatches[selected];
+  if (draft && (draftSlot !== selected || draftOf !== swatches[selected])) draft = null;
+  const sw = labColor(), orig = swatches[selected];
   [...harmonyBox.children].forEach((row, r) => {
     const turns = HARMONIES[r].turns(), cols = sw ? [sw, ...harmonyColors(sw, turns)] : [];
     row.querySelector('.hname').setAttribute('aria-pressed', HARMONIES[r].key === activeHarmony);
@@ -909,15 +1083,22 @@ function renderEditor() {
   fillChipRow(hueBox, sw, sw && huesOf(sw), 0);
   fillChipRow(shadeBox, sw, sw && shadesOf(sw), 3);
   fillChipRow(toneBox, sw, sw && tonesOf(sw), 6);
-  $('clearBtn').disabled = !sw;
+  $('clearBtn').disabled = !orig;
   const view = sw || { hue: 0, saturation: 0, brightness: 0.5 };
   const hex = sw ? toHex(sw) : '';
-  $('chip').style.background = sw ? hex : '';
-  $('chipText').textContent = sw ? [swName(sw), hex].filter(Boolean).join(' · ') : 'Empty slot · pick a color to fill it';
-  $('swName').disabled = !sw;
-  // a locked color can't be edited here (its name still can)
-  ['picker', 'hex', 'h', 's', 'b'].forEach(id => { $(id).disabled = isLocked(selected); });
-  if (document.activeElement !== $('swName')) $('swName').value = swName(sw);
+  // two bars: the slot's saved color on top, the lab's color (maybe not saved yet) below
+  $('chipSaved').style.background = orig ? toHex(orig) : '';
+  $('chipSavedText').textContent = `Slot ${selected + 1} · ` + (orig ? [swName(orig), toHex(orig)].filter(Boolean).join(' · ') : 'empty');
+  $('chip').style.background = hex;
+  $('chipText').textContent = !sw ? 'Lab · pick a color to fill the slot' : `Lab · ${hex}` + (draft ? ' · not saved' : '');
+  const rb = $('replaceBtn'), locked = isLocked(selected);
+  rb.textContent = orig ? 'Replace swatch' : 'Add to slot';
+  rb.disabled = !draft || locked;
+  rb.classList.toggle('primary', !!draft && !locked);
+  rb.title = locked ? 'This color is locked. Unlock it to replace it.' : draft ? `Save ${hex} into slot ${selected + 1} (Enter)` : 'Change the color here first';
+  $('swName').disabled = !orig;
+  $('pinBtn').disabled = !sw;
+  if (document.activeElement !== $('swName')) $('swName').value = swName(orig);
   $('picker').value = sw ? hex.toLowerCase() : '#808080';
   if (document.activeElement !== $('hex')) $('hex').value = hex;
   // 360° and 0° are the same red: leave the knob at the right end if it's there
@@ -925,9 +1106,8 @@ function renderEditor() {
   if (!(hDeg === 0 && $('h').value === '360')) $('h').value = hDeg;
   $('s').value = Math.round(view.saturation * 100);
   $('b').value = Math.round(view.brightness * 100);
-  $('hOut').textContent = $('h').value + '°';
-  $('sOut').textContent = $('s').value + '%';
-  $('bOut').textContent = $('b').value + '%';
+  // the typing boxes follow the sliders (leaving alone the one being typed in)
+  ['h', 's', 'b'].forEach(id => { if (document.activeElement !== $(id + 'Num')) $(id + 'Num').value = $(id).value; });
   // slider tracks show what each slider would do
   const H = view.hue, S = view.saturation, B = view.brightness;
   const rgb = (h, s, b) => `rgb(${hsbToRgb(h, s, b).join(',')})`;
@@ -1014,12 +1194,30 @@ $('previewMode').addEventListener('change', e => {
 });
 
 // ---- editor events ----
-$('picker').addEventListener('input', e => setSelected(rgbToHsb(...parseHex(e.target.value))));
-$('hex').addEventListener('input', e => { const rgb = parseHex(e.target.value); if (rgb) setSelected(rgbToHsb(...rgb)); });
+$('picker').addEventListener('input', e => setDraft(rgbToHsb(...parseHex(e.target.value))));
+$('hex').addEventListener('input', e => { const rgb = parseHex(e.target.value); if (rgb) setDraft(rgbToHsb(...rgb)); });
 $('hex').addEventListener('blur', renderEditor);
-['h', 's', 'b'].forEach(id => $(id).addEventListener('input', () => setSelected({
+$('hex').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('replaceBtn').disabled) $('replaceBtn').click(); });
+$('replaceBtn').addEventListener('click', () => {
+  if (!draft) return;
+  const was = swatches[selected], hex = toHex(draft);
+  if (setSelected(draft)) toast(`${was ? 'Replaced' : 'Added'} slot ${selected + 1} with ${hex}. Undo brings back the old one.`);
+});
+const fineTune = () => setDraft({
   hue: (Number($('h').value) % 360) / 360, saturation: $('s').value / 100, brightness: $('b').value / 100
-})));
+});
+['h', 's', 'b'].forEach(id => {
+  const range = $(id), box = $(id + 'Num');
+  range.addEventListener('input', fineTune);
+  // typing: out-of-range numbers are capped; leaving the box tidies it up; Enter saves like the hex box
+  box.addEventListener('input', () => {
+    if (box.value.trim() === '' || !Number.isFinite(Number(box.value))) return;
+    range.value = Math.min(Number(range.max), Math.max(0, Math.round(Number(box.value))));
+    fineTune();
+  });
+  box.addEventListener('change', () => { box.value = range.value; });
+  box.addEventListener('keydown', e => { if (e.key === 'Enter' && !$('replaceBtn').disabled) { box.value = range.value; $('replaceBtn').click(); } });
+});
 $('swName').addEventListener('input', e => {
   const sw = swatches[selected]; if (!sw) return;
   if (e.target.value.trim()) sw[nameKey] = e.target.value; else delete sw[nameKey];
@@ -1164,7 +1362,7 @@ $('newBtn').addEventListener('click', () => {
   const kept = swatches.filter(sw => sw?._locked).length;
   toast('Palette cleared' + (kept ? `, except ${kept} locked color${kept === 1 ? '' : 's'}` : '') + '. Press Undo to bring it back.');
   fileWrapper = null; paletteIndex = 0; paletteExtra = {}; nameKey = 'name';
-  name = 'Untitled'; fillUnlocked([]); isExample = false; render();
+  name = ''; fillUnlocked([]); isExample = false; render();
 });
 
 // ---- open ----
@@ -1182,7 +1380,10 @@ async function openFile(file) {
     const { name: n, swatches: sws, ...rest } = pal;
     paletteExtra = rest;
     name = n == null || n === '' ? file.name.replace(/\.(swatches|zip)$/i, '') : String(n);
-    swatches = new Array(SLOTS).fill(null);
+    // locked colors stay in their slots; a file color meant for a locked slot moves to the next free one
+    const kept = swatches.map(sw => sw?._locked ? sw : null);
+    swatches = kept.slice();
+    const bumped = [];
     // keep a color only if hue, saturation and brightness are all numbers; pull them into 0–1
     let skipped = 0;
     sws.slice(0, SLOTS).forEach((sw, i) => {
@@ -1190,8 +1391,15 @@ async function openFile(file) {
       const raw = [sw.hue, sw.saturation, sw.brightness];
       if (raw.some(v => v == null || v === '' || !Number.isFinite(Number(v)))) { skipped++; return; }
       const [h, s, b] = raw.map(Number);
-      swatches[i] = { ...sw, hue: ((h % 1) + 1) % 1, saturation: Math.min(1, Math.max(0, s)), brightness: Math.min(1, Math.max(0, b)) };
+      // (a hue already in 0–1 is kept exactly, so re-opening a saved file gives back the same colors)
+      const col = { ...sw, hue: h >= 0 && h < 1 ? h : ((h % 1) + 1) % 1, saturation: Math.min(1, Math.max(0, s)), brightness: Math.min(1, Math.max(0, b)) };
+      if (kept[i]) bumped.push(col); else swatches[i] = col;
     });
+    let lost = 0;
+    for (const col of bumped) {
+      const free = swatches.findIndex(s => !s);
+      if (free < 0) lost++; else swatches[free] = col;
+    }
     const named = swatches.find(sw => sw && Object.keys(sw).some(k => !KNOWN_KEYS.includes(k) && typeof sw[k] === 'string'));
     nameKey = named ? Object.keys(named).find(k => !KNOWN_KEYS.includes(k) && typeof named[k] === 'string') : 'name';
     multi = new Set(); selected = anchor = 0; isExample = false; render();
@@ -1199,6 +1407,8 @@ async function openFile(file) {
     if (list.length > 1) msg += ` (this file has ${list.length} palettes; editing the first)`;
     if (sws.length > SLOTS) msg += ` (only the first ${SLOTS} colors are shown)`;
     if (skipped) msg += ` (${skipped} broken color${skipped === 1 ? '' : 's'} left out)`;
+    const nKept = kept.filter(Boolean).length;
+    if (nKept) msg += ` (${nKept} locked color${nKept === 1 ? '' : 's'} kept` + (bumped.length - lost ? `, ${bumped.length - lost} moved to a free slot` : '') + (lost ? `, ${lost} didn't fit` : '') + ')';
     toast(msg);
   } catch (err) {
     toast("That file couldn't be read. Pick a .swatches file exported from Procreate.");
@@ -1349,20 +1559,16 @@ function endPointer(e) {
   const rgb = sampleAt(e);
   if (!rgb) return;
   if (e.pointerType !== 'mouse') setTimeout(() => { loupe.hidden = true; }, 600);
-  if (!setSelected(rgbToHsb(...rgb))) return;
-  if ($('autoNext').checked) {
-    // skip locked slots; at the end, stay put
-    let next = selected + 1;
-    while (next < SLOTS && isLocked(next)) next++;
-    if (next < SLOTS) { selected = next; render(); }
-  }
+  setDraft(rgbToHsb(...rgb));   // into the Color lab's lower bar; Replace swatch saves it
 }
 view.addEventListener('pointerup', endPointer);
 view.addEventListener('pointercancel', endPointer);
 view.addEventListener('pointerleave', () => { if (!pointers.size) loupe.hidden = true; });
-// Fill from image: sample pixels, keep the ones that suit the mood, group them into
-// `count` color clusters (k-means in OKLab), then use the real pixel nearest each
-// cluster's centre so no invented colors appear. Most common colors come first.
+// Fill from image: sample pixels, keep the ones that suit the mood, split them into ~3×
+// `count` color clusters (k-means in OKLab), then choose `count` of them, each time taking
+// the cluster that is both common and most unlike the ones already chosen, so small accents
+// get a slot and near-duplicates don't. Each uses the real pixel nearest its cluster's centre
+// so no invented colors appear. Most common colors come first.
 const MOODS = {
   colorful: h => h.saturation * (h.brightness > 0.3 ? 1 : 0.2),
   bright:   h => h.brightness * 0.6 + h.saturation * 0.4,
@@ -1387,10 +1593,11 @@ function extractColors(count, mood) {
       .map(p => p.rgb);
   }
   const pts = pool.map(rgbToOklab);
+  const k = Math.min(pts.length, count * 3);
   // k-means++ start: spread the first centres out, with some randomness for a fresh mix each time
   const centres = [pts[Math.floor(Math.random() * pts.length)]];
   const near = pts.map(p => labDist2(p, centres[0]));
-  while (centres.length < Math.min(count, pts.length)) {
+  while (centres.length < k) {
     const total = near.reduce((a, b) => a + b, 0);
     if (!total) break;   // every remaining pixel is identical to a centre
     let r = Math.random() * total, i = 0;
@@ -1406,11 +1613,24 @@ function extractColors(count, mood) {
       if (mine.length) centres[k] = [0, 1, 2].map(a => mine.reduce((s, p) => s + p[a], 0) / mine.length);
     });
   }
-  return centres.map((c, k) => {
+  const clusters = centres.map((c, k) => {
     let best = -1, bd = Infinity;
     pts.forEach((p, j) => { if (owner[j] === k) { const dd = labDist2(p, c); if (dd < bd) { bd = dd; best = j; } } });
-    return { rgb: best >= 0 ? pool[best] : oklabToRgb(c), size: owner.filter(o => o === k).length };
-  }).filter(c => c.size).sort((a, b) => b.size - a.size).map(c => c.rgb);
+    return { rgb: best >= 0 ? pool[best] : oklabToRgb(c), lab: best >= 0 ? pts[best] : c, size: owner.filter(o => o === k).length };
+  }).filter(c => c.size).sort((a, b) => b.size - a.size);
+  if (clusters.filter(c => c.size >= 3).length >= count) clusters.splice(0, clusters.length, ...clusters.filter(c => c.size >= 3));   // under 3 pixels is noise, not an accent
+  // Choose: start with the most common, then repeatedly add the cluster with the best
+  // distance-to-chosen × size^0.3 (size counts, but much less than being different)
+  const chosen = clusters.splice(0, 1);
+  const gap = clusters.map(c => labDist2(c.lab, chosen[0].lab));
+  while (chosen.length < count && clusters.length) {
+    let bi = 0, bs = -1;
+    clusters.forEach((c, i) => { const s = Math.sqrt(gap[i]) * Math.pow(c.size, 0.3); if (s > bs) { bs = s; bi = i; } });
+    const [pick] = clusters.splice(bi, 1); gap.splice(bi, 1);
+    chosen.push(pick);
+    clusters.forEach((c, i) => { gap[i] = Math.min(gap[i], labDist2(c.lab, pick.lab)); });
+  }
+  return chosen.sort((a, b) => b.size - a.size).map(c => c.rgb);
 }
 // "Colors": the preset buttons and the number box stay in step
 const fillCountValue = () => {
@@ -1600,11 +1820,19 @@ $('undoBtn').addEventListener('click', undo);
 $('redoBtn').addEventListener('click', redo);
 document.addEventListener('keydown', e => {
   if (!(e.ctrlKey || e.metaKey)) return;
-  // let text boxes keep their own typing undo
-  if (e.target.matches('input[type="text"], textarea')) return;
+  // let text and number boxes keep their own typing undo; leave the palette alone behind the tips sheet
+  if (e.target.matches('input[type="text"], input[type="number"], textarea') || $('helpDlg').open) return;
   const k = e.key.toLowerCase();
   if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
   else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+});
+
+// ---- tips and shortcuts (Esc also closes it) ----
+$('helpBtn').addEventListener('click', () => $('helpDlg').showModal());
+$('helpClose').addEventListener('click', () => $('helpDlg').close());
+$('helpDlg').addEventListener('click', e => {   // a click outside the box closes it
+  const r = $('helpDlg').getBoundingClientRect();
+  if (e.target === $('helpDlg') && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) $('helpDlg').close();
 });
 
 // ---- collapsible Color lab parts (remembered in this browser) ----
@@ -1619,16 +1847,12 @@ document.querySelectorAll('.lab-section').forEach(sec => {
   });
 });
 
-// ---- theme: Light/Dark match Procreate's interface; Gray sits between; Auto follows the system (or the Claude viewer's own choice) ----
-const hostTheme = document.documentElement.getAttribute('data-theme');
-function applyTheme(t) {
-  const root = document.documentElement;
-  if (t === 'light' || t === 'gray' || t === 'dark') root.setAttribute('data-theme', t);
-  else if (hostTheme) root.setAttribute('data-theme', hostTheme);
-  else root.removeAttribute('data-theme');
-}
-let savedTheme = 'auto';
-try { savedTheme = localStorage.getItem('pb-theme') || 'auto'; } catch {}
+// ---- theme: Dark/Light match Procreate's interface; Gray sits between ----
+const THEMES = ['dark', 'gray', 'light'];
+const applyTheme = t => document.documentElement.setAttribute('data-theme', t);
+// Dark until the viewer picks another (their choice is remembered in this browser; an old "auto" counts as Dark)
+let savedTheme = 'dark';
+try { const t = localStorage.getItem('pb-theme'); if (THEMES.includes(t)) savedTheme = t; } catch {}
 document.querySelectorAll('input[name="theme"]').forEach(r => {
   r.checked = r.value === savedTheme;
   r.addEventListener('change', () => {

@@ -13,7 +13,7 @@ const PAPER = { a4: { code: 9, w: 595, h: 842 }, letter: { code: 1, w: 612, h: 7
 const MARGIN_IN = { left: 0.7, right: 0.7, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 };
 const MIN_SCALE = 50; // layouts that would print smaller than this are not offered
 const MAX_PAGES = 10; // no file is longer than this (Cam, 2026-11-02)
-// Excel font. Arial matches Helvetica (the PDF and preview font) letter for letter,
+// Excel, page and preview font (Cam, 2026-11-03). Arial matches Helvetica (the PDF's built-in font) letter for letter,
 // and comes with every computer and with Google Sheets.
 const FONT = "Arial";
 // Swatch spacing: a gap (pt) between swatches in a group, and a wider gap
@@ -35,11 +35,10 @@ function clampInt(v, min, max, fallback) {
 
 const presetById = (id) => PRESETS.find((p) => p.id === id) || null;
 
-// Color order for a whole line ("All ..." sets): "color" is the brand's chart order
-// (the stored order, or p.colorOrder when the codes are stored by number);
-// "number" sorts the codes. Only for lines whose codes (nearly) all hold a number;
-// the few without one (blenders, "FV", "XB") go last. Copic style: 0000 before 000
-// before 00 before 0 (Cam, 2026-11-02).
+// Whole lines ("All ..." sets) are always in number order: the "By color" order and
+// the Order menu were removed (Cam, 2026-11-02). Only for lines whose codes (nearly)
+// all hold a number; the few without one (blenders, "FV", "XB") go last. Copic
+// style: 0000 before 000 before 00 before 0.
 function codeCompare(a, b) {
   const ta = String(a).split(/(\d+)/), tb = String(b).split(/(\d+)/);
   for (let i = 0; i < Math.max(ta.length, tb.length); i++) {
@@ -50,28 +49,16 @@ function codeCompare(a, b) {
   }
   return 0;
 }
-function orderChoices(p) {
-  if (!p || p.collection || !p.name.startsWith("All ")) return null;
-  const hasNum = (c) => /\d/.test(c);
-  if (p.codes.filter(hasNum).length < p.codes.length * 0.9) return null; // names, not codes
-  const idx = p.codes.map((_, i) => i);
-  const number = [...idx].sort((i, j) => (hasNum(p.codes[j]) - hasNum(p.codes[i])) ||
-    (hasNum(p.codes[i]) ? codeCompare(p.codes[i], p.codes[j]) : i - j));
-  let color = idx;
-  if (p.colorOrder) {
-    const at = new Map(p.colorOrder.map((c, i) => [String(c), i]));
-    if (!p.codes.every((c) => at.has(String(c)))) return null;
-    color = [...idx].sort((i, j) => at.get(String(p.codes[i])) - at.get(String(p.codes[j])));
-  }
-  return number.some((v, i) => v !== color[i]) ? { color, number } : null;
-}
 function inOrder(p) {
-  const order = orderChoices(p)?.[$("order").value];
-  if (!order) return p;
+  if (!p || p.collection || !p.name.startsWith("All ")) return p;
+  const hasNum = (c) => /\d/.test(c);
+  if (p.codes.filter(hasNum).length < p.codes.length * 0.9) return p; // names, not codes
+  const order = p.codes.map((_, i) => i).sort((i, j) => (hasNum(p.codes[j]) - hasNum(p.codes[i])) ||
+    (hasNum(p.codes[i]) ? codeCompare(p.codes[i], p.codes[j]) : i - j));
   return { ...p, codes: order.map((i) => p.codes[i]), legacy: p.legacy && order.map((i) => p.legacy[i]) };
 }
 
-// The set picked in the Set menu, in the chosen color order. A collection stands
+// The set picked in the Set menu (whole lines in number order). A collection stands
 // for its member sets; those are kept whole (keepAll) and headed by their short name
 // ("Pitt Artist Pen Dual Marker - Wallet of 5" -> "Wallet of 5").
 function chosenPresets() {
@@ -459,7 +446,7 @@ class SvgDoc {
   setTextColor(c) { this.textColor = typeof c === "number" ? `rgb(${c},${c},${c})` : c; }
   cssFont() {
     const st = this.font.style;
-    return `${st.includes("italic") ? "italic " : ""}${st.includes("bold") ? "bold " : ""}${this.font.size}px Helvetica, Arial, sans-serif`;
+    return `${st.includes("italic") ? "italic " : ""}${st.includes("bold") ? "bold " : ""}${this.font.size}px Arial, Helvetica, sans-serif`;
   }
   getTextWidth(text) {
     measureCtx.font = this.cssFont();
@@ -487,7 +474,7 @@ class SvgDoc {
     const el = document.createElementNS(NS, "text");
     const st = this.font.style;
     Object.entries({
-      x, y, fill: this.textColor, "font-size": this.font.size, "font-family": "Helvetica, Arial, sans-serif",
+      x, y, fill: this.textColor, "font-size": this.font.size, "font-family": "Arial, Helvetica, sans-serif",
       "font-weight": st.includes("bold") ? "bold" : "normal", "font-style": st.includes("italic") ? "italic" : "normal",
       "text-anchor": opts.align === "center" ? "middle" : opts.align === "right" ? "end" : "start",
       "dominant-baseline": opts.baseline === "middle" ? "central" : opts.baseline === "top" ? "hanging" : "auto",
@@ -978,8 +965,9 @@ function showPageTypeControls(s) {
   // Blank pages (strips, mixing grid): no medium, brand or set to pick.
   const medium = $("medium");
   if (!grid) {
-    for (const id of ["medium-row", "brand-row", "set-row", "order-row", "legacy-row", "no-codes-row"]) $(id).hidden = true;
+    for (const id of ["find-row", "medium-row", "brand-row", "set-row", "legacy-row", "no-codes-row"]) $(id).hidden = true;
   } else {
+    $("find-row").hidden = false;
     $("medium-row").hidden = false;
     $("brand-row").hidden = !medium.value;
     $("set-row").hidden = !$("brand").value;
@@ -990,6 +978,12 @@ function showPageTypeControls(s) {
   note.textContent = s.pageType === "strips"
     ? "Each strip has a box for the palette's name and a small box above each color for its code."
     : "Write your colors down the side and across the top. Each box is where two colors meet; the thick boxes are each color on its own.";
+}
+
+// One line above the preview: what the download will be (Cam, 2026-11-02).
+function showSummary(s, pages, extra) {
+  const paper = s.paper === "a4" ? "A4" : "US Letter";
+  $("summary").textContent = [`${paper}, ${s.orientation}`, `${pages} page${pages > 1 ? "s" : ""}`, ...extra].join(" · ");
 }
 
 function render() {
@@ -1004,19 +998,25 @@ function render() {
         ? `${m.perPage} per page. ${MAX_PAGES} pages (the most) hold ${m.palettes}, so only ${m.palettes} will print.`
         : `${m.perPage} per page, fits on ${m.pages} page${m.pages > 1 ? "s" : ""}.`;
     }
+    showSummary(s, m.pages, [s.pageType === "strips" ? `${Math.min(s.palettes, m.palettes ?? s.palettes)} palettes` : `${s.mixColours} colors`]);
     showPages(buildModelPdf(m, s, (x) => new SvgDoc(x)));
     return;
   }
   const layout = renderOptions(s);
-  if (!layout) return;
+  if (!layout) {
+    $("summary").textContent = "No layout fits yet: see the message under Pick a layout.";
+    return;
+  }
   withLayoutCodes(s, layout);
   if (s.autoPages) {
     $("pages-note").textContent = `Auto: fits on ${s.pages} page${s.pages > 1 ? "s" : ""} at about ${layout.scale}%.`;
   }
+  showSummary(s, s.pages, [`${s.total} swatch${s.total > 1 ? "es" : ""}`, `prints at about ${layout.scale}%`]);
   showPages(buildPdf(layout, s, (x) => new SvgDoc(x)));
 }
 
-// Light, gray or dark page colours (light by default), remembered in this browser only.
+// Light, gray or dark page colours (dark by default: set in index.html before the
+// page draws), remembered in this browser only.
 function initLook() {
   const root = document.documentElement;
   const save = () => {
@@ -1106,6 +1106,47 @@ function initPresets() {
   });
   fillBrands();
   fillSets();
+
+  // "Find a set": every word typed must appear in the line, set or medium name.
+  const findBox = $("find");
+  const results = $("find-results");
+  const findName = (p) => `${p.group} – ${p.name}`;
+  const pick = (p) => {
+    medium.value = mediumOf(p);
+    fillBrands();
+    brand.value = brandOf(p);
+    fillSets();
+    select.value = p.id;
+    select.dispatchEvent(new Event("change"));
+    findBox.value = "";
+    results.hidden = true;
+  };
+  let found = [];
+  findBox.addEventListener("input", () => {
+    const words = findBox.value.toLowerCase().split(/\s+/).filter(Boolean);
+    found = words.length
+      ? PRESETS.filter((p) => !p.hidden && SHOWN_MEDIUMS.includes(mediumOf(p)))
+        .filter((p) => words.every((w) => `${findName(p)} ${mediumOf(p)}`.toLowerCase().includes(w))).slice(0, 12)
+      : [];
+    results.textContent = "";
+    for (const p of found) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = findName(p);
+      const m = document.createElement("small");
+      m.textContent = mediumOf(p);
+      b.append(m);
+      b.addEventListener("mousedown", (e) => { e.preventDefault(); pick(p); }); // before the box loses focus
+      results.append(b);
+    }
+    if (words.length && !found.length) results.innerHTML = '<p class="note">No set matches. Try fewer words.</p>';
+    results.hidden = !words.length;
+  });
+  findBox.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && found.length) { e.preventDefault(); pick(found[0]); }
+    if (e.key === "Escape") results.hidden = true;
+  });
+  findBox.addEventListener("blur", () => { results.hidden = true; });
   // Preset notes stay in the data files as our own record; the page never shows them.
   // Picking, adding or removing a set updates the total. The title is never filled in:
   // it stays blank unless the user types one (Cam, 2026-11-02).
@@ -1130,10 +1171,8 @@ function initPresets() {
     render();
   };
   select.addEventListener("change", () => {
-    $("order").value = "color"; // a new set starts in the brand's color order
     applyChosen();
   });
-  $("order").addEventListener("input", applyChosen);
   $("legacy-codes").addEventListener("input", applyChosen); // legacy codes can change the repeat count
   $("total").addEventListener("input", () => {
     chosenKey = null; // a new total: start from the best layout again
@@ -1145,16 +1184,27 @@ function initPresets() {
   });
 }
 
-// Shows the Order menu and the code checkboxes that belong to the picked set.
+// Shows the code checkboxes that belong to the picked set.
 function showSetControls() {
   const list = chosenPresets();
-  $("order-row").hidden = !orderChoices(presetById($("preset").value));
   $("no-codes-row").hidden = !list.length;
   $("legacy-row").hidden = !list.some((p) => p.legacy); // only sets that have old codes (Ohuhu)
 }
 
+// The "?" button opens the tips box; ✕, Esc or a click outside closes it.
+function initHelp() {
+  const box = $("help");
+  $("help-btn").addEventListener("click", () => box.showModal());
+  $("help-close").addEventListener("click", () => box.close());
+  box.addEventListener("click", (e) => {
+    const r = box.getBoundingClientRect();
+    if (e.target === box && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) box.close();
+  });
+}
+
 function init() {
   initLook();
+  initHelp();
   initPresets();
   for (const id of ["page-type", "strip-colours", "palettes", "mix-colours", "total", "pages", "auto-pages", "paper", "orientation", "align", "headers", "spares", "spacing", "sections", "label-bold", "label-italic", "label-size", "label-color", "legacy-codes", "no-codes", "title", "description"]) {
     $(id).addEventListener("input", render);
