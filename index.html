@@ -96,7 +96,11 @@ function render(updates){
 async function loadUpdates(){
   message('Loading updates…');
   try{
-    const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/updates?ref=${BRANCH}`,{headers:{Accept:'application/vnd.github+json'}});
+    // Read from the newest commit itself: GitHub's file server can serve a
+    // branch's files a few minutes stale right after a Pages CMS edit.
+    const head=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}`,{headers:{Accept:'application/vnd.github.sha'}});
+    const ref=head.ok?(await head.text()).trim():BRANCH;
+    const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/updates?ref=${ref}`,{headers:{Accept:'application/vnd.github+json'}});
     if(response.status===404){render([]);return;} // folder appears with the first update
     if(!response.ok)throw Error('Could not read updates');
     const files=(await response.json()).filter(file=>file.type==='file'&&file.name.toLowerCase().endsWith('.md'));
