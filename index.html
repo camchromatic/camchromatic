@@ -17,28 +17,27 @@ nav{display:flex;gap:22px;font-size:.9rem}@media(max-width:700px){.top{height:au
 h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
 .intro{color:var(--muted);max-width:540px;margin:0}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.updates{display:grid;gap:14px;max-width:720px}
-.update{background:var(--panel);border-radius:10px;padding:18px 20px}
-.update time{display:block;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.update h2{font-size:1.2rem;letter-spacing:-.02em;margin:4px 0 6px}
-.update p{margin:0;color:var(--ink);white-space:pre-line}
-.update .more{display:inline-block;margin-top:10px;font-size:.9rem}
+.updates{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.update{display:flex;gap:18px;align-items:baseline;padding:9px 2px;border-bottom:1px solid var(--line);font-size:.95rem}
+.update time{flex:none;width:96px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.update .entry{min-width:0}.update strong{font-weight:650}.update a{color:var(--accent)}.update .text{color:var(--muted)}
+.updates .empty{margin-top:14px}
 .empty{padding:40px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
 footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:.85rem}
-@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.update{padding:16px}}
+@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.update{gap:12px}.update time{width:84px}}
 </style>
 </head>
 <body>
 <header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
 <main class="wrap">
 <section class="hero"><div class="eyebrow">Here's some things made by</div><h1>Cam Garcia</h1><p class="intro">Based in South Florida, available for work.</p></section>
-<section class="updates" id="updates" aria-label="Site updates" aria-live="polite"></section>
+<ul class="updates" id="updates" aria-label="Site updates" aria-live="polite"></ul>
 </main><footer><div class="wrap">© 2026 Cam Garcia</div></footer>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
 const list=document.getElementById('updates');
 
-function message(text){list.innerHTML='';const box=document.createElement('div');box.className='empty';box.textContent=text;list.append(box);}
+function message(text){list.innerHTML='';const box=document.createElement('li');box.className='empty';box.textContent=text;list.append(box);}
 function unquote(value=''){
   value=String(value).trim();
   if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'")))value=value.slice(1,-1);
@@ -47,17 +46,20 @@ function unquote(value=''){
 function parseUpdate(source,filename){
   const match=source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
   if(!match)return null;
-  const data={};let block=null;
+  const data={},raw={};let block=null,last=null;
   for(const line of match[1].split(/\r?\n/)){
     if(block){
       if(/^\s+/.test(line)||line.trim()===''){data[block].push(line.replace(/^\s{1,2}/,''));continue;}
       data[block]=data[block].join('\n').trim();block=null;
     }
+    // Pages CMS wraps long text onto indented lines; join them back up.
+    if(last&&/^\s+\S/.test(line)){raw[last]+=' '+line.trim();data[last]=unquote(raw[last]);continue;}
+    last=null;
     const field=line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
     if(!field)continue;
     const value=field[2].trim();
     if(['|','>','|-','>-'].includes(value)){data[field[1]]=[];block=field[1];}
-    else data[field[1]]=unquote(value);
+    else{raw[field[1]]=value;data[field[1]]=unquote(value);last=field[1];}
   }
   if(block)data[block]=data[block].join('\n').trim();
   return data.title?{title:data.title,date:data.date||'',text:data.text||'',link:data.link||'',filename}:null;
@@ -72,21 +74,23 @@ function safeLink(value=''){
 function niceDate(value){
   const parts=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(!parts)return '';
-  return new Date(Date.UTC(+parts[1],parts[2]-1,+parts[3])).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'});
+  return new Date(Date.UTC(+parts[1],parts[2]-1,+parts[3])).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'});
 }
 function render(updates){
   updates=updates.filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.filename).localeCompare(String(a.filename)));
   if(!updates.length){message('No updates yet. Check back soon!');return;}
   list.innerHTML='';
   updates.forEach(update=>{
-    const card=document.createElement('article');card.className='update';
-    const date=niceDate(update.date);
-    if(date){const time=document.createElement('time');time.dateTime=update.date;time.textContent=date;card.append(time);}
-    const title=document.createElement('h2');title.textContent=update.title;card.append(title);
-    if(update.text){const text=document.createElement('p');text.textContent=update.text;card.append(text);}
+    // One log line: date, then the title (a link when there is one) and the text.
+    const row=document.createElement('li');row.className='update';
+    const time=document.createElement('time');time.dateTime=update.date;time.textContent=niceDate(update.date);row.append(time);
+    const entry=document.createElement('span');entry.className='entry';
     const href=safeLink(update.link);
-    if(href){const link=document.createElement('a');link.className='more';link.href=href;link.textContent='Take a look →';card.append(link);}
-    list.append(card);
+    const title=document.createElement(href?'a':'strong');title.textContent=update.title;
+    if(href){title.href=href;title.style.fontWeight='650';}
+    entry.append(title);
+    if(update.text){const text=document.createElement('span');text.className='text';text.textContent=' — '+update.text.replace(/\s*\n\s*/g,' ');entry.append(text);}
+    row.append(entry);list.append(row);
   });
 }
 async function loadUpdates(){
