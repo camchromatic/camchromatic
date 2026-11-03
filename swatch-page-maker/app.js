@@ -921,16 +921,7 @@ async function download() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-// With a medium picked, the layout list is hidden and the best layout is used
-// (Cam, 2026-11-02). Blank grids (medium "None") show it; a "no layout fits"
-// warning always shows.
 function renderOptions(s) {
-  const chosen = buildOptions(s);
-  $("layout-pick").hidden = !!chosen && !!$("medium").value;
-  return chosen;
-}
-
-function buildOptions(s) {
   const options = layoutOptions(s);
   const box = $("options");
   box.textContent = "";
