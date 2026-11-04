@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Code written with help from Claude Opus 5.5 (Anthropic). Art and design by Cam Garcia. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1704,7 +1705,9 @@ async function wrapInZip(blob, fileName) {
   outer.file(fileName, blob);
   return outer.generateAsync({ type: 'blob', compression: 'STORE' });
 }
-const downloadsReady = window.claude?.use ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
+// the hosting page's save box, when there is one (otherwise a plain link download)
+const host = window.claude;
+const downloadsReady = host?.use ? host.use('downloads').catch(() => null) : Promise.resolve(null);
 
 $('saveBtn').addEventListener('click', async () => {
   if (!swatches.some(Boolean)) { toast('Add at least one color before saving.'); return; }
@@ -1727,7 +1730,7 @@ $('saveBtn').addEventListener('click', async () => {
     toast(`Saved ${base}.swatches`);
   } catch (err) {
     if (err?.code === 'rejected_extension') {
-      // Claude can't save a .swatches file directly, so put the real .swatches file inside a .zip
+      // some hosts can't save a .swatches file directly, so put the real .swatches file inside a .zip
       try {
         await downloads.save({ filename: base + '.zip', data: await wrapInZip(blob, base + '.swatches') });
         toast(`Saved ${base}.zip. Unzip it to get ${base}.swatches.`, 8000);
