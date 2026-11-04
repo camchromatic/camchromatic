@@ -96,6 +96,8 @@ header {
 header h1 { margin: 0 0 4px; font: 700 2rem/1.1 var(--font-display); letter-spacing: -0.02em; }
 header p { margin: 0; color: var(--muted); }
 
+footer { max-width: 1400px; margin: 0 auto; padding: 8px 16px 24px; font-size: 0.85rem; color: var(--muted); text-align: center; }
+
 /* Half and half: settings on the left, preview on the right (stacked on narrow screens). */
 main {
   max-width: 1400px;
