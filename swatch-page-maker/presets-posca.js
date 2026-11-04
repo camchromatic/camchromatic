@@ -1,7 +1,6 @@
 // uni POSCA presets, researched (posca.com colour chart, uniball.co.uk, penstore.com
 // and other shops). Colour names only: no source gives POSCA colour numbers.
 // Regional sets with the same name differ, so each region is its own preset.
-// See docs/PRESETS-sharpie-posca.md.
 PRESETS.push(
   {"id": "posca-pc-1mc-all-colors", "group": "Posca PC-1M", "name": "All 36 colors", "title": "Posca PC-1M All 36 colors", "codes": ["Apple Green", "Apricot", "Aqua Green", "Beige", "Black", "Blue", "Brown", "Coral Pink", "Gold", "Green", "Lavender", "Light Blue", "Light Green", "Light Orange", "Light Pink", "Orange", "Pink", "Red", "Red Wine", "Silver", "Sky Blue", "Slate Grey", "Straw Yellow", "Sunshine Yellow", "Violet", "White", "Yellow", "Ivory", "Grey", "Pastel Green", "Pastel Yellow", "Pastel Orange", "Pastel Purple", "Peach", "Purple", "Yellow-Green"], "note": "Blick's PC-1MC range, then colors only found in our EU/Japan sets.", "hidden": true},
   {"id": "posca-fam-pc-1m-standard", "group": "Posca PC-1M", "name": "Standard", "title": "Posca PC-1M Standard", "codes": ["Apple Green", "Beige", "Black", "Blue", "Brown", "Green", "Light Blue", "Light Green", "Light Orange", "Light Pink", "Orange", "Pink", "Red", "Red Wine", "Slate Grey", "Violet", "White", "Yellow", "Ivory", "Grey", "Peach", "Purple", "Yellow-Green"], "hidden": true},

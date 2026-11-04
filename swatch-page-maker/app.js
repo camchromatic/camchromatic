@@ -1202,6 +1202,21 @@ function initHelp() {
   });
 }
 
+// "Reset": every setting back to how the page first opens (the theme stays).
+function resetAll() {
+  for (const el of document.querySelectorAll("main input, main select, main textarea")) {
+    if (el.type === "checkbox") el.checked = el.defaultChecked;
+    else if (el.tagName === "SELECT") el.selectedIndex = Math.max(0, [...el.options].findIndex((o) => o.defaultSelected));
+    else el.value = el.defaultValue;
+  }
+  $("headers").disabled = false;
+  $("find-results").hidden = true;
+  $("more").open = false;
+  chosenKey = null;
+  $("medium").dispatchEvent(new Event("change")); // empties Brand and Set, then redraws
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function init() {
   initLook();
   initHelp();
@@ -1218,6 +1233,13 @@ function init() {
   }
   $("download").addEventListener("click", download);
   $("download-pdf").addEventListener("click", downloadPdf);
+  // Reset only works once Confirm is ticked; resetting unticks it again.
+  $("reset-ok").addEventListener("input", () => { $("reset").disabled = !$("reset-ok").checked; });
+  $("reset").addEventListener("click", () => {
+    if (!$("reset-ok").checked) return;
+    resetAll();
+    $("reset").disabled = true;
+  });
   render();
 }
 

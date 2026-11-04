@@ -1,6 +1,6 @@
 // Sharpie Creative Marker presets (water-based paint markers), researched.
-// Colour names from Blick, JetPens and United Now (sharpie.com lists no set contents);
-// see docs/PRESETS-sharpie-posca.md. Sets with only one source carry a note.
+// Colour names from Blick, JetPens and United Now (sharpie.com lists no set contents).
+// Sets with only one source carry a note.
 PRESETS.push(
   {"id": "sharpie-bullet-classic-5", "group": "Sharpie Creative Bullet", "name": "Classic 5", "title": "Sharpie Creative Bullet Classic 5", "codes": ["Red", "Yellow", "Green", "Blue", "Purple"]},
   {"id": "sharpie-bullet-classic-12", "group": "Sharpie Creative Bullet", "name": "Classic 12", "title": "Sharpie Creative Bullet Classic 12", "codes": ["Red", "Orange", "Yellow", "Green", "Light Teal", "Dark Teal", "Blue", "Purple", "Pink", "White", "Grey", "Black"]},

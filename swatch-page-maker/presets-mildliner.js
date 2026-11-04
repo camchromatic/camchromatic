@@ -1,5 +1,4 @@
 // Zebra presets, from online research.
-// Raw findings with sources: docs/research/; skipped sets are listed there too.
 PRESETS.push(
   {"id": "mildliner-mildliner-japan-mild-fluorescent-5-colors-jp", "group": "Zebra Mildliner (Japan)", "medium": "Marker", "name": "Mild & Fluorescent 5 colors", "title": "Zebra Mildliner (Japan) Mild & Fluorescent 5 colors", "codes": ["Mild Pink", "Mild Orange", "Mild Yellow", "Mild Blue Green", "Mild Blue"], "hidden": true},
   {"id": "mildliner-mildliner-japan-cool-refined-5-colors-jp", "group": "Zebra Mildliner (Japan)", "medium": "Marker", "name": "Cool & Refined", "title": "Zebra Mildliner (Japan) Cool & Refined", "codes": ["Mild Green", "Mild Dark Blue", "Mild Gray", "Mild Violet", "Mild Red"], "hidden": true},

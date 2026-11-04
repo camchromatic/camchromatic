@@ -151,6 +151,13 @@ button {
 }
 button:hover { filter: brightness(1.1); }
 .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+/* Layout heading with Reset on the right; Reset is plain and stays off until Confirm is ticked. */
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.panel-head h2 { margin: 0; }
+.reset-box { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
+.reset-box .check { margin: 0; }
+#reset { padding: 6px 14px; font-size: 0.85rem; background: var(--field); color: var(--text); border: 1px solid var(--line); }
+#reset:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
 /* Pages: number box with an "Auto" tick beside it. */
 .pages-input { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
 .pages-input input[type=number] { margin-top: 0; flex: 1; }

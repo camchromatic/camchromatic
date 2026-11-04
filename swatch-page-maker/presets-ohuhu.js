@@ -1,7 +1,6 @@
 // Ohuhu presets, from ohuhu.com/pages/color-codes-index.
 // Set contents were read by eye from Ohuhu's downloadable colour charts, and every
 // code was checked against Ohuhu's own code index. New codes; chart order.
-// See docs\PRESETS-copic-ohuhu.md.
 // Each Ohuhu preset also has "legacy": the old code for each colour (Honolulu, Oahu or
 // Kaala column of Ohuhu's code index), shown when "Use legacy codes" is ticked.
 PRESETS.push(

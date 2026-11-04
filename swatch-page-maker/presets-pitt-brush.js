@@ -1,5 +1,4 @@
 // Faber-Castell presets, from online research.
-// Raw findings with sources: docs/research/; skipped sets are listed there too.
 PRESETS.push(
   {"id": "pitt-brush-pitt-artist-pen-brush-studio-gift-box-of-60-us", "group": "Faber-Castell PITT Artist Pen Brush", "medium": "Marker", "name": "All 60 colors", "title": "Faber-Castell PITT Artist Pen Brush All 60 colors", "codes": ["101", "103", "104", "107", "108", "109", "110", "112", "113", "114", "116", "118", "120", "121", "125", "127", "129", "131", "132", "133", "134", "136", "143", "146", "148", "153", "154", "156", "157", "161", "162", "167", "169", "170", "171", "172", "174", "175", "177", "178", "180", "186", "188", "189", "192", "199", "219", "220", "230", "232", "233", "235", "239", "247", "264", "268", "270", "272", "273", "274"]},
   {"id": "pitt-brush-pitt-artist-pen-brush-studio-gift-box-of-12-us-uk", "group": "Faber-Castell PITT Artist Pen Brush", "medium": "Marker", "name": "12 colors", "title": "Faber-Castell PITT Artist Pen Brush 12 colors", "codes": ["107", "110", "112", "113", "121", "125", "136", "146", "169", "199", "232", "264"], "hidden": true},

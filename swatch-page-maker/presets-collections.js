@@ -30,7 +30,6 @@
   // Copic acrea: the eight 6-color sets make up all 48 colors exactly.
   collect("copic-acrea-all-sets", "All 48 colors", "Copic acrea collection", "Copic acrea");
   // Posca: one option per tip, grouped by color family with headers.
-  // Families come from docs/research/posca_families.py.
   for (const [tip, name, fams] of [
     ["pc-1m", "All 36 colors", ["standard", "pastel", "metallic"]],
     ["pc-1mr", "All 22 colors", ["standard", "pastel", "metallic"]],
