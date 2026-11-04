@@ -44,6 +44,8 @@
   --accent: #2f8cff; --accent-ink: #ffffff; --slot-empty: #505053; --danger: #ffc2bb;
   color-scheme: dark;
 }
+/* fainter outline for buttons and switches */
+:root { --line-soft: color-mix(in srgb, var(--line) 80%, var(--surface)); }
 * { box-sizing: border-box; }
 body {
   background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -59,8 +61,8 @@ h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 
 .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .actions-wrap { display: flex; flex-direction: column; gap: 8px; }
 button, .btn {
-  font: 600 14px/1 var(--font-body); padding: 10px 14px; border-radius: 10px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font: 600 13px/1 var(--font-body); padding: 9px 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line-soft); background: var(--surface); color: var(--ink);
 }
 button:hover, .btn:hover { border-color: var(--muted); }
 button:focus-visible, input:focus-visible, textarea:focus-visible, .slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -152,13 +154,14 @@ textarea { width: 100%; min-height: 70px; resize: vertical; }
 .zoom-bar button { padding: 6px 10px; border: none; }
 .zoom-bar span { font: 500 12px var(--font-mono); font-variant-numeric: tabular-nums; min-width: 4.5ch; text-align: center; color: var(--muted); }
 .loupe { position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink); pointer-events: none; transform: translate(-50%, -130%); }
-.check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); cursor: pointer; }
+.check { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); cursor: pointer; }
 .tools { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding-top: 14px; border-top: 1px solid var(--line); }
+.tools .clear-group { margin-left: auto; }
 .tool-group { display: flex; align-items: center; gap: 6px; }
-select { font: 500 14px/1 var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 8px; }
+select { font: 500 13px/1 var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line-soft); border-radius: 8px; padding: 8px 6px; }
 select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.seg label { padding: 9px 12px; font: 600 14px/1 var(--font-body); cursor: pointer; color: var(--muted); background: var(--surface); }
+.seg { display: inline-flex; border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden; }
+.seg label { padding: 8px 11px; font: 600 13px/1 var(--font-body); cursor: pointer; color: var(--muted); background: var(--surface); }
 .seg label:has(input:checked) { background: var(--ink); color: var(--bg); }
 .seg label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
@@ -182,7 +185,7 @@ select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .help-grid ul { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.42; }
 .help-grid li + li { margin-top: 3px; }
 .help-grid kbd { font: 500 11px var(--font-mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--bg); }
-/* Undo … Confirm: their own full-width row under the title */
+/* Undo … Export card: their own full-width row under the title */
 .toolbar { flex-basis: 100%; }
 .icon-btn { font-size: 17px; padding-inline: 12px; }
 .theme-group .seg { border-radius: 8px; }
@@ -199,7 +202,7 @@ select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .shade:disabled { opacity: .5; cursor: default; }
 .chip-block { display: flex; flex-direction: column; gap: 6px; }
 .chip-block > .label { text-transform: none; letter-spacing: .01em; font-size: 12px; }
-.label.col-title { font-size: 14px; font-weight: 700; letter-spacing: .07em; color: var(--ink); }
+.label.col-title { font-size: 13px; font-weight: 700; letter-spacing: .07em; color: var(--ink); }
 .lab-section { display: flex; flex-direction: column; gap: inherit; }
 .sec-body { display: flex; flex-direction: column; gap: inherit; }
 .sec-body[hidden] { display: none; }
@@ -254,7 +257,6 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
 /* Desktop: everything on one screen */
 @media (min-width: 1200px) {
   body { padding-block: 16px 16px; }
-  .name-label { display: none; }   /* the name box's placeholder says what it is */
   .panel.lab-panel { gap: 10px; }        /* room for the name row and the pins */
   .wrap { max-width: 1640px; gap: 14px; }
   header { align-items: center; }
@@ -262,7 +264,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   .sub { margin-top: 4px; }
   .adjust { flex-wrap: nowrap; gap: 10px; }
   .harmony-wrap { flex-wrap: nowrap; }
-  /* two toolbar rows under the title: keep them slim */
+  /* toolbar row under the title: keep it slim */
   .actions-wrap { gap: 4px; }
   .toolbar button, .toolbar .btn { padding-block: 6px; }
   .harmony-wrap > .harmonies { flex-basis: 0; }
@@ -304,13 +306,13 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   button, .btn, .seg label { padding-block: 8px; }
   .theme-group .seg label { padding-block: 5px; }
   .adjust { padding-top: 4px; }
-  .tools { padding-top: 8px; }
+  .tools { padding-top: 8px; row-gap: 6px; }
   /* room for the toolbar row under the title */
   header { row-gap: 4px; }
   h1 { font-size: 22px; }
   .toolbar button, .toolbar .btn { padding-block: 4px; }
   .panel { padding-block: 8px; }
-  /* room for the second toolbar row */
+  /* room for the Clear palette row */
   .actions-wrap { gap: 4px; }
   #swName, #hex { padding-block: 4px; }
   #swName { padding-block: 3px; }
@@ -371,11 +373,7 @@ body{margin-top:0;padding-top:0}
         <label class="btn" for="fileInput">Load from file</label>
         <input type="file" id="fileInput" accept=".swatches,.zip" class="sr">
         <button id="saveBtn" type="button" class="primary">Export .swatches</button>
-      </div>
-      <div class="actions">
         <button id="cardBtn" type="button" title="Save a PNG picture of the palette: name, swatches and hex codes">Export card</button>
-        <button id="newBtn" type="button" class="danger" disabled>Clear palette</button>
-        <label class="check"><input type="checkbox" id="clearConfirm"> Confirm</label>
       </div>
     </div>
   </header>
@@ -385,14 +383,14 @@ body{margin-top:0;padding-top:0}
     <section class="panel" aria-label="Palette">
       <div class="name-row">
         <div class="row" style="justify-content:space-between">
-          <label class="label col-title" for="paletteName">Palette name</label>
+          <span class="label col-title">Palette Editor</span>
           <div class="presets" role="group" aria-label="Preset palettes">
             <button type="button" class="example-tag" data-preset="grays" title="10 neutral, 10 cool and 10 warm grays, light to dark (Undo brings yours back)">Grays</button>
             <button type="button" class="example-tag" data-preset="basic" title="6 hues in 5 shades each, light to dark (Undo brings yours back)">Basic</button>
             <button type="button" class="example-tag" data-preset="random" title="30 random colors, new ones each click (Undo brings yours back)">Random</button>
           </div>
         </div>
-        <input id="paletteName" type="text" maxlength="60" autocomplete="off" placeholder="Palette name (optional)" title="Left blank, files and cards are named Untitled">
+        <input id="paletteName" type="text" maxlength="60" autocomplete="off" placeholder="Palette name (optional)" aria-label="Palette name" title="Left blank, files and cards are named Untitled">
       </div>
       <div class="grid-wrap">
         <div id="grid" class="grid previewable" role="listbox" aria-multiselectable="true" aria-label="Swatches, 30 slots"></div>
@@ -400,7 +398,6 @@ body{margin-top:0;padding-top:0}
       </div>
       <div class="grid-meta">
         <span id="count">0 / 30 colors</span>
-        <span title="Shift-click or Ctrl-click to select several swatches. Right-click a swatch to delete it. Drag to move.">Shift/Ctrl-click to select · right-click to delete</span>
       </div>
       <div class="adjust" role="group" aria-label="Adjust all colors" title="Shift every unlocked color at once. Sliders go back to 0 after any other change; Undo reverses an adjustment.">
         <span class="label">Adjust</span>
@@ -437,6 +434,10 @@ body{margin-top:0;padding-top:0}
             <option value="tritan" title="Tritanopia">Blue-blind</option>
           </select>
         </div>
+        <div class="tool-group clear-group">
+          <button id="newBtn" type="button" class="danger" disabled>Clear palette</button>
+          <label class="check"><input type="checkbox" id="clearConfirm"> Confirm</label>
+        </div>
       </div>
     </section>
 
@@ -455,8 +456,7 @@ body{margin-top:0;padding-top:0}
     <section class="panel lab-panel" aria-label="Selected color">
       <span class="label col-title">Color lab</span>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <label class="label name-label" for="swName">Color name</label>
-        <input id="swName" type="text" maxlength="60" autocomplete="off" placeholder="Color name (optional)" title="Leave blank and Procreate suggests a name">
+        <input id="swName" type="text" maxlength="60" autocomplete="off" placeholder="Color name (optional)" aria-label="Color name" title="Leave blank and Procreate suggests a name">
       </div>
       <div class="chip-pair">
         <div id="chipSaved" class="chip previewable" title="The color saved in this palette slot"><span id="chipSavedText">Empty</span></div>
