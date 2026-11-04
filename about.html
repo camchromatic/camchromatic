@@ -26,9 +26,9 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 .page-content p{max-width:680px;color:var(--muted);line-height:1.8}
 .page-content .lead{font-size:1.08rem}
 .about-layout{display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr);gap:44px;align-items:start}
-.about-photo{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;border-radius:12px;background:#191b1c}.photo-missing{aspect-ratio:4/5;border-radius:12px;background:#191b1c}
+.about-photo{width:100%;aspect-ratio:1;object-fit:cover;display:block;border-radius:12px;background:#191b1c}.photo-missing{aspect-ratio:1;border-radius:12px;background:#191b1c}
 .about-copy{min-width:0}
-@media(max-width:700px){.about-layout{grid-template-columns:1fr;gap:24px}.about-photo{max-width:420px;aspect-ratio:4/3}}
+@media(max-width:700px){.about-layout{grid-template-columns:1fr;gap:24px}.about-photo{max-width:420px}}
 
 @media(max-width:700px){.page-content{padding:34px 14px 24px}}
 
@@ -39,7 +39,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 <main class="wrap page-content">
 <section class="about-layout">
 <div class="about-image-wrap">
-<img class="about-photo" src="/media/about.png?v=2" alt="A photo of Cam" onerror="this.style.display='none';this.parentElement.classList.add('photo-missing')">
+<img class="about-photo" src="/media/about-2026-11-03.png" alt="A photo of Cam" onerror="this.style.display='none';this.parentElement.classList.add('photo-missing')">
 </div>
 <div class="about-copy hero">
 <div class="eyebrow">The Color Theorist</div>
