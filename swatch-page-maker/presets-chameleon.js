@@ -1,5 +1,5 @@
-// Chameleon presets, researched 2026-11-02 by a research agent.
-// Cam, 2026-11-02: only the 52-Pen Super Set shows; the rest are kept with "hidden": true.
+// Chameleon presets, from online research.
+// Only the 52-Pen Super Set shows; the rest are kept with "hidden": true.
 // Raw findings with sources: docs/research/; skipped sets are listed there too.
 PRESETS.push(
   {"id": "chameleon-color-tones-52-pen-super-set", "group": "Chameleon Color Tones", "medium": "Alcohol marker", "name": "All 52 colors", "title": "Chameleon Color Tones All 52 colors", "codes": ["YO3", "NU3", "NU1", "PK3", "CG8", "YG3", "BR5", "OR4", "BR2", "OL3", "RD4", "YL2", "BL6", "GR3", "BK4", "BL3", "BV4", "VO4", "PR4", "BG4", "BR1", "BR3", "GR1", "GR2", "GR4", "BL2", "BL4", "BL7", "BG1", "BG3", "PK2", "PK4", "PK5", "BV2", "VO2", "RD2", "RD3", "RD5", "YO2", "OR3", "NU00", "NU0", "NU2", "NU4", "BR4", "NG4", "CG5", "CG9", "WG3", "WG7", "Colorless Blender", "Detail Pen (black)"]},

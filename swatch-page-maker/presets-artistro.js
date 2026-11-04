@@ -1,5 +1,5 @@
-// Artistro presets, researched 2026-11-02 by a research agent.
-// Cam, 2026-11-02: Artistro is hidden from the menu (no full color lists). Kept here, not deleted.
+// Artistro presets, from online research.
+// Artistro is hidden from the menu (no full color lists). Kept here, not deleted.
 // Raw findings with sources: docs/research/; skipped sets are listed there too.
 PRESETS.push(
   {"id": "artistro-acrylic-paint-markers-other-tip-not-stated-in-title-artistro-12-metallic-paint-pens-for-glass-marking-rock-painting-ceramic-wood-fabric-scrapbooking-diy-craft-making-coloring-acrylic-paint-markers-bullet-tip-2-5mm-us-official-web-store", "group": "Artistro Acrylic markers", "medium": "Acrylic marker", "name": "12 Metallic", "title": "Artistro Acrylic markers 12 Metallic", "codes": ["1AM", "2AM", "16AM", "7AM", "4AM", "13AM", "32AM", "33AM", "15AM", "20AM", "22AM", "36AM"], "note": "Only one source lists these colours. Check against your box.", "hidden": true},

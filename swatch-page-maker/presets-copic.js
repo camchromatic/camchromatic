@@ -1,7 +1,7 @@
-// Copic presets, from copic.jp/en (read 2026-11-02). Made by a script from the
+// Copic presets, from copic.jp/en. Made by a script from the
 // official colour pages and set pages; see docs\PRESETS-copic-ohuhu.md.
 // Codes are in Copic's own listing order (colour family, then number).
-// Cam, 2026-11-02: Copic alcohol markers show only each line's "All" list and the lettered sets
+// Copic alcohol markers show only each line's "All" list and the lettered sets
 // (36/72 colors A-E); the rest are kept with "hidden": true.
 
 PRESETS.push(

@@ -4,23 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Swatch Page Maker</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <script>
     // Apply the saved look before the page draws, so it doesn't flash.
     try {
       const saved = JSON.parse(localStorage.getItem("spm-look") || "{}");
-      // Dark unless this browser chose another look (Cam, 2026-11-02).
+      // Dark unless this browser chose another look.
       document.documentElement.dataset.mode = ["light", "gray", "dark"].includes(saved.mode) ? saved.mode : "dark";
     } catch (e) {
       document.documentElement.dataset.mode = "dark";
     }
   </script>
-  <link rel="stylesheet" href="style.css?v=20261103-1625">
+  <link rel="stylesheet" href="style.css?v=20261103-1910">
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <!-- Title on the left, look buttons on the right in line with the subtitle (like Palette Lab, Cam, 2026-11-03). -->
+  <!-- Title on the left, look buttons on the right in line with the subtitle (like Palette Lab). -->
   <header>
     <div>
       <h1>Swatch Page Maker</h1>
@@ -53,7 +53,7 @@
           <option value="mixing">Mixing grid (alcohol or watercolor markers)</option>
         </select>
       </label>
-      <!-- Quick way to a set: type words from the brand or set name (Cam, 2026-11-02). -->
+      <!-- Quick way to a set: type words from the brand or set name. -->
       <div id="find-row" class="find">
         <label for="find">Find a set</label>
         <input id="find" type="search" autocomplete="off" placeholder="Type a brand or set, e.g. copic 72 or posca 5m">
@@ -116,7 +116,7 @@
           </select>
         </label>
       </div>
-      <!-- Settings most people never change, folded away (Cam, 2026-11-02). -->
+      <!-- Settings most people never change, folded away. -->
       <details id="more" class="more">
       <summary>More options</summary>
       <label>Swatch position
@@ -185,7 +185,7 @@
     </section>
   </main>
 
-  <!-- Tips and tricks, opened by the "?" button (like Palette Lab, Cam, 2026-11-03). -->
+  <!-- Tips and tricks, opened by the "?" button (like Palette Lab). -->
   <dialog id="help" aria-labelledby="help-title">
     <div class="help-head">
       <h2 id="help-title">Tips and tricks</h2>
@@ -245,36 +245,36 @@
     </div>
   </dialog>
 
-  <script src="presets.js?v=20261103-1625"></script>
-  <script src="presets-copic.js?v=20261103-1625"></script>
-  <script src="presets-ohuhu.js?v=20261103-1625"></script>
-  <script src="presets-sharpie.js?v=20261103-1625"></script>
-  <script src="presets-posca.js?v=20261103-1625"></script>
-  <script src="presets-ohuhu-other.js?v=20261103-1625"></script>
-  <script src="presets-enmy.js?v=20261103-1625"></script>
-  <script src="presets-faber-pencils.js?v=20261103-1625"></script>
-  <script src="presets-arrtx.js?v=20261103-1625"></script>
-  <script src="presets-artistro.js?v=20261103-1625"></script>
-  <script src="presets-faber-pens.js?v=20261103-1625"></script>
-  <script src="presets-blick.js?v=20261103-1625"></script>
-  <script src="presets-masters-touch.js?v=20261103-1625"></script>
-  <script src="presets-artists-loft.js?v=20261103-1625"></script>
-  <script src="presets-winsor-newton.js?v=20261103-1625"></script>
-  <script src="presets-olo.js?v=20261103-1625"></script>
-  <script src="presets-chameleon.js?v=20261103-1625"></script>
-  <script src="presets-wn-watercolor.js?v=20261103-1625"></script>
-  <script src="presets-qor.js?v=20261103-1625"></script>
-  <script src="presets-prima.js?v=20261103-1625"></script>
-  <script src="presets-daniel-smith.js?v=20261103-1625"></script>
-  <script src="presets-karin.js?v=20261103-1625"></script>
-  <script src="presets-prismacolor.js?v=20261103-1625"></script>
-  <script src="presets-prismacolor-pencils.js?v=20261103-1625"></script>
-  <script src="presets-polychromos.js?v=20261103-1625"></script>
-  <script src="presets-pitt-brush.js?v=20261103-1625"></script>
-  <script src="presets-kuretake.js?v=20261103-1625"></script>
-  <script src="presets-mildliner.js?v=20261103-1625"></script>
-  <script src="presets-karin-markers.js?v=20261103-1625"></script>
-  <script src="presets-collections.js?v=20261103-1625"></script>
-  <script src="app.js?v=20261103-1625"></script>
+  <script src="presets.js?v=20261103-1910"></script>
+  <script src="presets-copic.js?v=20261103-1910"></script>
+  <script src="presets-ohuhu.js?v=20261103-1910"></script>
+  <script src="presets-sharpie.js?v=20261103-1910"></script>
+  <script src="presets-posca.js?v=20261103-1910"></script>
+  <script src="presets-ohuhu-other.js?v=20261103-1910"></script>
+  <script src="presets-enmy.js?v=20261103-1910"></script>
+  <script src="presets-faber-pencils.js?v=20261103-1910"></script>
+  <script src="presets-arrtx.js?v=20261103-1910"></script>
+  <script src="presets-artistro.js?v=20261103-1910"></script>
+  <script src="presets-faber-pens.js?v=20261103-1910"></script>
+  <script src="presets-blick.js?v=20261103-1910"></script>
+  <script src="presets-masters-touch.js?v=20261103-1910"></script>
+  <script src="presets-artists-loft.js?v=20261103-1910"></script>
+  <script src="presets-winsor-newton.js?v=20261103-1910"></script>
+  <script src="presets-olo.js?v=20261103-1910"></script>
+  <script src="presets-chameleon.js?v=20261103-1910"></script>
+  <script src="presets-wn-watercolor.js?v=20261103-1910"></script>
+  <script src="presets-qor.js?v=20261103-1910"></script>
+  <script src="presets-prima.js?v=20261103-1910"></script>
+  <script src="presets-daniel-smith.js?v=20261103-1910"></script>
+  <script src="presets-karin.js?v=20261103-1910"></script>
+  <script src="presets-prismacolor.js?v=20261103-1910"></script>
+  <script src="presets-prismacolor-pencils.js?v=20261103-1910"></script>
+  <script src="presets-polychromos.js?v=20261103-1910"></script>
+  <script src="presets-pitt-brush.js?v=20261103-1910"></script>
+  <script src="presets-kuretake.js?v=20261103-1910"></script>
+  <script src="presets-mildliner.js?v=20261103-1910"></script>
+  <script src="presets-karin-markers.js?v=20261103-1910"></script>
+  <script src="presets-collections.js?v=20261103-1910"></script>
+  <script src="app.js?v=20261103-1910"></script>
 </body>
 </html>

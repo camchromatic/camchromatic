@@ -1,4 +1,4 @@
-// Faber-Castell presets, researched 2026-11-02 by a research agent.
+// Faber-Castell presets, from online research.
 // Raw findings with sources: docs/research/; skipped sets are listed there too.
 PRESETS.push(
   {"id": "faber-pens-pitt-artist-pen-brush-pitt-artist-pen-brush-studio-gift-box-of-12-us-all-colors", "group": "Faber-Castell PITT Artist Pen Brush", "medium": "Ink pen", "name": "All 66 colors", "title": "Faber-Castell PITT Artist Pen Brush All 66 colors", "codes": ["101", "103", "104", "107", "108", "109", "110", "112", "113", "114", "116", "118", "120", "121", "125", "127", "129", "131", "132", "133", "134", "136", "143", "146", "148", "153", "154", "156", "157", "161", "162", "167", "169", "170", "171", "172", "174", "175", "177", "178", "180", "186", "188", "189", "192", "199", "219", "220", "230", "232", "233", "235", "239", "247", "264", "268", "270", "272", "273", "274", "102", "126", "160", "184", "199 Black", "199 Black (soft brush)"], "note": "Whole line from research-faber-pens.json (PITT Artist Pen Brush).", "hidden": true},

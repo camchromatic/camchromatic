@@ -1,4 +1,4 @@
-// uni POSCA presets, researched 2026-11-02 (posca.com colour chart, uniball.co.uk, penstore.com
+// uni POSCA presets, researched (posca.com colour chart, uniball.co.uk, penstore.com
 // and other shops). Colour names only: no source gives POSCA colour numbers.
 // Regional sets with the same name differ, so each region is its own preset.
 // See docs/PRESETS-sharpie-posca.md.

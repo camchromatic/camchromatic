@@ -1,9 +1,10 @@
 <!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Palette Lab</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<meta name="claude:viewport-fit-sides" content="cover">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 /* Layout: one-screen workbench on desktop — palette + hex codes | color editor | image picker (fills the height);
@@ -331,6 +332,8 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
   textarea { min-height: 40px; }
 }
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
@@ -414,7 +417,7 @@ body.pv-tritan .previewable { filter: url(#cb-tritan); }
           <label class="label" for="previewMode" title="See the palette as people with color blindness would">Vision</label>
           <select id="previewMode">
             <option value="">Normal</option>
-            <option value="grey">Greyscale</option>
+            <option value="grey">Grayscale</option>
             <option value="protan" title="Protanopia">Red-blind</option>
             <option value="deutan" title="Deuteranopia">Green-blind</option>
             <option value="tritan" title="Tritanopia">Blue-blind</option>
@@ -1865,3 +1868,5 @@ applyTheme(savedTheme);
 loadBlank();
 steps = [snap()]; histIndex = 0; updateHistoryButtons();
 </script>
+</body>
+</html>

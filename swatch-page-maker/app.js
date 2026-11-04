@@ -2,7 +2,7 @@
 // Groups are vertical strips (a code cell + a blank box per swatch),
 // laid out "across" x "down" on each printed page.
 
-// Column widths in Excel units, copied from Cam's "paint markers 240" sheet.
+// Column widths in Excel units, copied from the original "paint markers 240" sheet.
 const WIDTH = { margin: 1.7109375, cell: 9.140625, gap: 1.5703125 };
 const ROW_PT = 15;
 const GAP_ROWS = 2;
@@ -12,8 +12,8 @@ const SPACER_PT = 8;
 const PAPER = { a4: { code: 9, w: 595, h: 842 }, letter: { code: 1, w: 612, h: 792 } };
 const MARGIN_IN = { left: 0.7, right: 0.7, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 };
 const MIN_SCALE = 50; // layouts that would print smaller than this are not offered
-const MAX_PAGES = 10; // no file is longer than this (Cam, 2026-11-02)
-// Excel, page and preview font (Cam, 2026-11-03). Arial matches Helvetica (the PDF's built-in font) letter for letter,
+const MAX_PAGES = 10; // no file is longer than this
+// Excel, page and preview font. Arial matches Helvetica (the PDF's built-in font) letter for letter,
 // and comes with every computer and with Google Sheets.
 const FONT = "Arial";
 // Swatch spacing: a gap (pt) between swatches in a group, and a wider gap
@@ -36,7 +36,7 @@ function clampInt(v, min, max, fallback) {
 const presetById = (id) => PRESETS.find((p) => p.id === id) || null;
 
 // Whole lines ("All ..." sets) are always in number order: the "By color" order and
-// the Order menu were removed (Cam, 2026-11-02). Only for lines whose codes (nearly)
+// the Order menu were removed. Only for lines whose codes (nearly)
 // all hold a number; the few without one (blenders, "FV", "XB") go last. Copic
 // style: 0000 before 000 before 00 before 0.
 function codeCompare(a, b) {
@@ -274,7 +274,7 @@ function printScale(layout, s) {
 function layoutOptions(s) {
   const perPage = Math.ceil(s.total / s.pages);
   const found = [];
-  // Groups hold 4-30 swatches; fewer than 4 swatches make one group of exactly that many (Cam, 2026-11-02).
+  // Groups hold 4-30 swatches; fewer than 4 swatches make one group of exactly that many.
   for (let perGroup = Math.max(1, Math.min(4, perPage)); perGroup <= 30; perGroup++) {
     // Merged sets each start a new group, so count groups set by set.
     const needed = s.segments ? s.segments.reduce((t, seg) => t + Math.ceil(seg.length / perGroup), 0) : 0;
@@ -294,7 +294,7 @@ function layoutOptions(s) {
   }
   const exact = found.filter((o) => o.blanks === 0);
   const list = exact.length && !s.segments ? exact : found;
-  // Grouped sets: layouts that keep every set in one group come first (Cam, 2026-11-02).
+  // Grouped sets: layouts that keep every set in one group come first.
   const longest = s.segments ? Math.max(...s.segments.map((seg) => seg.length)) : Infinity;
   const whole = (o) => (o.perGroup >= longest ? 0 : 1);
   // Then best print size; on a tie, more (smaller) groups first.
@@ -390,7 +390,7 @@ async function buildWorkbook(layout, s) {
     if (p < s.pages - 1) ws.getRow(r - 1).addPageBreak();
   }
 
-  // One page: let Excel fit it (like Cam's sheet). Several pages: Excel ignores
+  // One page: let Excel fit it (like the original sheet). Several pages: Excel ignores
   // page breaks when fitting, so use a fixed scale instead.
   const fitting = s.pages === 1
     ? { fitToPage: true, fitToWidth: 1, fitToHeight: 1 }
@@ -980,7 +980,7 @@ function showPageTypeControls(s) {
     : "Write your colors down the side and across the top. Each box is where two colors meet; the thick boxes are each color on its own.";
 }
 
-// One line above the preview: what the download will be (Cam, 2026-11-02).
+// One line above the preview: what the download will be.
 function showSummary(s, pages, extra) {
   const paper = s.paper === "a4" ? "A4" : "US Letter";
   $("summary").textContent = [`${paper}, ${s.orientation}`, `${pages} page${pages > 1 ? "s" : ""}`, ...extra].join(" · ");
@@ -1048,7 +1048,7 @@ const MEDIUM_BY_GROUP = [
 const mediumOf = (p) => p.medium || (MEDIUM_BY_GROUP.find(([re]) => re.test(p.group)) || [])[1] || "Other";
 const MEDIUM_ORDER = ["Alcohol marker", "Acrylic marker", "Marker", "Watercolor marker", "Felt-tip marker", "Colored pencil", "Watercolor pencil", "Pastel pencil", "Watercolor paint", "Watercolor stick", "Gel pen", "Ink pen", "Highlighter"];
 
-// Only these mediums show in the menu for now (Cam, 2026-11-02: too many choices).
+// Only these mediums show in the menu for now (too many choices).
 // The other preset files still load; add a medium back here to show it again.
 const SHOWN_MEDIUMS = ["Alcohol marker", "Acrylic marker", "Marker", "Colored pencil"];
 
@@ -1149,7 +1149,7 @@ function initPresets() {
   findBox.addEventListener("blur", () => { results.hidden = true; });
   // Preset notes stay in the data files as our own record; the page never shows them.
   // Picking, adding or removing a set updates the total. The title is never filled in:
-  // it stays blank unless the user types one (Cam, 2026-11-02).
+  // it stays blank unless the user types one.
   // Collections switch headers on so each set's name shows; leaving one switches
   // them back off, unless the user ticked the box themselves.
   let autoHeaders = false;

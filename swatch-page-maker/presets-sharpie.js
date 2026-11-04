@@ -1,4 +1,4 @@
-// Sharpie Creative Marker presets (water-based paint markers), researched 2026-11-02.
+// Sharpie Creative Marker presets (water-based paint markers), researched.
 // Colour names from Blick, JetPens and United Now (sharpie.com lists no set contents);
 // see docs/PRESETS-sharpie-posca.md. Sets with only one source carry a note.
 PRESETS.push(

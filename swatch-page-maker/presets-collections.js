@@ -29,7 +29,7 @@
     "Faber-Castell PITT Artist Pen Dual Marker");
   // Copic acrea: the eight 6-color sets make up all 48 colors exactly.
   collect("copic-acrea-all-sets", "All 48 colors", "Copic acrea collection", "Copic acrea");
-  // Posca: one option per tip, grouped by color family with headers (Cam, 2026-11-02).
+  // Posca: one option per tip, grouped by color family with headers.
   // Families come from docs/research/posca_families.py.
   for (const [tip, name, fams] of [
     ["pc-1m", "All 36 colors", ["standard", "pastel", "metallic"]],
@@ -45,11 +45,11 @@
     const group = "Posca " + tip.toUpperCase();
     collectIds(`posca-${tip}-grouped`, name, `${group} ${name}`, group, fams.map((f) => `posca-fam-${tip}-${f}`), true);
   }
-  // Mildliner: all 41 colors grouped by their 5-color packs, newest first (Cam, 2026-11-02).
+  // Mildliner: all 41 colors grouped by their 5-color packs, newest first.
   collectIds("mildliner-all-grouped", "All 41 colors", "Zebra Mildliner All 41 colors", "Zebra Mildliner",
     ["calm", "natural", "cool-refined", "fluorescent", "deep-warm", "friendly", "bright", "gentle"].map((f) => `mildliner-fam-${f}`));
   // Karin: all 73 colors grouped by the six 12-color sets (they hold the 72 colors once
-  // each), plus the Colorless Blender (Cam, 2026-11-02).
+  // each), plus the Colorless Blender.
   for (const [line, slug] of [["Brushmarker PRO", "brushmarker-pro"], ["Realbrush PRO", "realbrush-pro"]]) {
     collectIds(`karin-markers-${slug}-grouped`, "All 73 colors", `Karin ${line} All 73 colors`, `Karin ${line}`,
       ["flower", "sky", "sun-and-tree", "skin", "gray", "neon"].map((f) => `karin-markers-${slug}-${f}-colors-12`).concat(`karin-markers-${slug}-blender`));

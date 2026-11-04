@@ -1,4 +1,4 @@
-// Karin Pigment DecoBrush presets, from Blick (read 2026-11-02, Cam's link):
+// Karin Pigment DecoBrush presets, from Blick:
 // https://www.dickblick.com/products/karin-pigment-decobrush-markers/
 // Codes = each single marker's number on Blick. Made by docs/research/build_karin.py.
 PRESETS.push(
