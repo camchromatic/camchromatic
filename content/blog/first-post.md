@@ -2,7 +2,7 @@
 title: First Post
 subtitle: Rambling
 date: 2026-11-01
-cover: /media/new icon 2026.png
+cover: /media/doodle-202611040342.png
 ---
 Well, here we are. It's November 1st and I wiped my Instagram for, hopefully, the last time. In hindsight, I should've kept it up for proof that I've been an artist for some time. If you're reading this and have your doubts, please rest assured; drawing and sketching digitally and traditionally has been my hobby for many, many years. I just... got tired of it not going anywhere. Or, rather, I got tired of it not getting me anywhere.  
 
