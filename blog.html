@@ -31,7 +31,7 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 .entry-excerpt{color:var(--muted);margin:0;line-height:1.45}
 .article-subtitle{font-size:1.1rem;color:var(--muted);margin:0 0 8px;line-height:1.45}
 .empty{padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
-footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}footer .ai-note{max-width:680px;margin:6px 0 0}
+footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}
 .overlay{position:fixed;inset:0;background:#080808e8;display:none;align-items:flex-start;justify-content:center;padding:28px 18px;z-index:5;overflow-y:auto}
 .overlay.open{display:flex}
 .article{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:14px;width:min(820px,100%);padding:42px clamp(22px,6vw,64px);margin:auto}
@@ -64,7 +64,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 <div class="status" id="status" aria-live="polite">Loading entries…</div>
 <section class="entries" id="entries" aria-label="Blog entries"></section>
 </main>
-<footer><div class="wrap">© 2026 Cam Garcia<p class="ai-note">I’m an artist, not a programmer. I used AI (Claude) to help write the code for this site, Palette Lab and Swatch Page Maker. I decided what they should do and how they look, then tested them myself. All artwork here is drawn by me, with no AI.</p></div></footer>
+<footer><div class="wrap">© 2026 Cam Garcia</div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Blog entry"><article class="article"><button class="close" id="close" aria-label="Close entry">×</button><div class="eyebrow">CamChromatic Journal</div><h1 id="articleTitle"></h1><p class="article-subtitle" id="articleSubtitle"></p><div class="entry-date" id="articleDate"></div><img class="article-cover" id="articleCover" alt="" hidden><div class="article-body" id="articleBody"></div></article></div>
 <script>
 // Pictures show a soft moving placeholder until they finish loading.

@@ -21,7 +21,7 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 .art-card img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#39332a}
 .empty{grid-column:1/-1;padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
 .status{font-size:.84rem;color:var(--muted);margin:12px 0 18px}
-footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}footer .ai-note{max-width:680px;margin:6px 0 0}
+footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}
 .overlay{position:fixed;inset:0;background:#080808d9;display:none;align-items:center;justify-content:center;padding:20px;z-index:5}.overlay.open{display:flex}
 .post-view{background:var(--bg);width:min(940px,100%);max-height:92vh;overflow:auto;border-radius:14px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);position:relative}
 .carousel{position:relative;min-width:0;min-height:300px;height:min(78vh,720px);display:flex;align-items:center;justify-content:center;background:#181818;overflow:hidden}
@@ -41,7 +41,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 <main class="wrap">
 <section class="hero" id="about"><div class="eyebrow">Art by</div><h1>Cam Garcia</h1><p class="intro">Available for hire.</p></section>
 <div class="status" id="status" aria-live="polite">Loading artwork…</div><section class="grid" id="gallery" aria-label="Art gallery"></section>
-</main><footer><div class="wrap">© 2026 Cam Garcia<p class="ai-note">I’m an artist, not a programmer. I used AI (Claude) to help write the code for this site, Palette Lab and Swatch Page Maker. I decided what they should do and how they look, then tested them myself. All artwork here is drawn by me, with no AI.</p></div></footer>
+</main><footer><div class="wrap">© 2026 Cam Garcia</div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Artwork details"><article class="post-view"><button class="close" id="close" aria-label="Close post">×</button><div class="carousel" id="carousel"><img id="viewImage" alt=""><button class="carousel-control prev" id="prevImage" aria-label="Previous image">‹</button><button class="carousel-control next" id="nextImage" aria-label="Next image">›</button><div class="image-count" id="imageCount"></div></div><div class="post-copy"><div class="caption" id="viewCaption"></div></div></article></div>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';

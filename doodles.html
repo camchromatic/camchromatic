@@ -20,7 +20,7 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 .doodle{display:block;width:100%;margin:0 0 16px;padding:0;border:0;background:#fff;cursor:zoom-in;border-radius:10px;overflow:hidden;break-inside:avoid}
 .doodle img{display:block;width:100%;height:auto}
 .empty{column-span:all;padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
-footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}footer .ai-note{max-width:680px;margin:6px 0 0}
+footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}
 .overlay{position:fixed;inset:0;background:#080808d9;display:none;align-items:center;justify-content:center;padding:20px;z-index:5;cursor:zoom-out}.overlay.open{display:flex}
 .overlay img{max-width:100%;max-height:92vh;background:#fff;border-radius:10px}
 .close{position:absolute;right:16px;top:14px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
@@ -33,7 +33,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 <main class="wrap">
 <section class="hero"><h1>Doodles</h1><p class="intro">I still draw... sometimes.</p></section>
 <section class="grid" id="doodles" aria-label="Doodles" aria-live="polite"></section>
-</main><footer><div class="wrap">© 2026 Cam Garcia<p class="ai-note">I’m an artist, not a programmer. I used AI (Claude) to help write the code for this site, Palette Lab and Swatch Page Maker. I decided what they should do and how they look, then tested them myself. All artwork here is drawn by me, with no AI.</p></div></footer>
+</main><footer><div class="wrap">© 2026 Cam Garcia</div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Doodle"><button class="close" id="close" aria-label="Close">×</button><img id="big" alt=""></div>
 <script>
 // Pictures show a soft moving placeholder until they finish loading.
