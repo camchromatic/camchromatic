@@ -68,4 +68,13 @@ function closeBig(){overlay.classList.remove('open');big.removeAttribute('src');
 overlay.addEventListener('click',closeBig);
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeBig();});
 loadDoodles();
-</script></body></html>
+</script><script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+<script>
+  kofiWidgetOverlay.draw('camchromatic', {
+    'type': 'floating-chat',
+    'floating-chat.donateButton.text': 'Support Me',
+    'floating-chat.donateButton.background-color': '#323842',
+    'floating-chat.donateButton.text-color': '#fff'
+  });
+</script>
+</body></html>

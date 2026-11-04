@@ -179,4 +179,13 @@ document.getElementById('close').addEventListener('click',closePost);
 overlay.addEventListener('click',event=>{if(event.target===overlay)closePost();});
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closePost();if(overlay.classList.contains('open')&&event.key==='ArrowLeft')changeImage(-1);if(overlay.classList.contains('open')&&event.key==='ArrowRight')changeImage(1);});
 loadPosts();
-</script></body></html>
+</script><script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+<script>
+  kofiWidgetOverlay.draw('camchromatic', {
+    'type': 'floating-chat',
+    'floating-chat.donateButton.text': 'Support Me',
+    'floating-chat.donateButton.background-color': '#323842',
+    'floating-chat.donateButton.text-color': '#fff'
+  });
+</script>
+</body></html>
