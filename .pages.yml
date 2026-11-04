@@ -71,3 +71,17 @@ content:
       - name: link
         label: Link (optional, e.g. projects.html or a full web address)
         type: string
+
+  - name: doodles
+    label: Doodles
+    type: file
+    path: content/doodles.yml
+    format: yaml
+    fields:
+      - name: hidden
+        label: Hidden doodles (every other doodle shows on the Doodles page)
+        type: image
+        options:
+          multiple:
+            max: 500
+          path: media/doodles
