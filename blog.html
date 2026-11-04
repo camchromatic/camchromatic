@@ -112,21 +112,56 @@ function safeMediaUrl(value=''){
   if(url.startsWith('/'))return url;
   return '';
 }
+function safeLink(value=''){
+  // Full web addresses, or pages on this site such as projects.html or /doodles.
+  value=String(value).trim();
+  if(/^https?:\/\//i.test(value))return value;
+  if(/^\/?[A-Za-z0-9._\/-]+(#[A-Za-z0-9_-]+)?$/.test(value)&&!value.includes('..'))return value;
+  return '';
+}
 function inlineMarkdown(text){
+  // Finished HTML (images, links, code, BBCode tags) is set aside while the
+  // bold/italic rules run, so underscores in addresses can't turn into italics.
+  const kept=[];
+  const keep=html=>`\u0000${kept.push(html)-1}\u0000`;
+  const linkTag=(href,inside)=>{
+    href=safeLink(href.replace(/&amp;/g,'&'));
+    if(!href)return inside;
+    const outside=/^https?:\/\//i.test(href)?' target="_blank" rel="noopener noreferrer"':'';
+    return keep(`<a href="${esc(href)}"${outside}>`)+inside+keep('</a>');
+  };
   let out=esc(text);
+  out=out.replace(/`([^`]+)`/g,(match,code)=>keep(`<code>${code}</code>`));
+  // The Pages CMS editor sometimes nests links: [[text](a)](b), [text]([a](a)), ++[text++](a).
+  out=out.replace(/\]\(\s*\[[^\]]*\]\(([^)\s]+)\)\s*\)/g,']($1)');
+  out=out.replace(/\[\[([^\]]*)\]\([^)\s]*\)/g,'[$1');
+  out=out.replace(/\+\+\[([^\]]*?)\+\+\]\(/g,'[++$1++](');
   out=out.replace(/!\[([^\]]*)\]\(\s*(<[^>]+>|[^)\n]+?)(?:\s+['"]([^'"]*)['"])?\s*\)/g,(match,alt,rawUrl)=>{
     const cleaned=String(rawUrl||'').trim().replace(/^<|>$/g,'').replace(/^\/<media\//i,'/media/');
     const url=safeMediaUrl(cleaned);
-    return url?`<img alt="${esc(alt)}" src="${esc(url)}" loading="lazy">`:'';
+    return url?keep(`<img alt="${alt}" src="${esc(url)}" loading="lazy">`):'';
   });
-  out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-  out=out.replace(/`([^`]+)`/g,'<code>$1</code>');
+  out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,(match,label,href)=>linkTag(href,label));
+  // BBCode, like Site Updates: [b] [i] [u] [s] [color=...] [url] / [url=...]. The editor may save the brackets as \[ \].
+  out=out.replace(/\\\[(\/?(?:b|i|u|s|color|url)(?:=[^\]\\\s]*)?)\\\]/gi,'[$1]');
+  const tags=[
+    [/\[b\]([\s\S]*?)\[\/b\]/gi,(m,t)=>keep('<strong>')+t+keep('</strong>')],
+    [/\[i\]([\s\S]*?)\[\/i\]/gi,(m,t)=>keep('<em>')+t+keep('</em>')],
+    [/\[u\]([\s\S]*?)\[\/u\]/gi,(m,t)=>keep('<u>')+t+keep('</u>')],
+    [/\[s\]([\s\S]*?)\[\/s\]/gi,(m,t)=>keep('<s>')+t+keep('</s>')],
+    [/\[color=(#[0-9a-f]{3,8}|[a-z]+)\]([\s\S]*?)\[\/color\]/gi,(m,c,t)=>keep(`<span style="color:${c}">`)+t+keep('</span>')],
+    [/\[url=([^\]\s]+)\]([\s\S]*?)\[\/url\]/gi,(m,href,t)=>linkTag(href,t)],
+    [/\[url\]([^\[\s]+)\[\/url\]/gi,(m,href)=>linkTag(href,href)],
+  ];
+  for(let before='';before!==out;){before=out;for(const [pattern,make] of tags)out=out.replace(pattern,make);}
+  out=out.replace(/\\([\\`*_{}\[\]()#+\-.!~|])/g,(match,char)=>keep(char));
   out=out.replace(/\+\+([^+]+)\+\+/g,'<u>$1</u>');
   out=out.replace(/~~([^~]+)~~/g,'<del>$1</del>');
   out=out.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
   out=out.replace(/__([^_]+)__/g,'<strong>$1</strong>');
   out=out.replace(/\*([^*]+)\*/g,'<em>$1</em>');
-  out=out.replace(/_([^_]+)_/g,'<em>$1</em>');
+  out=out.replace(/(^|[^A-Za-z0-9])_([^_]+)_(?![A-Za-z0-9])/g,'$1<em>$2</em>');
+  for(let before='';before!==out;){before=out;out=out.replace(/\u0000(\d+)\u0000/g,(match,i)=>kept[i]);}
   return out;
 }
 function splitTableRow(line){
@@ -296,8 +331,11 @@ function render(){
 }
 async function loadEntries(){
   try{
-    const cacheBust=Date.now();
-    const apiUrl=`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${BRANCH}`;
+    // Read from the newest commit itself: GitHub's file server can serve a
+    // branch's files a few minutes stale right after a Pages CMS edit.
+    const head=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}`,{headers:{Accept:'application/vnd.github.sha'}});
+    const ref=head.ok?(await head.text()).trim():BRANCH;
+    const apiUrl=`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/blog?ref=${ref}`;
     const response=await fetch(apiUrl,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
     if(!response.ok){
       let detail='';
@@ -322,8 +360,7 @@ async function loadEntries(){
     }
 
     const results=await Promise.all(markdownFiles.map(async file=>{
-      const rawUrl=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/content/blog/${encodeURIComponent(file.name)}?v=${cacheBust}`;
-      const urls=[rawUrl,file.download_url].filter(Boolean);
+      const urls=[file.download_url].filter(Boolean);
       let lastError='Could not download this file.';
       for(const url of urls){
         try{
