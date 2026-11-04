@@ -3,7 +3,7 @@ title: Made some tools.
 subtitle: Content Drop
 date: 2026-11-03
 ---
-Howdy! As the title says, I've made some tools. Read about them below:  
+Howdy! As the title says, I've made some tools. They are ongoing projects and I'm always looking to improve, update, and maintain them. Read about them below:  
 
 ++**PALETTE LAB++**  
 Are you a Procreate user? Did you migrate from an art program on PC or Mac? Do you find palettes and swatch management a PITA on iPad? Well, guess what? This (possibly over-cluttered) page can help! Just don't let the feature-creep freak you out. I promise it's functional and easy.  
