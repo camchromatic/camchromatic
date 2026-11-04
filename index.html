@@ -71,6 +71,28 @@ function safeLink(value=''){
   if(/^\/?[A-Za-z0-9._\/-]+(#[A-Za-z0-9_-]+)?$/.test(value)&&!value.includes('..'))return value;
   return '';
 }
+function bbcode(value=''){
+  // Forum-style tags in update text: [b] [i] [u] [s] [color=...] [url] / [url=...].
+  let html=String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const link=(href,label)=>{
+    href=safeLink(href.replace(/&amp;/g,'&'));
+    if(!href)return label;
+    const outside=/^https?:\/\//i.test(href)?' target="_blank" rel="noopener"':'';
+    return `<a href="${href.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"${outside}>${label}</a>`;
+  };
+  const tags=[
+    [/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1</strong>'],
+    [/\[i\]([\s\S]*?)\[\/i\]/gi,'<em>$1</em>'],
+    [/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>'],
+    [/\[s\]([\s\S]*?)\[\/s\]/gi,'<s>$1</s>'],
+    [/\[color=(#[0-9a-f]{3,8}|[a-z]+)\]([\s\S]*?)\[\/color\]/gi,'<span style="color:$1">$2</span>'],
+    [/\[url=([^\]\s]+)\]([\s\S]*?)\[\/url\]/gi,(m,href,label)=>link(href,label)],
+    [/\[url\]([^\[\s]+)\[\/url\]/gi,(m,href)=>link(href,href)],
+  ];
+  // Repeat so tags inside other tags work too, e.g. [b][i]this[/i][/b].
+  for(let before='';before!==html;){before=html;for(const [pattern,out] of tags)html=html.replace(pattern,out);}
+  return html;
+}
 function niceDate(value){
   const parts=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(!parts)return '';
@@ -89,7 +111,7 @@ function render(updates){
     const title=document.createElement(href?'a':'strong');title.textContent=update.title;
     if(href){title.href=href;title.style.fontWeight='650';}
     entry.append(title);
-    if(update.text){const text=document.createElement('span');text.className='text';text.textContent=' — '+update.text.replace(/\s*\n\s*/g,' ');entry.append(text);}
+    if(update.text){const text=document.createElement('span');text.className='text';text.innerHTML=' — '+bbcode(update.text.replace(/\s*\n\s*/g,' '));entry.append(text);}
     row.append(entry);list.append(row);
   });
 }
