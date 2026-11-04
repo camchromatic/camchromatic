@@ -101,7 +101,7 @@ function parseEntry(source,filename){
   }
   if(!meta.title)return null;
   const body=source.slice(match[0].length).trim();
-  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename};
+  return {title:meta.title,subtitle:meta.subtitle||'',date:meta.date||'',cover:mediaPath(meta.cover||''),body,filename,slug:filename.replace(/\.md$/i,'')};
 }
 function safeMediaUrl(value=''){
   let url=String(value||'').trim().replace(/^<|>$/g,'');
@@ -266,8 +266,18 @@ function openEntry(entry){
   if(entry.cover){cover.src=entry.cover;cover.alt=entry.title;}
   document.getElementById('articleBody').innerHTML=markdownToHtml(entry.body);
   overlay.classList.add('open');document.body.style.overflow='hidden';
+  history.replaceState(null,'','#'+entry.slug);
 }
-function closeEntry(){overlay.classList.remove('open');document.body.style.overflow='';}
+function closeEntry(){
+  overlay.classList.remove('open');document.body.style.overflow='';
+  if(location.hash)history.replaceState(null,'',location.pathname+location.search);
+}
+// A link like /blog#first-post opens that post (the name is its file name without .md).
+function openFromHash(){
+  const slug=decodeURIComponent(location.hash.slice(1));
+  const entry=slug&&entries.find(item=>item.slug===slug);
+  if(entry)openEntry(entry);
+}
 function render(){
   entriesEl.innerHTML='';
   if(!entries.length){entriesEl.innerHTML='<div class="empty">No blog entries yet. Add one from your Pages CMS dashboard.</div>';return;}
@@ -336,6 +346,7 @@ async function loadEntries(){
     if(entries.length){
       statusLine.textContent='';
       render();
+      openFromHash();
     }else{
       const details=results.map(result=>result.error).filter(Boolean);
       statusLine.textContent='Blog files were found, but none could be read as a post.';
@@ -357,6 +368,7 @@ async function loadEntries(){
 document.getElementById('close').addEventListener('click',closeEntry);
 overlay.addEventListener('click',event=>{if(event.target===overlay)closeEntry();});
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeEntry();});
+window.addEventListener('hashchange',()=>{if(location.hash)openFromHash();else closeEntry();});
 loadEntries();
 </script>
 </body>
