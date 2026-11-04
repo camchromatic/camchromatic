@@ -26,7 +26,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 .close{position:absolute;right:16px;top:14px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
 @media(max-width:900px){.grid{columns:2}}
 @media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{column-gap:8px}.doodle{margin-bottom:8px}}
-</style>
+.doodle img:not(.loaded){aspect-ratio:1;background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}@media(max-width:700px){footer{padding-bottom:120px}}</style>
 </head>
 <body>
 <header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html">Blog</a><a href="doodles.html" aria-current="page">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Ko-Fi</a><a href="contact.html">Contact</a></nav></div></header>
@@ -36,6 +36,9 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 </main><footer><div class="wrap">© 2026 Cam Garcia<p class="ai-note">I’m an artist, not a programmer. I used AI (Claude) to help write the code for this site, Palette Lab and Swatch Page Maker. I decided what they should do and how they look, then tested them myself. All artwork here is drawn by me, with no AI.</p></div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Doodle"><button class="close" id="close" aria-label="Close">×</button><img id="big" alt=""></div>
 <script>
+// Pictures show a soft moving placeholder until they finish loading.
+document.addEventListener('load',event=>{if(event.target.tagName==='IMG')event.target.classList.add('loaded');},true);
+document.addEventListener('error',event=>{if(event.target.tagName==='IMG')event.target.classList.add('loaded');},true);
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
 const grid=document.getElementById('doodles'),overlay=document.getElementById('overlay'),big=document.getElementById('big');
 function message(text){grid.innerHTML='';const box=document.createElement('div');box.className='empty';box.textContent=text;grid.append(box);}

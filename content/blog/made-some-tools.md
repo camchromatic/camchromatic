@@ -9,7 +9,7 @@ Howdy! As the title says, I've made some tools. They are ongoing [projects](http
 ++**[PALETTE LAB++**](https://camchromatic.com/plaette-lab/)  
 Are you a Procreate user? Did you migrate from an art program on PC or Mac? Do you find palettes and swatch management a PITA on iPad? Well, guess what? This (possibly over-cluttered) page can help! Just don't let the feature-creep freak you out. I promise it's functional and easy.  
 
-Something tells me I may be in the minority, but I have a hard time playing around with swatches and palettes on an iPad-exclusive program. I am indeed a desktop artist, and using a stylus on a small screen to organize my already-limited workspace may sound ridiculous (because, y'know, "tablet?" actually I've never had a display tablet maybe that's why) but it's 100% true and I highly dislike it. Double tab this, hold that, don't drag this too far over there, quickly swipe over here, go shopping at Dollar Tree because you want to express a little financial independence as a treat, pinch your fingers and hold in this particular manner, appreciate colors in an image and get angry you can't easily get right into making art- ugh. I just don't like it. So I made this tool to help me make really cool palettes I may never use.   
+Something tells me I may be in the minority, but I have a hard time playing around with swatches and palettes on an iPad-exclusive program. I am indeed a desktop artist, and using a stylus on a small screen to organize my already-limited workspace may sound ridiculous (because, y'know, "tablet?" actually I've never had a display tablet maybe that's why) but it's 100% true and I highly dislike it. Double tap this, hold that, don't drag this too far over there, quickly swipe over here, go shopping at Dollar Tree because you want to express a little financial independence as a treat, pinch your fingers and hold in this particular manner, appreciate colors in an image and get angry you can't easily get right into making art- ugh. I just don't like it. So I made this tool to help me make really cool palettes I may never use.   
 
 Here's stuff **Palette Lab** can do:
 
@@ -33,7 +33,7 @@ My greed may sicken you, but know this; swatching your new Ohuhu Honolulus that 
 
 **Swatch Page Maker** (Maker of Swatch Pages) lets you:
 
-- Make unlabeled swatch grids palette strips, and mixing charts with varying column, row, and spacing options.
+- Make unlabeled swatch grids, palette strips, and mixing charts with varying column, row, and spacing options.
 - Load pre-labeled swatch grids for (a decent amount of) name-brand presets.
 - Choose from many combinations of layouts to print in your chosen amount of pages.
 - Export as Excel or PDF
