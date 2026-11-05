@@ -130,6 +130,13 @@ function swatchesToDraw(s, first, perGroup) {
   return k;
 }
 
+// Screen colors for the chosen set (code -> hex), if its line has them.
+function previewColors(list) {
+  if (!list.length || typeof PREVIEW_COLORS === "undefined") return null;
+  const entry = PREVIEW_COLORS.find((e) => list.every((p) => e.lines.includes(p.group)));
+  return entry ? entry.colors : null;
+}
+
 function readSettings() {
   const list = chosenPresets();
   const blank = $("no-codes").checked;
@@ -159,6 +166,7 @@ function readSettings() {
     labelColor: /^#[0-9a-f]{6}$/i.test($("label-color").value) ? $("label-color").value : "#808080",
     title: $("title").value.trim(),
     description: $("description").value.trim(),
+    colorOf: blank ? null : previewColors(list),
   };
   s.labelUnits = labelUnits(s);
   s.autoPages = s.pageType === "grid" && $("auto-pages").checked;
@@ -464,6 +472,11 @@ class SvgDoc {
     }
     return lines;
   }
+  fillBox(x, y, w, h, color) {
+    const el = document.createElementNS(NS, "rect");
+    Object.entries({ x, y, width: w, height: h, fill: color }).forEach(([a, v]) => el.setAttribute(a, v));
+    this.page.append(el);
+  }
   line(x1, y1, x2, y2) {
     const el = document.createElementNS(NS, "line");
     Object.entries({ x1, y1, x2, y2, stroke: "#000", "stroke-width": this.lineWidth, "stroke-linecap": "square" })
@@ -573,6 +586,13 @@ function buildPdf(layout, s, makeDoc = pdfDoc) {
         const rowH = ROW_PT * k;
         const stepH = (ROW_PT + sp) * k;
         const last = count - 1;
+        // Screen colors fill the boxes in the preview only (the PDF has no fillBox).
+        if (doc.fillBox && s.colorOf) {
+          for (let i = 0; i <= last; i++) {
+            const color = s.colorOf[s.codes[first + i]];
+            if (color) doc.fillBox(x0 + bx * k, top + i * stepH, boxW * k, rowH, color);
+          }
+        }
         // Thin lines first, so the thick outline sits on top.
         for (let i = 0; i <= last; i++) {
           const yT = top + i * stepH;
@@ -989,6 +1009,7 @@ function showSummary(s, pages, extra) {
 function render() {
   const s = readSettings();
   showPageTypeControls(s);
+  $("color-note").hidden = !(s.pageType === "grid" && s.colorOf);
   const preview = $("preview");
   preview.textContent = "";
   if (s.pageType !== "grid") {
