@@ -1,0 +1,1104 @@
+<!doctype html>
+<!-- Code written with help from Claude Opus 5.5 (Anthropic). Art and design by Cam Garcia. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Font Sheet</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script>
+  // Apply the saved theme before the page draws, so it doesn't flash. Dark by default.
+  try {
+    const saved = JSON.parse(localStorage.getItem("fp-look") || "{}");
+    document.documentElement.dataset.mode = ["light", "gray", "dark"].includes(saved.mode) ? saved.mode : "dark";
+  } catch (e) {
+    document.documentElement.dataset.mode = "dark";
+  }
+</script>
+<style>
+  /* Theme colours copied from Swatch Page Maker / Palette Lab. */
+  :root {
+    --bg: #e4e4e6;
+    --panel: #f8f8f8;
+    --ink: #1c1c1e;
+    --muted: #6c6c70;
+    --line: #d1d1d6;
+    --accent: #0a7cff;
+    --warn: #d6342c;
+    color-scheme: light;
+  }
+  :root[data-mode="gray"] {
+    --bg: #4a4a4d;
+    --panel: #575759;
+    --ink: #f4f4f5;
+    --muted: #d0d0d4;
+    --line: #6c6c70;
+    --accent: #2f8cff;
+    --warn: #ffc2bb;
+    color-scheme: dark;
+  }
+  :root[data-mode="dark"] {
+    --bg: #111111;
+    --panel: #1f1f1f;
+    --ink: #f2f2f2;
+    --muted: #9a9a9e;
+    --line: #363636;
+    --accent: #2f8cff;
+    --warn: #ff5f57;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 Arial, Helvetica, sans-serif;
+  }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 64px; }
+  /* Two halves: settings on the left, preview on the right (stacked on narrow screens). */
+  .split { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+  @media (min-width: 900px) {
+    .split { grid-template-columns: minmax(320px, 2fr) 3fr; }
+    /* Keep the preview in view while scrolling the settings. */
+    .preview-panel { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+  }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+  .panel h2 { margin: 0 0 12px; font: 700 1.2rem/1.2 Arial, Helvetica, sans-serif; }
+  .preview-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .preview-head h2 { margin: 0; }
+  #empty { color: var(--muted); margin: 0; padding: 48px 16px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }
+  button:disabled { opacity: .45; cursor: default; }
+  header {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+    gap: 12px 24px; margin-bottom: 24px;
+  }
+  h1 { font: 700 2rem/1.1 Arial, Helvetica, sans-serif; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0; }
+  .look { display: flex; gap: 8px; align-items: center; }
+  /* "?" button and Tips and tricks box, copied from Swatch Page Maker (like Palette Lab). */
+  #help-btn {
+    width: 26px; height: 26px; padding: 0; border-radius: 50%; margin-right: 6px; flex: none; cursor: pointer;
+    font: 700 13px Arial, Helvetica, sans-serif; background: var(--panel); color: var(--ink); border: 1px solid var(--line);
+  }
+  #help {
+    width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 16px 22px 20px;
+    border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink);
+  }
+  #help::backdrop { background: rgb(0 0 0 / .45); }
+  .help-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .help-head h2 { margin: 0; font: 700 18px Arial, Helvetica, sans-serif; }
+  #help-close { width: 30px; height: 30px; padding: 0; cursor: pointer; border-radius: 8px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+  .help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px 26px; }
+  .help-grid h3 { margin: 0 0 5px; font: 700 11px Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+  .help-grid ul { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.42; }
+  .help-grid li + li { margin-top: 3px; }
+  .look-label { font: 500 11px/1 Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button {
+    background: var(--panel); color: var(--ink); border: 0; border-radius: 0;
+    padding: 6px 12px; font-size: 0.85rem; font-weight: 400;
+  }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button.on { background: var(--ink); color: var(--bg); }
+  #drop {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; min-height: 160px; padding: 24px;
+    border: 2px dashed var(--line); border-radius: 12px; background: var(--bg);
+    text-align: center; cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  #drop.over { border-color: var(--accent); }
+  #drop strong { font-size: 18px; }
+  #drop span { color: var(--muted); font-size: 14px; }
+  #drop:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #message { min-height: 24px; margin: 12px 0; color: var(--muted); }
+  #message.error { color: var(--warn); }
+  #result[hidden] { display: none; }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  button {
+    font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #sections {
+    display: flex; flex-direction: column; gap: 8px; margin: 0 0 16px; padding: 12px 16px;
+    border: 1px solid var(--line); border-radius: 12px; background: transparent;
+  }
+  #sections .sub { padding-left: 22px; }
+  #sections legend { padding: 0 6px; color: var(--muted); font-size: 14px; }
+  #sections label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  #sections input { width: 18px; height: 18px; accent-color: var(--accent); }
+  #sections .sub { color: var(--muted); }
+  #sections [hidden] { display: none !important; }
+  #sections .spacing { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 14px; }
+  #sections .spacing label { gap: 4px; }
+  #sections input[type=number] {
+    width: 58px; height: auto; padding: 3px 6px; font: 14px Arial, Helvetica, sans-serif;
+    color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+  }
+  #sections .opts {
+    margin-left: auto; padding: 2px 8px; font-size: 12px; font-weight: 400;
+    border-radius: 6px; color: var(--muted); background: transparent;
+  }
+  #sections .opts[aria-expanded="true"] { color: var(--ink); border-color: var(--muted); }
+  #resetSpacing { align-self: flex-start; margin-top: 6px; padding: 6px 12px; font-size: 14px; font-weight: 400; }
+  #sections select {
+    font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px;
+  }
+  #textopts {
+    display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0; padding: 12px 16px;
+    border: 1px solid var(--line); border-radius: 12px; background: transparent;
+  }
+  #textopts label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 14px; }
+  #textopts select, #textopts textarea {
+    font: 16px Arial, Helvetica, sans-serif; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px; width: 100%;
+  }
+  #textopts textarea { resize: vertical; }
+  #textopts .field { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 14px; }
+  #textopts .row { display: flex; gap: 8px; }
+  #textopts .row select { flex: 1; min-width: 0; }
+  #random { padding: 8px 14px; flex: none; }
+  #textopts textarea::placeholder { color: var(--muted); }
+  #card {
+    display: block; width: 100%; height: auto; border-radius: 12px;
+    box-shadow: 0 6px 30px rgba(0,0,0,.12);
+  }
+  /* Fixed sizes: show the whole card at once, centred. */
+  #card.fixed { width: auto; max-width: 100%; max-height: calc(100vh - 160px); margin: 0 auto; }
+  .preview-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+  #cardSize {
+    font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px;
+  }
+  #missingNote { margin: -4px 0 16px; color: var(--muted); font-size: 14px; }
+  #fitNote { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 16px; }
+</style>
+<style>
+.cc-bar{margin:0 0 24px;background:#232628;border-bottom:1px solid #514536;font:16px/1.5 system-ui,-apple-system,sans-serif}
+.cc-bar-in{max-width:1160px;margin:auto;padding:0 24px;height:70px;display:flex;align-items:center;justify-content:space-between}
+.cc-brand{font-size:2.1rem;font-weight:500;letter-spacing:-.04em;text-decoration:none;display:flex}
+.cc-nav{display:flex;gap:22px;font-size:.9rem}
+.cc-nav a,.cc-nav a:visited{color:#fff;text-decoration:none}.cc-nav a:hover{color:#fff;opacity:.8}
+@media(max-width:700px){.cc-bar-in{height:auto;flex-wrap:wrap;gap:6px 0;padding:12px 14px}.cc-nav{gap:10px;flex-wrap:wrap;font-size:.82rem}}
+@media print{.cc-bar{display:none}}
+</style>
+</head>
+<body>
+<div class="cc-bar"><div class="cc-bar-in"><a class="cc-brand" href="/" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav class="cc-nav"><a href="/">Home</a><a href="/blog">Blog</a><a href="/doodles">Doodles</a><a href="/projects">Projects</a><a href="/about">About</a><a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Ko-Fi</a><a href="/contact">Contact</a></nav></div></div>
+<main>
+  <header>
+    <div>
+      <h1>Font Sheet</h1>
+      <p class="lead">Drop in a font file and get a card that shows it off.</p>
+    </div>
+    <div class="look">
+      <button id="help-btn" type="button" title="Tips and tricks" aria-label="Tips and tricks" aria-haspopup="dialog">?</button>
+      <span class="look-label">Theme</span>
+      <div class="seg" role="group" aria-label="Page colors">
+        <button type="button" data-mode="dark">Dark</button>
+        <button type="button" data-mode="gray">Gray</button>
+        <button type="button" data-mode="light">Light</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="split">
+  <!-- Left half: everything you can change -->
+  <section class="panel settings">
+    <h2>Font</h2>
+    <label id="drop" tabindex="0">
+      <strong>Drop a font file here, or click to choose one</strong>
+      <span>.ttf, .otf, .woff or .woff2. Your font stays on your computer and is never uploaded.</span>
+      <input id="file" type="file" accept=".ttf,.otf,.woff,.woff2,font/*" hidden>
+    </label>
+    <p id="message" role="status"></p>
+    <p id="missingNote" hidden></p>
+    <fieldset id="sections">
+      <legend>Sections on the card</legend>
+      <label><input type="checkbox" value="name" checked> Font name</label>
+      <label class="sub" data-parent="name"><input type="checkbox" value="nameDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="chars" checked> Aa and letters</label>
+      <label class="sub" data-parent="chars"><input type="checkbox" value="repeat" checked> ↳ Each character
+        <select id="repeatN" aria-label="How many times">
+          <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+        </select> times</label>
+      <label class="sub" data-parent="chars"><input type="checkbox" value="charsDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="kern" checked> Spacing and kerning</label>
+      <label class="sub" data-parent="kern"><input type="checkbox" value="kernDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="glyphs" checked> Glyph grid</label>
+      <label class="sub" data-parent="glyphs"><input type="checkbox" value="glyphsDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="text" checked> Heading and paragraph</label>
+      <label class="sub" data-parent="text"><input type="checkbox" value="textDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="pangram" checked> Pangram</label>
+      <label class="sub" data-parent="pangram"><input type="checkbox" value="pangramDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="custom" checked> Your own text</label>
+      <label class="sub" data-parent="custom"><input type="checkbox" value="customDark"> ↳ Light on dark</label>
+      <label><input type="checkbox" value="sizes" checked> Sizes</label>
+      <label class="sub" data-parent="sizes"><input type="checkbox" value="sizesDark"> ↳ Light on dark</label>
+      <button id="resetSpacing" type="button">Reset all spacing</button>
+    </fieldset>
+    <h2>Text</h2>
+    <div id="textopts">
+      <div class="field">
+        <label for="pangram">Pangram</label>
+        <div class="row">
+        <select id="pangram">
+          <option>The quick brown fox jumps over the lazy dog</option>
+          <option>Sphinx of black quartz, judge my vow</option>
+          <option>Pack my box with five dozen liquor jugs</option>
+          <option>How vexingly quick daft zebras jump</option>
+          <option>The five boxing wizards jump quickly</option>
+          <option>Jackdaws love my big sphinx of quartz</option>
+          <option>Waltz, bad nymph, for quick jigs vex</option>
+          <option>Glib jocks quiz nymph to vex dwarf</option>
+        </select>
+        <button id="random" type="button" title="Pick a random pangram">Random</button>
+        </div>
+      </div>
+      <label>Your own text
+        <textarea id="custom" rows="2" maxlength="500" placeholder="Type anything here and it shows on the card"></textarea>
+      </label>
+    </div>
+  </section>
+
+  <!-- Right half: the card -->
+  <section class="panel preview-panel">
+    <div class="preview-head">
+      <h2>Preview</h2>
+      <div class="preview-tools">
+        <select id="cardSize" aria-label="Card size">
+          <option value="fit">Fit to content</option>
+          <option value="square">Square · 1080 × 1080</option>
+          <option value="portrait">Portrait · 1080 × 1350</option>
+          <option value="story">Story · 1080 × 1920</option>
+          <option value="link">Link preview · 1200 × 630</option>
+        </select>
+        <button id="save" class="primary" type="button" disabled>Save as PNG</button>
+        <button id="savePdf" type="button" disabled>Save as PDF</button>
+      </div>
+    </div>
+    <p id="fitNote" hidden></p>
+    <p id="empty">Your card will show here once you drop in a font.</p>
+    <div id="result" hidden>
+      <canvas id="card" aria-label="Font Sheet card"></canvas>
+      <p class="note">Check the font's licence before you share cards of it publicly.</p>
+    </div>
+  </section>
+  </div>
+</main>
+
+<!-- Tips and tricks, opened by the "?" button (like Swatch Page Maker and Palette Lab). -->
+<dialog id="help" aria-labelledby="help-title">
+  <div class="help-head">
+    <h2 id="help-title">Tips and tricks</h2>
+    <button id="help-close" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="help-grid">
+    <section>
+      <h3>Start</h3>
+      <ul>
+        <li><b>Drop a font file</b> on the box, or click it to choose one. It takes .ttf, .otf, .woff and .woff2.</li>
+        <li>Drop another font at any time to swap it. Your settings stay the same.</li>
+        <li>The card appears on the right (below, on narrow screens).</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Sections</h3>
+      <ul>
+        <li><b>Tick or untick</b> each section to put it on the card or take it off.</li>
+        <li><b>Options ▸</b> next to a section opens its extras: Light on dark, spacing, and more.</li>
+        <li><b>Light on dark</b> turns that section dark with light text.</li>
+        <li><b>Spacing:</b> type Letters (−10 to 50%) and Lines (80 to 200%). <b>Reset all spacing</b> puts them all back.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Text</h3>
+      <ul>
+        <li>Pick a <b>pangram</b> (a sentence with every letter), or press <b>Random</b>.</li>
+        <li>Type in <b>Your own text</b> to add it to the card. It's skipped while the box is empty.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Missing letters</h3>
+      <ul>
+        <li>Letters the font doesn't have are drawn <b>pale grey</b>, and a note lists them.</li>
+        <li>This can't be checked for .woff2 files or old symbol fonts.</li>
+        <li>The <b>Glyph grid</b> shows every character the font has.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Save and share</h3>
+      <ul>
+        <li><b>Card size:</b> Fit to content, or a social media size (Square, Portrait, Story, Link preview). Big cards shrink to fit; untick sections to make the text bigger.</li>
+        <li><b>Save as PNG</b> makes a sharp picture. <b>Save as PDF</b> makes a 1-page PDF the same size.</li>
+        <li>Check the font's licence before you share cards of it publicly.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Good to know</h3>
+      <ul>
+        <li>Everything runs in your browser. Your font is never uploaded, there's no sign-in, and no AI is used.</li>
+        <li>Your sections, options, text and <b>Theme</b> are remembered in this browser.</li>
+      </ul>
+    </section>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const drop = document.getElementById('drop');
+  const input = document.getElementById('file');
+  const message = document.getElementById('message');
+  const result = document.getElementById('result');
+  const canvas = document.getElementById('card');
+  const saveBtn = document.getElementById('save');
+  const sizeBox = document.getElementById('cardSize');
+  const fitNote = document.getElementById('fitNote');
+  try { const v = localStorage.getItem('fp-size'); if (v && [...sizeBox.options].some(o => o.value === v)) sizeBox.value = v; } catch (e) {}
+  sizeBox.addEventListener('change', () => {
+    try { localStorage.setItem('fp-size', sizeBox.value); } catch (e) {}
+    if (current) drawCard();
+  });
+
+  let count = 0;
+  let current = null; // { family, info }
+
+  // ---------- File input ----------
+  drop.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+  input.addEventListener('change', () => { if (input.files[0]) handleFile(input.files[0]); input.value = ''; });
+  ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+  // Only un-highlight when the file really leaves the box (not when it moves over the text inside).
+  drop.addEventListener('dragleave', e => { if (!drop.contains(e.relatedTarget)) drop.classList.remove('over'); });
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); });
+  drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+
+  // ---------- Theme (Dark / Gray / Light), remembered in this browser ----------
+  const root = document.documentElement;
+  const lookButtons = document.querySelectorAll('.seg [data-mode]');
+  const markLook = () => lookButtons.forEach(b => b.classList.toggle('on', b.dataset.mode === (root.dataset.mode || 'light')));
+  lookButtons.forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.mode === 'light') delete root.dataset.mode; else root.dataset.mode = b.dataset.mode;
+    markLook();
+    try { localStorage.setItem('fp-look', JSON.stringify({ mode: root.dataset.mode || 'light' })); } catch (e) {}
+  }));
+  markLook();
+
+  // ---------- Spacing sliders (under each section) ----------
+  const SPACING_FOR = ['name', 'chars', 'kern', 'text', 'pangram', 'custom', 'sizes'];
+  const DEFAULT_SPACING = { ls: 0, lh: 100 };
+  const spacing = {};
+  try { Object.assign(spacing, JSON.parse(localStorage.getItem('fp-spacing') || '{}')); } catch (e) {}
+  const saveSpacing = () => { try { localStorage.setItem('fp-spacing', JSON.stringify(spacing)); } catch (e) {} };
+  const sliders = [];
+  for (const key of SPACING_FOR) {
+    spacing[key] = { ...DEFAULT_SPACING, ...(spacing[key] || {}) };
+    const subs = document.querySelectorAll(`#sections [data-parent="${key}"]`);
+    const after = subs.length ? subs[subs.length - 1] : document.querySelector(`#sections input[value="${key}"]`).closest('label');
+    const div = document.createElement('div');
+    div.className = 'sub spacing';
+    div.dataset.parent = key;
+    div.innerHTML =
+      '<span>↳ Spacing</span>' +
+      '<label title="Letter spacing, as % of the font size (-10 to 50)">Letters <input type="number" min="-10" max="50" step="1" data-kind="ls">%</label>' +
+      '<label title="Line spacing, as % of normal (80 to 200)">Lines <input type="number" min="80" max="200" step="5" data-kind="lh">%</label>';
+    after.after(div);
+    div.querySelectorAll('input').forEach(inp => {
+      const kind = inp.dataset.kind, min = Number(inp.min), max = Number(inp.max);
+      const apply = v => { spacing[key][kind] = v; saveSpacing(); if (current) drawCard(); };
+      // While typing: use the number if it's in range. When leaving the box: tidy it up.
+      inp.addEventListener('input', () => { const v = Number(inp.value); if (inp.value !== '' && v >= min && v <= max) apply(v); });
+      inp.addEventListener('change', () => {
+        let v = Number(inp.value);
+        if (inp.value === '' || Number.isNaN(v)) v = DEFAULT_SPACING[kind];
+        v = Math.min(max, Math.max(min, Math.round(v)));
+        inp.value = v; apply(v);
+      });
+      inp.value = spacing[key][kind];
+      sliders.push({ set: v => { inp.value = v; apply(v); }, kind });
+    });
+  }
+  document.getElementById('resetSpacing').addEventListener('click', () => sliders.forEach(s => s.set(DEFAULT_SPACING[s.kind])));
+
+  // ---------- Section tick boxes ----------
+  const boxes = [...document.querySelectorAll('#sections input[type=checkbox]')];
+  try {
+    const saved = JSON.parse(localStorage.getItem('fp-sections') || 'null');
+    if (saved) boxes.forEach(b => { if (b.value in saved) b.checked = !!saved[b.value]; });
+  } catch (e) { /* no saved choice */ }
+  // A sub-option only counts (and only shows) while its parent section is ticked.
+  const parentOf = b => b.closest('label').dataset.parent;
+  const boxFor = v => boxes.find(x => x.value === v);
+  const sections = () => Object.fromEntries(boxes.map(b => [b.value, b.checked && (!parentOf(b) || boxFor(parentOf(b)).checked)]));
+  // Each section's extra options are folded away behind an "Options" button (folded to start with).
+  const open = {};
+  try { Object.assign(open, JSON.parse(localStorage.getItem('fp-open') || '{}')); } catch (e) {}
+  const optButtons = {};
+  for (const key of new Set([...document.querySelectorAll('#sections [data-parent]')].map(el => el.dataset.parent))) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'opts';
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      open[key] = !open[key];
+      try { localStorage.setItem('fp-open', JSON.stringify(open)); } catch (err) {}
+      syncSub();
+    });
+    boxFor(key).closest('label').appendChild(btn);
+    optButtons[key] = btn;
+  }
+  const syncSub = () => {
+    document.querySelectorAll('#sections [data-parent]').forEach(l => {
+      l.hidden = !(boxFor(l.dataset.parent).checked && open[l.dataset.parent]);
+    });
+    for (const [key, btn] of Object.entries(optButtons)) {
+      btn.hidden = !boxFor(key).checked;
+      btn.textContent = open[key] ? 'Options ▾' : 'Options ▸';
+      btn.setAttribute('aria-expanded', open[key] ? 'true' : 'false');
+    }
+  };
+  syncSub();
+  boxes.forEach(b => b.addEventListener('change', () => {
+    syncSub();
+    try { localStorage.setItem('fp-sections', JSON.stringify(Object.fromEntries(boxes.map(x => [x.value, x.checked])))); } catch (e) {}
+    if (current) drawCard();
+  }));
+
+  // How many times each character repeats (2 to 5).
+  const repeatN = document.getElementById('repeatN');
+  try { const n = localStorage.getItem('fp-repeat'); if (['2', '3', '4', '5'].includes(n)) repeatN.value = n; } catch (e) {}
+  repeatN.addEventListener('change', () => {
+    try { localStorage.setItem('fp-repeat', repeatN.value); } catch (e) {}
+    if (current) drawCard();
+  });
+
+  // ---------- Pangram picker and own text ----------
+  const pangramBox = document.getElementById('pangram');
+  const customBox = document.getElementById('custom');
+  try {
+    const t = JSON.parse(localStorage.getItem('fp-text') || '{}');
+    if (Number.isInteger(t.pangram) && t.pangram < pangramBox.options.length) pangramBox.selectedIndex = t.pangram;
+    if (typeof t.custom === 'string') customBox.value = t.custom;
+  } catch (e) {}
+  const saveText = () => {
+    try { localStorage.setItem('fp-text', JSON.stringify({ pangram: pangramBox.selectedIndex, custom: customBox.value })); } catch (e) {}
+    if (current) drawCard();
+  };
+  pangramBox.addEventListener('change', saveText);
+  document.getElementById('random').addEventListener('click', () => {
+    const n = pangramBox.options.length;
+    let pick = Math.floor(Math.random() * (n - 1));
+    if (pick >= pangramBox.selectedIndex) pick++; // never the same one twice in a row
+    pangramBox.selectedIndex = pick;
+    saveText();
+  });
+  customBox.addEventListener('input', saveText);
+
+  function say(text, isError) {
+    message.textContent = text;
+    message.classList.toggle('error', !!isError);
+  }
+
+  async function handleFile(file) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    if (!['ttf', 'otf', 'woff', 'woff2'].includes(ext)) {
+      say('That doesn\'t look like a font file. Try a .ttf, .otf, .woff or .woff2 file.', true);
+      return;
+    }
+    say('Loading ' + file.name + '…');
+    try {
+      const buffer = await file.arrayBuffer();
+      const mine = ++count;
+      const family = 'PreviewFont' + mine;
+      const face = new FontFace(family, buffer);
+      await face.load();
+      if (mine !== count) return; // a newer font was dropped while this one loaded
+      document.fonts.add(face);
+
+      let names = {};
+      try { const t = await getTable(buffer, 'name'); if (t) names = parseNameTable(t); } catch (e) { /* fall back to file name */ }
+      let glyphs = null; // every character the font has (null = couldn't read; use a common set)
+      try { const t = await getTable(buffer, 'cmap'); if (t) glyphs = parseCmap(t); } catch (e) { /* use the common set */ }
+      const base = file.name.replace(/\.[^.]+$/, '');
+      const info = {
+        name: names.full || names.family || base,
+        style: names.style || '',
+        type: ext.toUpperCase(),
+        size: formatSize(file.size),
+        fileBase: base,
+        glyphs
+      };
+      if (mine !== count) { document.fonts.delete(face); return; }
+      if (current) document.fonts.delete(current.face); // unload the previous font
+      current = { family, info, face };
+      drawCard();
+      result.hidden = false;
+      document.getElementById('empty').hidden = true;
+      saveBtn.disabled = false;
+      document.getElementById('savePdf').disabled = false;
+      say('Showing ' + file.name + '. Drop another font to swap it.');
+    } catch (err) {
+      console.error(err);
+      say('Sorry, that font couldn\'t be opened. The file may be damaged or in a format browsers can\'t read.', true);
+    }
+  }
+
+  function formatSize(bytes) {
+    return bytes < 1024 * 1024 ? Math.round(bytes / 1024) + ' KB' : (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  // ---------- Read a table from inside the font (TTF, OTF, WOFF) ----------
+  // Returns the table's bytes, or null. WOFF2 is packed differently, so it returns null.
+  async function getTable(buffer, wanted) {
+    const view = new DataView(buffer);
+    const tag = String.fromCharCode(...new Uint8Array(buffer, 0, 4));
+    if (tag === 'wOFF') {
+      const numTables = view.getUint16(12);
+      for (let i = 0; i < numTables; i++) {
+        const p = 44 + i * 20;
+        if (tagAt(view, p) !== wanted) continue;
+        const off = view.getUint32(p + 4), comp = view.getUint32(p + 8), orig = view.getUint32(p + 12);
+        const raw = new Uint8Array(buffer, off, comp);
+        return comp < orig ? await inflate(raw) : raw.slice();
+      }
+      return null;
+    }
+    if (tag === 'wOF2') return null;
+    const numTables = view.getUint16(4);
+    for (let i = 0; i < numTables; i++) {
+      const p = 12 + i * 16;
+      if (tagAt(view, p) !== wanted) continue;
+      return new Uint8Array(buffer, view.getUint32(p + 8), view.getUint32(p + 12)).slice();
+    }
+    return null;
+  }
+
+  // The font's character map: which characters it can draw. Returns a sorted list of
+  // visible characters (letters, numbers, punctuation, symbols), or null.
+  function parseCmap(bytes) {
+    const v = new DataView(bytes.buffer);
+    const n = v.getUint16(2);
+    let best = -1, bestScore = 0;
+    for (let i = 0; i < n; i++) {
+      const p = 4 + i * 8, plat = v.getUint16(p), enc = v.getUint16(p + 2), off = v.getUint32(p + 4);
+      const fmt = v.getUint16(off);
+      let score = 0;
+      if (fmt === 12 && (plat === 0 || (plat === 3 && enc === 10))) score = 3;
+      else if (fmt === 4 && (plat === 0 || (plat === 3 && enc === 1))) score = 2;
+      if (score > bestScore) { bestScore = score; best = off; }
+    }
+    if (best < 0) return null;
+    const codes = new Set();
+    const LIMIT = 70000;
+    if (v.getUint16(best) === 4) {
+      const segX2 = v.getUint16(best + 6);
+      const ends = best + 14, starts = ends + segX2 + 2, deltas = starts + segX2, ros = deltas + segX2;
+      for (let s = 0; s < segX2; s += 2) {
+        const end = v.getUint16(ends + s), start = v.getUint16(starts + s);
+        const delta = v.getInt16(deltas + s), ro = v.getUint16(ros + s);
+        for (let c = start; c <= end && c !== 0xFFFF && codes.size < LIMIT; c++) {
+          let g;
+          if (ro === 0) g = (c + delta) & 0xFFFF;
+          else { g = v.getUint16(ros + s + ro + 2 * (c - start)); if (g) g = (g + delta) & 0xFFFF; }
+          if (g) codes.add(c);
+        }
+      }
+    } else {
+      const groups = v.getUint32(best + 12);
+      for (let k = 0; k < groups; k++) {
+        const p = best + 16 + k * 12, sc = v.getUint32(p), ec = v.getUint32(p + 4), sg = v.getUint32(p + 8);
+        for (let c = sc; c <= ec && codes.size < LIMIT; c++) if (sg + (c - sc)) codes.add(c);
+      }
+    }
+    const visible = /[\p{L}\p{N}\p{P}\p{S}]/u;
+    return [...codes].sort((a, b) => a - b).map(c => String.fromCodePoint(c)).filter(ch => visible.test(ch));
+  }
+
+  function tagAt(view, p) {
+    return String.fromCharCode(view.getUint8(p), view.getUint8(p + 1), view.getUint8(p + 2), view.getUint8(p + 3));
+  }
+
+  async function inflate(bytes) {
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  function parseNameTable(bytes) {
+    const v = new DataView(bytes.buffer);
+    const count = v.getUint16(2), strOff = v.getUint16(4);
+    const found = {}; // nameID -> { text, score }
+    for (let i = 0; i < count; i++) {
+      const p = 6 + i * 12;
+      const platform = v.getUint16(p), lang = v.getUint16(p + 4), id = v.getUint16(p + 6);
+      const len = v.getUint16(p + 8), off = strOff + v.getUint16(p + 10);
+      if (![1, 2, 4, 16, 17].includes(id)) continue;
+      let text = '';
+      if (platform === 3 || platform === 0) {
+        for (let j = 0; j + 1 < len; j += 2) text += String.fromCharCode(v.getUint16(off + j));
+      } else if (platform === 1) {
+        for (let j = 0; j < len; j++) text += String.fromCharCode(v.getUint8(off + j));
+      } else continue;
+      // Prefer Windows English, then any Windows, then anything else.
+      const score = (platform === 3 ? 2 : 0) + ((platform === 3 && lang === 0x409) || (platform === 1 && lang === 0) ? 1 : 0);
+      if (text && (!found[id] || score > found[id].score)) found[id] = { text: text.trim(), score };
+    }
+    const get = id => found[id] && found[id].text;
+    return { full: get(4), family: get(16) || get(1), style: get(17) || get(2) };
+  }
+
+  // ---------- Draw the card ----------
+  const PAD = 64, SCALE = 2, MAX_PIXELS = 16000000;
+  let W = 1080, INNER = W - PAD * 2; // card width; changes with the card size
+  // Card sizes (checked 2026-11-04 against several 2026 social media size guides).
+  const SIZES = {
+    fit: null,
+    square: { w: 1080, h: 1080 },
+    portrait: { w: 1080, h: 1350 },
+    story: { w: 1080, h: 1920 },
+    link: { w: 1200, h: 630 }
+  };
+  const UI = '"Segoe UI", system-ui, -apple-system, sans-serif';
+  const C = { card: '#fbf8f3', ink: '#1d1b22', muted: '#7d7684', mutedDark: '#a9a3b0', line: '#e4ddd3', dark: '#1d1b22', light: '#fbf8f3', accent: '#7a4fd6' };
+  const darkBounds = {}; // where each dark section sits, filled in by the measuring pass
+  // Shown in the glyph grid when the font's own character list can't be read (WOFF2).
+  const COMMON_SET = [];
+  for (let c = 0x21; c <= 0x7E; c++) COMMON_SET.push(String.fromCharCode(c));
+  for (let c = 0xA1; c <= 0xFF; c++) if (c !== 0xAD) COMMON_SET.push(String.fromCharCode(c));
+
+  const SAMPLES = {
+    upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    lower: 'abcdefghijklmnopqrstuvwxyz',
+    digits: '0123456789',
+    symbols: '! ? & @ # $ % * ( ) [ ] { } . , : ; \' " - + = / \\',
+    heading: 'Lorem ipsum dolor sit amet',
+    paragraph: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+    ladder: 'The quick brown fox jumps over the lazy dog',
+    // Proofing strings type designers use (see docs\research-font-tests.md).
+    kern: [
+      ['Spacing', [
+        'HHOHOOH   nnonnoo',
+        [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c => 'H' + c).join('') + 'H',
+        [...'abcdefghijklmnopqrstuvwxyz'].map(c => 'n' + c).join('') + 'n'
+      ]],
+      ['Kerning pairs', [
+        'AV AW AY AT LT LV LW LY TA VA WA YA',
+        'Ta Te To Tr Ty Va Ve Vo Wa We Wo Ya Yo P. r. f) y,'
+      ]],
+      ['Look-alikes', ['Il1|   O0   rn m   cl d   vv w']],
+      ['Test words', ['Hamburgefonstiv   HAMBURGEFONSTIV   adhesion']]
+    ]
+  };
+
+  let lastMissing = [];
+  function drawCard() {
+    paintCard();
+    const note = document.getElementById('missingNote');
+    note.hidden = !lastMissing.length;
+    note.textContent = lastMissing.length === 1
+      ? `1 character on the card isn't in this font: ${lastMissing[0]} (shown pale grey).`
+      : `${lastMissing.length} characters on the card aren't in this font: ${lastMissing.join(' ')} (shown pale grey).`;
+  }
+  function paintCard() {
+    const ctx = canvas.getContext('2d');
+    const size = SIZES[sizeBox.value] || null;
+    W = size ? size.w : 1080;
+    INNER = W - PAD * 2;
+    const h = layout(ctx, false);         // measure
+
+    if (!size) {                          // Fit to content: the card is as tall as it needs to be
+      // Very tall cards are saved a little less sharp, because Safari (iPhone, iPad, Mac)
+      // shows a blank canvas above about 16.7 million pixels.
+      const k = Math.min(SCALE, Math.sqrt(MAX_PIXELS / (W * h)));
+      canvas.width = Math.round(W * k);
+      canvas.height = Math.ceil(h * k);
+      canvas.dataset.scale = k;
+      ctx.setTransform(k, 0, 0, k, 0, 0);
+      layout(ctx, true);                  // paint
+      canvas.classList.remove('fixed');
+      fitNote.hidden = true;
+      return;
+    }
+
+    // Fixed size: shrink the content if it's too tall, and centre it.
+    canvas.dataset.scale = SCALE;
+    canvas.width = size.w * SCALE;
+    canvas.height = size.h * SCALE;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = C.card;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let s = Math.min(1, size.h / h);
+    const offX = Math.round((size.w - W * s) / 2 * SCALE), offY = Math.round(Math.max(0, (size.h - h * s) / 2) * SCALE);
+    ctx.setTransform(SCALE * s, 0, 0, SCALE * s, offX, offY);
+    layout(ctx, true);
+    canvas.classList.add('fixed');
+    fitNote.hidden = s >= 1;
+    fitNote.textContent = `Everything was shrunk to ${Math.round(s * 100)}% to fit this size. Untick some sections to make the text bigger.`;
+  }
+
+  // Runs the whole layout. When paint is false it only measures and returns the height.
+  function layout(ctx, paint) {
+    const { family, info } = current;
+    const F = size => `${size}px "${family}", ${UI}`;
+    const U = (size, weight = 400) => `${weight} ${size}px ${UI}`;
+    ctx.textBaseline = 'top';
+    let ink = C.ink, muted = C.muted; // text colours (swapped inside dark sections)
+
+    // Spacing for the section being drawn: letter spacing (share of the font size) and line spacing (multiplier).
+    let cur = { ls: 0, lh: 1 };
+    const useSpacing = key => { const s = spacing[key] || {}; cur = { ls: (s.ls || 0) / 100, lh: (s.lh || 100) / 100 }; };
+    const L = v => Math.round(v * cur.lh);
+    const setFont = font => {
+      ctx.font = font;
+      if ('letterSpacing' in ctx) ctx.letterSpacing = font.includes(family) ? (cur.ls * parseFloat(font)) + 'px' : '0px';
+    };
+
+    // Characters the font doesn't have are drawn pale grey (the browser fills them in from a
+    // backup font), like the empty slots in font editors. Unknown for WOFF2, so nothing is greyed there.
+    const have = info.glyphs && info.glyphs.length ? new Set(info.glyphs) : null;
+    const missing = new Set();
+    const lacks = ch => have && !/\s/.test(ch) && !have.has(ch);
+    const text = (str, x, y, font, color) => {
+      setFont(font);
+      const own = have && font.includes(family);
+      if (own) for (const ch of str) if (lacks(ch)) missing.add(ch);
+      if (!paint) return;
+      if (!own || ![...str].some(lacks)) { ctx.fillStyle = color; ctx.fillText(str, x, y); return; }
+      const ghost = color === C.light ? '#5a5462' : '#cdc4b8';
+      let run = '', runLacks = null;
+      const flush = () => {
+        if (!run) return;
+        ctx.fillStyle = runLacks ? ghost : color; ctx.fillText(run, x, y);
+        x += ctx.measureText(run).width; run = '';
+      };
+      for (const ch of str) { const l = lacks(ch); if (l !== runLacks) { flush(); runLacks = l; } run += ch; }
+      flush();
+    };
+
+    const rule = y => {
+      if (paint) { ctx.fillStyle = C.line; ctx.fillRect(PAD, y, INNER, 1); }
+    };
+    const label = (str, y) => {
+      ctx.font = U(13, 600);
+      if (paint) {
+        ctx.fillStyle = muted;
+        if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
+        ctx.fillText(str.toUpperCase(), PAD, y);
+        if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+      }
+      return y + 28;
+    };
+
+    if (paint) { ctx.fillStyle = C.card; ctx.fillRect(0, 0, W, ctx.canvas.height); }
+
+    let y = PAD;
+
+    const on = sections();
+    let first = true; // no divider line above the first section
+    const gap = () => { if (!first) { rule(y); y += 40; } first = false; };
+
+    // "Light on dark": the section itself turns dark with light text (nothing is added).
+    // The measuring pass records where each dark section starts and ends; the painting pass
+    // draws the dark box first, then the text on top.
+    let sectionTop = 0;
+    const beginDark = key => {
+      if (!on[key + 'Dark']) return;
+      ink = C.light; muted = C.mutedDark;
+      y += 8;
+      sectionTop = y;
+      const b = darkBounds[key];
+      if (paint && b) { ctx.fillStyle = C.dark; roundRect(ctx, PAD - 28, b.top - 28, INNER + 56, b.bottom - b.top + 28, 18); ctx.fill(); }
+    };
+    const endDark = key => {
+      if (!on[key + 'Dark']) return;
+      if (!paint) darkBounds[key] = { top: sectionTop, bottom: y - 4 };
+      ink = C.ink; muted = C.muted;
+      y += 20;
+    };
+
+    // 1. Name
+    if (on.name) {
+    first = false;
+    useSpacing('name'); beginDark('name');
+    y = label('Font Sheet', y);
+    setFont(F(60));
+    for (const line of wrap(ctx, info.name, INNER)) { text(line, PAD, y, F(60), ink); y += L(72); }
+    const meta = [info.style, info.type, info.size].filter(Boolean).join('  ·  ');
+    text(meta, PAD, y + 4, U(18), muted);
+    y += 48;
+    endDark('name');
+    }
+
+    // 2. "Aa" + character set
+    if (on.chars) {
+    gap();
+    useSpacing('chars'); beginDark('chars');
+    setFont(F(200));
+    const aaW = Math.min(ctx.measureText('Aa').width, INNER * 0.45);
+    const colX = PAD + aaW + 56, colW = W - PAD - colX;
+    text('Aa', PAD, y, F(200), ink);
+    let cy = y + 8;
+    for (const s of [SAMPLES.upper, SAMPLES.lower, SAMPLES.digits, SAMPLES.symbols]) {
+      setFont(F(32));
+      for (const line of wrap(ctx, s, colW)) { text(line, colX, cy, F(32), ink); cy += L(46); }
+      cy += 6;
+    }
+    y = Math.max(y + 240, cy) + 24;
+
+    // 2b. Each character N times (AAA BBB CCC), N picked from 2 to 5
+    if (on.repeat) {
+      const n = Number(repeatN.value) || 3;
+      const words = ['', '', 'two', 'three', 'four', 'five'];
+      y = label('Each character ' + words[n] + ' times', y + 8);
+      setFont(F(28));
+      for (const s of [SAMPLES.upper, SAMPLES.lower, SAMPLES.digits, SAMPLES.symbols]) {
+        const rep = [...s.replace(/ /g, '')].map(ch => ch.repeat(n)).join('  ');
+        for (const line of wrap(ctx, rep, INNER)) { text(line, PAD, y, F(28), ink); y += L(40); }
+        y += 8;
+      }
+      y += 16;
+    }
+    endDark('chars');
+    }
+
+    // 2c. Spacing and kerning proof strings
+    if (on.kern) {
+      gap();
+      useSpacing('kern'); beginDark('kern');
+      y = label('Spacing and kerning', y);
+      for (const [title, rows] of SAMPLES.kern) {
+        text(title, PAD, y, U(14, 600), muted);
+        y += 26;
+        setFont(F(30));
+        for (const row of rows) {
+          for (const line of wrap(ctx, row, INNER)) { text(line, PAD, y, F(30), ink); y += L(42); }
+        }
+        y += 16;
+      }
+      y += 16;
+      endDark('kern');
+    }
+
+    // 2d. Glyph grid: every character the font has, one per box
+    if (on.glyphs) {
+      gap();
+      useSpacing('none'); beginDark('glyphs');
+      const all = info.glyphs && info.glyphs.length ? info.glyphs : COMMON_SET;
+      const MAX = 350, shown = all.slice(0, MAX);
+      y = label(info.glyphs && info.glyphs.length ? `Glyphs  ·  ${all.length} characters` : 'Glyphs  ·  common characters', y);
+      const cols = 14, cw = INNER / cols, rows = Math.ceil(shown.length / cols);
+      if (paint) {
+        ctx.strokeStyle = ink === C.light ? '#3a3541' : C.line;
+        ctx.lineWidth = 1;
+        setFont(F(34));
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = ink;
+        shown.forEach((ch, k) => {
+          const x = PAD + (k % cols) * cw, yy = y + Math.floor(k / cols) * cw;
+          ctx.strokeRect(x + 0.5, yy + 0.5, cw, cw);
+          ctx.fillText(ch, x + cw / 2, yy + cw / 2 + 2);
+        });
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      }
+      y += rows * cw + 16;
+      if (all.length > MAX) { text(`+ ${(all.length - MAX).toLocaleString()} more characters`, PAD, y, U(14), muted); y += 28; }
+      y += 16;
+      endDark('glyphs');
+    }
+
+    // 3. Heading + paragraph
+    if (on.text) {
+    gap();
+    useSpacing('text'); beginDark('text');
+    y = label('Heading and paragraph', y);
+    setFont(F(46));
+    for (const line of wrap(ctx, SAMPLES.heading, INNER)) { text(line, PAD, y, F(46), ink); y += L(58); }
+    y += 10;
+    setFont(F(20));
+    for (const line of wrap(ctx, SAMPLES.paragraph, INNER * 0.85)) { text(line, PAD, y, F(20), ink); y += L(32); }
+    y += 32;
+    endDark('text');
+    }
+
+    // 3b. Pangram (picked from the list)
+    if (on.pangram) {
+      gap();
+      useSpacing('pangram'); beginDark('pangram');
+      y = label('Pangram', y);
+      setFont(F(40));
+      for (const line of wrap(ctx, pangramBox.value, INNER)) { text(line, PAD, y, F(40), ink); y += L(52); }
+      y += 32;
+      endDark('pangram');
+    }
+
+    // 3c. Your own text (skipped while the box is empty)
+    const own = customBox.value.trim();
+    if (on.custom && own) {
+      gap();
+      useSpacing('custom'); beginDark('custom');
+      y = label('Your text', y);
+      setFont(F(32));
+      for (const para of own.split(/\r?\n/)) {
+        const lines = para.trim() ? wrap(ctx, para.trim(), INNER) : [''];
+        for (const line of lines) { text(line, PAD, y, F(32), ink); y += L(44); }
+      }
+      y += 32;
+      endDark('custom');
+    }
+
+    // 4. Size ladder
+    if (on.sizes) {
+    gap();
+    useSpacing('sizes'); beginDark('sizes');
+    y = label('Sizes', y);
+    for (const size of [12, 18, 24, 36, 48, 72]) {
+      const rowH = Math.round(size * 1.3 * cur.lh) + 10;
+      text(size + ' px', PAD, y + Math.max(0, size * 0.9 - 14), U(14), muted);
+      setFont(F(size));
+      text(fit(ctx, SAMPLES.ladder, INNER - 80), PAD + 80, y, F(size), ink);
+      y += rowH;
+    }
+    y += 32;
+    endDark('sizes');
+    }
+
+    gap(); y -= 12;
+    useSpacing('none');
+
+    // Note about missing characters (only when there are some)
+    if (missing.size) {
+      const list = [...missing].join(' ');
+      ctx.font = U(14);
+      for (const line of wrap(ctx, `Pale grey characters aren't in this font (${missing.size}): ${list}`, INNER)) { text(line, PAD, y, U(14), muted); y += 22; }
+      y += 12;
+    }
+    lastMissing = [...missing];
+
+    // Footer
+    text(info.fileBase + '.' + info.type.toLowerCase(), PAD, y, U(14), muted);
+    ctx.font = U(14);
+    const tag = 'Made with Font Sheet';
+    text(tag, W - PAD - ctx.measureText(tag).width, y, U(14), muted);
+    y += 20 + PAD - 16;
+
+    return y;
+  }
+
+  // Split text into lines that fit maxW. Long words are broken by letter.
+  function wrap(ctx, str, maxW) {
+    const lines = [];
+    let line = '';
+    for (const word of str.split(' ')) {
+      const tryLine = line ? line + ' ' + word : word;
+      if (ctx.measureText(tryLine).width <= maxW) { line = tryLine; continue; }
+      if (line) lines.push(line);
+      line = '';
+      if (ctx.measureText(word).width <= maxW) { line = word; continue; }
+      for (const ch of word) {
+        if (ctx.measureText(line + ch).width > maxW && line) { lines.push(line); line = ''; }
+        line += ch;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // Shorten text with "…" so it fits on one line.
+  function fit(ctx, str, maxW) {
+    if (ctx.measureText(str).width <= maxW) return str;
+    let s = str;
+    while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+    return s.trimEnd() + '…';
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ---------- Save ----------
+  // Keeps letters in any language; only removes characters Windows won't allow in file names.
+  const fileName = ext => (current.info.fileBase.replace(/[\\/:*?"<>|]+/g, '').trim() || 'font') + (sizeBox.value === 'fit' ? '' : '-' + sizeBox.value) + '-card.' + ext;
+  const download = (blob, name) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  saveBtn.addEventListener('click', () => {
+    if (!current) return;
+    canvas.toBlob(blob => download(blob, fileName('png')), 'image/png');
+  });
+
+  // One-page PDF, built by hand so the page works offline with no libraries.
+  // The page is the same size as the card. The picture is stored losslessly, so it stays sharp.
+  async function makePdf() {
+    const w = canvas.width, h = canvas.height;
+    const rgba = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+    const rgb = new Uint8Array(w * h * 3);
+    for (let i = 0, j = 0; i < rgba.length; i += 4, j += 3) { rgb[j] = rgba[i]; rgb[j + 1] = rgba[i + 1]; rgb[j + 2] = rgba[i + 2]; }
+    const packed = new Uint8Array(await new Response(new Blob([rgb]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());
+
+    const k = Number(canvas.dataset.scale) || SCALE;
+    const pw = +(w / k * 0.75).toFixed(2), ph = +(h / k * 0.75).toFixed(2); // card pixels → PDF points
+    // Title written as UTF-16 hex, so font names in any language show correctly in PDF viewers.
+    const units = [];
+    for (const ch of current.info.name || 'Font Sheet') {
+      const c = ch.codePointAt(0);
+      if (c > 0xFFFF) units.push(0xD800 + ((c - 0x10000) >> 10), 0xDC00 + ((c - 0x10000) & 0x3FF));
+      else units.push(c);
+    }
+    const title = '<FEFF' + units.map(u => u.toString(16).toUpperCase().padStart(4, '0')).join('') + '>';
+    const content = `q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`;
+    const enc = new TextEncoder();
+    const parts = [], offsets = [];
+    let length = 0;
+    const add = p => { const b = typeof p === 'string' ? enc.encode(p) : p; parts.push(b); length += b.length; };
+    const obj = (n, body) => { offsets[n] = length; add(`${n} 0 obj\n`); body(); add('\nendobj\n'); };
+
+    add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+    obj(1, () => add('<< /Type /Catalog /Pages 2 0 R >>'));
+    obj(2, () => add('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
+    obj(3, () => add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>`));
+    obj(4, () => add(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`));
+    obj(5, () => {
+      add(`<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${packed.length} >>\nstream\n`);
+      add(packed);
+      add('\nendstream');
+    });
+    obj(6, () => add(`<< /Title ${title} /Producer (Font Sheet) >>`));
+    const xref = length;
+    let table = `xref\n0 7\n0000000000 65535 f \n`;
+    for (let n = 1; n <= 6; n++) table += String(offsets[n]).padStart(10, '0') + ' 00000 n \n';
+    add(table + `trailer\n<< /Size 7 /Root 1 0 R /Info 6 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  document.getElementById('savePdf').addEventListener('click', async () => {
+    if (!current) return;
+    try { download(await makePdf(), fileName('pdf')); }
+    catch (e) { console.error(e); say('Sorry, the PDF couldn\'t be made in this browser.', true); }
+  });
+
+  // "?" button: opens Tips and tricks. Close with ✕, Esc, or a click outside the box.
+  const helpBox = document.getElementById('help');
+  document.getElementById('help-btn').addEventListener('click', () => helpBox.showModal());
+  document.getElementById('help-close').addEventListener('click', () => helpBox.close());
+  helpBox.addEventListener('click', e => {
+    const r = helpBox.getBoundingClientRect();
+    if (e.target === helpBox && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)) helpBox.close();
+  });
+})();
+</script>
+</body>
+</html>
