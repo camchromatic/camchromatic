@@ -131,10 +131,15 @@ function swatchesToDraw(s, first, perGroup) {
 }
 
 // Screen colors for the chosen set (code -> hex), if its line has them.
-function previewColors(list) {
+// Colors are keyed by each set's main codes; legacy codes borrow them through the set's lists.
+function previewColors(list, legacy) {
   if (!list.length || typeof PREVIEW_COLORS === "undefined") return null;
   const entry = PREVIEW_COLORS.find((e) => list.every((p) => e.lines.includes(p.group)));
-  return entry ? entry.colors : null;
+  if (!entry) return null;
+  if (!legacy || !list.some((p) => p.legacy)) return entry.colors;
+  const map = {};
+  for (const p of list) (p.legacy || p.codes).forEach((code, i) => { if (entry.colors[p.codes[i]]) map[code] = entry.colors[p.codes[i]]; });
+  return map;
 }
 
 function readSettings() {
@@ -166,7 +171,7 @@ function readSettings() {
     labelColor: /^#[0-9a-f]{6}$/i.test($("label-color").value) ? $("label-color").value : "#808080",
     title: $("title").value.trim(),
     description: $("description").value.trim(),
-    colorOf: blank ? null : previewColors(list),
+    colorOf: blank ? null : previewColors(list, $("legacy-codes").checked),
   };
   s.labelUnits = labelUnits(s);
   s.autoPages = s.pageType === "grid" && $("auto-pages").checked;
