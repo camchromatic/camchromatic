@@ -17,15 +17,18 @@ nav{display:flex;gap:22px;font-size:.9rem}@media(max-width:700px){.top{height:au
 h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
 .intro{color:var(--muted);max-width:540px;margin:0}
 .grid{columns:3;column-gap:16px}
-.doodle{display:block;width:100%;margin:0 0 16px;padding:0;border:0;background:#fff;cursor:zoom-in;border-radius:10px;overflow:hidden;break-inside:avoid}
+.item{position:relative;margin:0 0 16px;break-inside:avoid}
+.doodle{display:block;width:100%;margin:0;padding:0;border:0;background:#fff;cursor:zoom-in;border-radius:10px;overflow:hidden;break-inside:avoid}
 .doodle img{display:block;width:100%;height:auto}
+.watch{position:absolute;left:8px;bottom:8px;display:flex;align-items:center;gap:6px;border:0;border-radius:99px;background:#191b1ce6;color:#fff;font:600 .78rem/1 system-ui,-apple-system,sans-serif;padding:7px 11px;cursor:pointer}.watch:hover{background:#000}.watch svg{width:10px;height:10px;fill:currentColor}
 .empty{column-span:all;padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
 footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}
 .overlay{position:fixed;inset:0;background:#080808d9;display:none;align-items:center;justify-content:center;padding:20px;z-index:5;cursor:zoom-out}.overlay.open{display:flex}
 .overlay img{max-width:100%;max-height:92vh;background:#fff;border-radius:10px}
+.overlay video{max-width:100%;max-height:92vh;background:#000;border-radius:10px;cursor:auto}
 .close{position:absolute;right:16px;top:14px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
 @media(max-width:900px){.grid{columns:2}}
-@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{column-gap:8px}.doodle{margin-bottom:8px}}
+@media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{column-gap:8px}.item{margin-bottom:8px}.watch{left:6px;bottom:6px;padding:6px 9px;font-size:.72rem}}
 .doodle img:not(.loaded){aspect-ratio:1;background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}@media(max-width:700px){footer{padding-bottom:120px}}</style>
 </head>
 <body>
@@ -34,27 +37,42 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 <section class="hero"><h1>Doodles</h1><p class="intro">I still draw... sometimes.</p></section>
 <section class="grid" id="doodles" aria-label="Doodles" aria-live="polite"></section>
 </main><footer><div class="wrap">© 2026 Cam Garcia</div></footer>
-<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Doodle"><button class="close" id="close" aria-label="Close">×</button><img id="big" alt=""></div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Doodle"><button class="close" id="close" aria-label="Close">×</button><img id="big" alt=""><video id="vid" controls playsinline preload="none" hidden></video></div>
 <script>
 // Pictures show a soft moving placeholder until they finish loading.
 document.addEventListener('load',event=>{if(event.target.tagName==='IMG')event.target.classList.add('loaded');},true);
 document.addEventListener('error',event=>{if(event.target.tagName==='IMG')event.target.classList.add('loaded');},true);
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
-const grid=document.getElementById('doodles'),overlay=document.getElementById('overlay'),big=document.getElementById('big');
+const grid=document.getElementById('doodles'),overlay=document.getElementById('overlay'),big=document.getElementById('big'),vid=document.getElementById('vid');
 function message(text){grid.innerHTML='';const box=document.createElement('div');box.className='empty';box.textContent=text;grid.append(box);}
 function render(files,hidden){
   // Filenames are upload times (YYYY-MM-DD-HHMMSS.png), so Z to A is newest first.
   const pngs=files.filter(file=>file.type==='file'&&/\.png$/i.test(file.name)&&!hidden.has(file.name)).sort((a,b)=>b.name.localeCompare(a.name));
   if(!pngs.length){message('No doodles yet. Check back soon!');return;}
   grid.innerHTML='';
+  // A speedpaint is a video with the same name as its doodle (name.mp4 or name.webm).
+  const videos=new Map();
+  files.forEach(file=>{const m=file.type==='file'&&file.name.match(/^(.*)\.(mp4|webm)$/i);if(m&&!videos.has(m[1].toLowerCase()))videos.set(m[1].toLowerCase(),file.download_url);});
   pngs.forEach(file=>{
+    const item=document.createElement('div');item.className='item';
     const card=document.createElement('button');card.className='doodle';card.type='button';
     const image=document.createElement('img');image.src=file.download_url;image.alt='Doodle';image.loading='lazy';
-    image.onerror=()=>{card.style.display='none';};
-    card.append(image);card.addEventListener('click',()=>{big.src=file.download_url;overlay.classList.add('open');});
-    grid.append(card);
+    image.onerror=()=>{item.style.display='none';};
+    card.append(image);card.addEventListener('click',()=>openPicture(file.download_url));
+    item.append(card);
+    const video=videos.get(file.name.replace(/\.png$/i,'').toLowerCase());
+    if(video){
+      const watch=document.createElement('button');watch.className='watch';watch.type='button';
+      watch.innerHTML='<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 0l9 5-9 5z"/></svg>Watch speedpaint';
+      watch.addEventListener('click',()=>openVideo(video,file.download_url));
+      item.append(watch);
+    }
+    grid.append(item);
   });
 }
+function openPicture(url){vid.hidden=true;big.hidden=false;big.src=url;overlay.classList.add('open');}
+// The video only starts loading once someone asks for it, and never plays by itself.
+function openVideo(url,poster){big.hidden=true;big.removeAttribute('src');vid.hidden=false;vid.poster=poster;vid.preload='metadata';vid.src=url;overlay.classList.add('open');}
 async function loadDoodles(){
   message('Loading doodles…');
   try{
@@ -76,7 +94,8 @@ async function loadDoodles(){
     console.warn(error);
   }
 }
-function closeBig(){overlay.classList.remove('open');big.removeAttribute('src');}
+function closeBig(){overlay.classList.remove('open');big.removeAttribute('src');vid.pause();vid.removeAttribute('src');vid.removeAttribute('poster');vid.preload='none';vid.load();}
+vid.addEventListener('click',event=>event.stopPropagation()); // using the video controls shouldn't close it
 overlay.addEventListener('click',closeBig);
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeBig();});
 loadDoodles();
