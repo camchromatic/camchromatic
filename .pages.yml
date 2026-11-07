@@ -85,3 +85,22 @@ content:
           multiple:
             max: 500
           path: media/doodles
+
+  - name: about
+    label: About Page
+    type: file
+    path: content/about.yml
+    format: yaml
+    fields:
+      - name: photo
+        label: Photo
+        type: image
+      - name: eyebrow
+        label: Small line above your name
+        type: string
+      - name: name
+        label: Name
+        type: string
+      - name: text
+        label: "Text (leave an empty line between paragraphs; BBCode works: [b] [i] [u] [s] [color=red] [url=contact.html]...[/url])"
+        type: text
