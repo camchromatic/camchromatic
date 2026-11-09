@@ -184,6 +184,11 @@
 @media(max-width:700px){.cc-bar-in{height:auto;flex-wrap:wrap;gap:6px 0;padding:12px 14px}.cc-nav{gap:10px;flex-wrap:wrap;font-size:.82rem}}
 @media print{.cc-bar{display:none}}
 </style>
+<style>
+.cc-foot{max-width:1400px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px;line-height:1.6;text-align:center}
+.cc-foot a{color:inherit;text-decoration:underline;text-underline-offset:2px}.cc-foot a:hover{color:var(--ink)}
+@media print{.cc-foot{display:none}}
+</style>
 </head>
 <body>
 <div class="cc-bar"><div class="cc-bar-in"><a class="cc-brand" href="/" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav class="cc-nav"><a href="/">Home</a><a href="/blog">Blog</a><a href="/doodles">Doodles</a><a href="/projects">Projects</a><a href="/about">About</a><a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Ko-Fi</a><a href="/contact">Contact</a></nav></div></div>
@@ -288,6 +293,7 @@
   </section>
   </div>
 </main>
+<footer class="cc-foot">A free tool by <a href="https://camchromatic.com">Cam Garcia</a>. Your files stay on your computer. Like what I do? <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Support me on Ko-Fi</a>. <a href="https://github.com/camchromatic/font-sheet" target="_blank" rel="noopener">View the code</a>.</footer>
 
 <!-- Tips and tricks, opened by the "?" button (like Swatch Page Maker and Palette Lab). -->
 <dialog id="help" aria-labelledby="help-title">
@@ -676,7 +682,7 @@
     heading: 'Lorem ipsum dolor sit amet',
     paragraph: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
     ladder: 'The quick brown fox jumps over the lazy dog',
-    // Proofing strings type designers use (see docs\research-font-tests.md).
+    // Proofing strings type designers use.
     kern: [
       ['Spacing', [
         'HHOHOOH   nnonnoo',
