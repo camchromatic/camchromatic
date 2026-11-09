@@ -104,3 +104,39 @@ content:
       - name: text
         label: "Text (leave an empty line between paragraphs; BBCode works: [b] [i] [u] [s] [color=red] [url=contact.html]...[/url])"
         type: text
+
+  - name: projects
+    label: Projects Page
+    type: file
+    path: content/projects.yml
+    format: yaml
+    fields:
+      - name: intro
+        label: "Intro text under the Projects heading (BBCode works: [b] [i] [url=about.html]...[/url])"
+        type: text
+      - name: projects
+        label: Project cards (shown in this order)
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{title}"
+        fields:
+          - name: title
+            label: Name
+            type: string
+            required: true
+          - name: kind
+            label: Small line above the name (e.g. Free Tool, Work in progress)
+            type: string
+          - name: description
+            label: Description
+            type: text
+          - name: link
+            label: Link (e.g. palette-lab.html or a full web address; leave empty for no link)
+            type: string
+          - name: image
+            label: Picture (leave empty for a rainbow "Coming soon" box)
+            type: image
+            options:
+              path: media/projects
