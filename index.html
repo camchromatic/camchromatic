@@ -13,7 +13,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-app
 .top{height:70px;display:flex;align-items:center;justify-content:space-between}
 .brand{font-size:2.1rem;font-weight:500;letter-spacing:-.04em;text-decoration:none;display:flex;gap:0}
 nav{display:flex;gap:22px;font-size:.9rem}@media(max-width:700px){.top{height:auto;flex-wrap:wrap;gap:6px 0;padding:12px 0}nav{gap:10px;flex-wrap:wrap;font-size:.82rem}}nav a, nav a:visited{color:#fff}nav a[aria-current=page]{font-weight:700}nav a:hover{color:#fff;opacity:.8}a{color:var(--accent);text-decoration:none}
-.hero{padding:44px 0 28px}.banner{display:block;width:100%;height:auto;aspect-ratio:3/1;object-fit:cover;border-radius:12px;margin:0 0 32px;background:#191b1c}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:.72rem;color:var(--muted);font-weight:700}
+.hero{padding:44px 0 28px}.banner{display:block;width:100%;height:auto;aspect-ratio:3/1;object-fit:cover;border-radius:12px;margin:0 0 32px;background:#191b1c}.banner.loading{visibility:hidden}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:.72rem;color:var(--muted);font-weight:700}
 h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;margin:10px 0 12px}
 .intro{color:var(--muted);max-width:540px;margin:0}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
@@ -30,7 +30,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 <body>
 <header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html" aria-current="page">Home</a><a href="blog.html">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
 <main class="wrap">
-<section class="hero"><div class="eyebrow">Here are some things made by</div><h1>Cam Garcia</h1><p class="intro">Based in South Florida, available for work.</p></section><img class="banner" src="media/home-banner-2026-11-04.png" alt="Drawing of Cam giving two thumbs up" width="750" height="250">
+<section class="hero"><div class="eyebrow">Here are some things made by</div><h1>Cam Garcia</h1><p class="intro">Based in South Florida, available for work.</p></section><img class="banner loading" id="banner" src="media/home-banner-2026-11-04.png" alt="Drawing of Cam giving two thumbs up" width="750" height="250">
 <ul class="updates" id="updates" aria-label="Site updates" aria-live="polite"></ul>
 </main><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <script>
@@ -115,6 +115,32 @@ function render(updates){
     row.append(entry);list.append(row);
   });
 }
+function safeImage(value=''){
+  // Pictures from this site's media folder, or full https addresses.
+  value=String(value).trim();
+  if(/^https:\/\//i.test(value))return value;
+  if(/^\/?media\/[A-Za-z0-9._\/ -]+$/.test(value)&&!value.includes('..'))return value.startsWith('/')?value:'/'+value;
+  return '';
+}
+async function loadBanner(ref){
+  // The banner is picked in Pages CMS "Home Banner" (content/home.yml).
+  const banner=document.getElementById('banner');
+  try{
+    const response=await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${ref}/content/home.yml`);
+    if(response.ok){
+      const text=await response.text();
+      const field=name=>{const m=text.match(new RegExp('^'+name+':[ \\t]*(.*)$','m'));return m?unquote(m[1]):'';};
+      const src=safeImage(field('banner'));
+      if(src&&src!==banner.getAttribute('src')){
+        banner.removeAttribute('width');banner.removeAttribute('height');
+        await new Promise(done=>{banner.onload=banner.onerror=done;banner.src=src;});
+      }
+      const alt=field('alt');if(alt)banner.alt=alt;
+    }
+  }catch(error){console.warn(error);}
+  banner.classList.remove('loading');
+}
+setTimeout(()=>document.getElementById('banner').classList.remove('loading'),4000); // never hide the banner for long
 async function loadUpdates(){
   message('Loading updates…');
   try{
@@ -122,6 +148,7 @@ async function loadUpdates(){
     // branch's files a few minutes stale right after a Pages CMS edit.
     const head=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}`,{headers:{Accept:'application/vnd.github.sha'}});
     const ref=head.ok?(await head.text()).trim():BRANCH;
+    loadBanner(ref);
     const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/updates?ref=${ref}`,{headers:{Accept:'application/vnd.github+json'}});
     if(response.status===404){render([]);return;} // folder appears with the first update
     if(!response.ok)throw Error('Could not read updates');

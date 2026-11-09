@@ -86,6 +86,19 @@ content:
             max: 500
           path: media/doodles
 
+  - name: home
+    label: Home Banner
+    type: file
+    path: content/home.yml
+    format: yaml
+    fields:
+      - name: banner
+        label: "Banner picture (best 3 times wider than tall, e.g. 1500x500; other shapes get cropped)"
+        type: image
+      - name: alt
+        label: Short description of the picture (for people who can't see it)
+        type: string
+
   - name: about
     label: About Page
     type: file
