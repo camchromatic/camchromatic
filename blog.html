@@ -31,7 +31,7 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 .entry-excerpt{color:var(--muted);margin:0;line-height:1.45}
 .article-subtitle{font-size:1.1rem;color:var(--muted);margin:0 0 8px;line-height:1.45}
 .empty{padding:52px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
-footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;color:var(--muted);font-size:.85rem}
+footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:.85rem}footer .kofi{margin:6px 0 0}
 .overlay{position:fixed;inset:0;background:#080808e8;display:none;align-items:flex-start;justify-content:center;padding:28px 18px;z-index:5;overflow-y:auto}
 .overlay.open{display:flex}
 .article{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:14px;width:min(820px,100%);padding:42px clamp(22px,6vw,64px);margin:auto}
@@ -55,16 +55,16 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 96px;colo
 .article-body tr:nth-child(even) td{background:#ffffff08}
 @media(max-width:900px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.entries{grid-template-columns:1fr;gap:12px}.entry-card-copy{padding:13px 14px 15px}.overlay{padding:10px}.article{padding:38px 20px 28px}}
-.entry-cover-frame img:not(.loaded),.article-cover:not(.loaded),.article-body img:not(.loaded){background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}.article-cover:not(.loaded){min-height:240px}.article-body img:not(.loaded){min-height:200px;width:100%}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}@media(max-width:700px){footer{padding-bottom:120px}}</style>
+.entry-cover-frame img:not(.loaded),.article-cover:not(.loaded),.article-body img:not(.loaded){background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}.article-cover:not(.loaded){min-height:240px}.article-body img:not(.loaded){min-height:200px;width:100%}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}</style>
 </head>
 <body>
-<header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html" aria-current="page">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Ko-Fi</a><a href="contact.html">Contact</a></nav></div></header>
+<header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html" aria-current="page">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
 <main class="wrap">
 <section class="hero"><div class="eyebrow">Here's the Dump</div><h1>Blog</h1><p class="intro">Ramblings, Sketchdumps, News</p></section>
 <div class="status" id="status" aria-live="polite">Loading entries…</div>
 <section class="entries" id="entries" aria-label="Blog entries"></section>
 </main>
-<footer><div class="wrap">© 2026 Cam Garcia</div></footer>
+<footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Blog entry"><article class="article"><button class="close" id="close" aria-label="Close entry">×</button><div class="eyebrow">CamChromatic Journal</div><h1 id="articleTitle"></h1><p class="article-subtitle" id="articleSubtitle"></p><div class="entry-date" id="articleDate"></div><img class="article-cover" id="articleCover" alt="" hidden><div class="article-body" id="articleBody"></div></article></div>
 <script>
 // Pictures show a soft moving placeholder until they finish loading.
@@ -410,15 +410,6 @@ overlay.addEventListener('click',event=>{if(event.target===overlay)closeEntry();
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeEntry();});
 window.addEventListener('hashchange',()=>{if(location.hash)openFromHash();else closeEntry();});
 loadEntries();
-</script>
-<script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
-<script>
-  kofiWidgetOverlay.draw('camchromatic', {
-    'type': 'floating-chat',
-    'floating-chat.donateButton.text': 'Support Me',
-    'floating-chat.donateButton.background-color': '#323842',
-    'floating-chat.donateButton.text-color': '#fff'
-  });
 </script>
 <script src="/no-right-click.js"></script>
 </body>
