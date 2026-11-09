@@ -1699,50 +1699,22 @@ function buildJson() {
   if (Array.isArray(fileWrapper)) { const out = fileWrapper.slice(); out[paletteIndex] = pal; return JSON.stringify(out); }
   return JSON.stringify([pal]);
 }
-// a .zip holding one finished file (stored as-is, since a .swatches file is already compressed)
-async function wrapInZip(blob, fileName) {
-  const outer = new JSZip();
-  outer.file(fileName, blob);
-  return outer.generateAsync({ type: 'blob', compression: 'STORE' });
+// save a file with a plain link download
+function saveBlob(blob, file) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = file;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(`Saved ${file}`);
 }
-// the hosting page's save box, when there is one (otherwise a plain link download)
-const host = window.claude;
-const downloadsReady = host?.use ? host.use('downloads').catch(() => null) : Promise.resolve(null);
 
 $('saveBtn').addEventListener('click', async () => {
   if (!swatches.some(Boolean)) { toast('Add at least one color before saving.'); return; }
   const zip = new JSZip();
   zip.file('Swatches.json', buildJson());
   const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-  const base = (name.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, '-');
-  const downloads = await downloadsReady;
-  if (!downloads) {
-    // opened as a normal web page: a plain link download works
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = base + '.swatches';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    toast(`Saved ${base}.swatches`);
-    return;
-  }
-  try {
-    await downloads.save({ filename: base + '.swatches', data: blob });
-    toast(`Saved ${base}.swatches`);
-  } catch (err) {
-    if (err?.code === 'rejected_extension') {
-      // some hosts can't save a .swatches file directly, so put the real .swatches file inside a .zip
-      try {
-        await downloads.save({ filename: base + '.zip', data: await wrapInZip(blob, base + '.swatches') });
-        toast(`Saved ${base}.zip. Unzip it to get ${base}.swatches.`, 8000);
-      } catch (e2) { saveError(e2); }
-    } else saveError(err);
-  }
+  saveBlob(blob, (name.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, '-') + '.swatches');
 });
-function saveError(err) {
-  if (err?.code === 'declined') toast('Save cancelled.');
-  else if (err?.code === 'rate_limited') toast('A save box is already open. Finish that one first.');
-  else toast("Saving isn't available in this view.");
-}
 
 // ---- preview card: a PNG of the palette (name on top, swatches in their slots, hex under each) ----
 const CARD = { cols: 10, sw: 96, gap: 18, pad: 56, titleH: 64, labelH: 26, nameH: 18, scale: 2 };
@@ -1782,18 +1754,7 @@ async function drawCard() {
 $('cardBtn').addEventListener('click', async () => {
   if (!swatches.some(Boolean)) { toast('Add at least one color before saving a card.'); return; }
   const blob = await drawCard();
-  const file = (name.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, '-') + ' card.png';
-  const downloads = await downloadsReady;
-  if (!downloads) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = file;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    toast(`Saved ${file}`);
-    return;
-  }
-  try { await downloads.save({ filename: file, data: blob }); toast(`Saved ${file}`); }
-  catch (err) { saveError(err); }
+  saveBlob(blob, (name.trim() || 'Untitled').replace(/[\\/:*?"<>|]+/g, '-') + ' card.png');
 });
 
 let toastTimer;
