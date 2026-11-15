@@ -22,7 +22,7 @@ h1{font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.05;letter-spacing:-.06em;mar
 .updates{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
 .update{display:flex;gap:18px;align-items:baseline;padding:9px 2px;border-bottom:1px solid var(--line);font-size:.95rem}
 .update time{flex:none;width:96px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.update .entry{min-width:0}.update strong{font-weight:650}.update a{color:var(--accent)}.update .text{color:var(--muted)}
+.update .entry{min-width:0}.update strong{font-weight:650}.update a{color:var(--accent)}.update .text{color:var(--ink)}
 .updates .empty{margin-top:14px}
 .empty{padding:40px 20px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
 footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:.85rem}footer .kofi{margin:6px 0 0}
@@ -105,15 +105,16 @@ function render(updates){
   if(!updates.length){message('No updates yet. Check back soon!');return;}
   list.innerHTML='';
   updates.forEach(update=>{
-    // One log line: date, then the title (a link when there is one) and the text.
+    // One log line: the date, then the text. (Titles are no longer shown.)
     const row=document.createElement('li');row.className='update';
     const time=document.createElement('time');time.dateTime=update.date;time.textContent=niceDate(update.date);row.append(time);
     const entry=document.createElement('span');entry.className='entry';
     const href=safeLink(update.link);
-    const title=document.createElement(href?'a':'strong');title.textContent=update.title;
-    if(href){title.href=href;title.style.fontWeight='650';}
-    entry.append(title);
-    if(update.text){const text=document.createElement('span');text.className='text';text.innerHTML=' — '+bbcode(update.text.replace(/\s*\n\s*/g,' '));entry.append(text);}
+    const words=update.text?bbcode(update.text.replace(/\s*\n\s*/g,' ')):'';
+    const text=document.createElement(href?'a':'span');text.className='text';
+    if(href)text.href=href;
+    if(words)text.innerHTML=words;else text.textContent=update.title||''; // old updates with no text keep their title
+    entry.append(text);
     row.append(entry);list.append(row);
   });
 }

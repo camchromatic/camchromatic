@@ -29,14 +29,13 @@ html[data-theme=steel] h1{text-shadow:0 1px 0 #ffffff80}
 html[data-theme=steel] .banner{padding:4px;background:var(--rainbow);border-radius:14px;box-shadow:0 6px 18px #1c222860}
 html[data-theme=steel] .updates{background:var(--glass);border:1px solid #ffffffe8;border-radius:14px;padding:4px 16px;box-shadow:0 6px 18px #1c222840}
 html[data-theme=steel] .update:last-child{border-bottom:0}
-html[data-theme=steel] .update time{color:#5b6771}
-html[data-theme=steel] .update .entry>:first-child{font-weight:650;--t:#2f6fa0;color:var(--t)}
-html[data-theme=steel] .update:nth-child(12n+1) .entry>:first-child{--t:#b04e5a}html[data-theme=steel] .update:nth-child(12n+2) .entry>:first-child{--t:#b85a3e}
-html[data-theme=steel] .update:nth-child(12n+3) .entry>:first-child{--t:#a8691f}html[data-theme=steel] .update:nth-child(12n+4) .entry>:first-child{--t:#8f7a1f}
-html[data-theme=steel] .update:nth-child(12n+5) .entry>:first-child{--t:#6f7d1f}html[data-theme=steel] .update:nth-child(12n+6) .entry>:first-child{--t:#4f7f2f}
-html[data-theme=steel] .update:nth-child(12n+7) .entry>:first-child{--t:#2f8a5f}html[data-theme=steel] .update:nth-child(12n+8) .entry>:first-child{--t:#2a8f8a}
-html[data-theme=steel] .update:nth-child(12n+9) .entry>:first-child{--t:#2f6fa0}html[data-theme=steel] .update:nth-child(12n+10) .entry>:first-child{--t:#4a6aa8}
-html[data-theme=steel] .update:nth-child(12n+11) .entry>:first-child{--t:#7a4fa8}html[data-theme=steel] .update:nth-child(12n) .entry>:first-child{--t:#a24c88}
+html[data-theme=steel] .update time{font-weight:650;--t:#2f6fa0;color:var(--t)}
+html[data-theme=steel] .update:nth-child(12n+1) time{--t:#b04e5a}html[data-theme=steel] .update:nth-child(12n+2) time{--t:#b85a3e}
+html[data-theme=steel] .update:nth-child(12n+3) time{--t:#a8691f}html[data-theme=steel] .update:nth-child(12n+4) time{--t:#8f7a1f}
+html[data-theme=steel] .update:nth-child(12n+5) time{--t:#6f7d1f}html[data-theme=steel] .update:nth-child(12n+6) time{--t:#4f7f2f}
+html[data-theme=steel] .update:nth-child(12n+7) time{--t:#2f8a5f}html[data-theme=steel] .update:nth-child(12n+8) time{--t:#2a8f8a}
+html[data-theme=steel] .update:nth-child(12n+9) time{--t:#2f6fa0}html[data-theme=steel] .update:nth-child(12n+10) time{--t:#4a6aa8}
+html[data-theme=steel] .update:nth-child(12n+11) time{--t:#7a4fa8}html[data-theme=steel] .update:nth-child(12n) time{--t:#a24c88}
 
 /* Cards and panels turn to glass */
 html[data-theme=steel] .entry-card,html[data-theme=steel] .project-card,html[data-theme=steel] .art-card{background:var(--glass);border:1px solid #ffffffe8;box-shadow:0 6px 18px #1c222840}
