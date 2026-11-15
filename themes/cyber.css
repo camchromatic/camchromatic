@@ -30,8 +30,8 @@ html[data-theme=cyber] h1,html[data-theme=cyber] h2{font-family:var(--head);font
 html[data-theme=cyber] .eyebrow{font-family:var(--head);font-weight:500;letter-spacing:.18em;color:var(--muted)}
 html[data-theme=cyber] .eyebrow::before{content:"// "}
 
-/* Home: glowing rainbow banner frame, glass updates, only the latest 3 */
-html[data-theme=cyber] .banner{aspect-ratio:4.5/1;padding:2px;background:var(--rainbow);border-radius:12px;box-shadow:0 0 26px #6acac535,0 0 40px #cc687320}
+/* Home: glowing rainbow banner frame (754 = 750px picture + 2px frame each side, so it shows at its real size), glass updates, only the latest 3 */
+html[data-theme=cyber] .banner{max-width:754px;aspect-ratio:754/254;padding:2px;background:var(--rainbow);border-radius:12px;box-shadow:0 0 26px #6acac535,0 0 40px #cc687320}
 html[data-theme=cyber] .updates{padding:4px 16px}
 html[data-theme=cyber] .update{gap:8px}
 html[data-theme=cyber] .update:nth-child(n+4){display:none}
