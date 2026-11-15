@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CamChromatic</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/themes/cyber.css?v=20261115-5">
-<script src="/themes/theme.js?v=20261115-5"></script>
+<link rel="stylesheet" href="/themes/cyber.css?v=20261115-6">
+<script src="/themes/theme.js?v=20261115-6"></script>
 <style>
 :root{--bg:#232628;--panel:#191b1c;--ink:#e8e2d8;--muted:#b8aa98;--line:#514536;--accent:#2785ff}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scrollbar-gutter:stable}
@@ -68,6 +68,18 @@ body>main>.hero{flex:none}
 .side .update{flex:1;justify-content:center;font-size:.86rem;line-height:1.35;padding:6px 2px}
 .side .update .entry{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.side .update time{line-height:1.3}
 }
+/* Featured project: full width under the Latest cards, picked in Pages CMS "Home Banner & Featured Project" */
+.featured{display:flex;gap:18px;align-items:center;margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.featured[hidden]{display:none}
+.featured img{width:288px;aspect-ratio:16/10;object-fit:cover;object-position:top left;border-radius:6px;flex:none;background:#191b1c}
+.featured .ft-text{display:flex;flex-direction:column;gap:4px;min-width:0}
+.featured .eyebrow{font-size:.66rem}
+.featured h2{margin:0;font-size:1.35rem;letter-spacing:-.02em}
+.featured p{margin:0;color:var(--muted);font-size:.92rem;max-width:620px}
+.featured .ft-kind{font-size:.75rem;color:var(--muted)}
+.featured .ft-go{margin-top:6px;font-size:.88rem;font-weight:600}
+.featured:hover .ft-go{text-decoration:underline}
+@media(max-width:700px){.featured{flex-direction:column;align-items:stretch}.featured img{width:100%}}
 @media(max-width:900px){.home-top,.latest{grid-template-columns:1fr}}
 @media(min-width:901px) and (max-height:720px){.hero{padding:16px 0 12px}.hero h1{font-size:2.6rem;margin:6px 0 4px}.side .update{padding:6px 2px}}
 </style>
@@ -81,6 +93,7 @@ body>main>.hero{flex:none}
 <a class="latest-card" id="latestPost" href="blog.html" hidden><img alt=""><span class="lc-text"><span class="eyebrow">Latest blog post</span><strong></strong><time></time><span class="lc-excerpt"></span></span></a>
 <a class="latest-card" id="latestDoodle" href="doodles.html" hidden><img alt="Latest doodle"><span class="lc-text"><span class="eyebrow">Latest doodle</span><strong></strong></span></a>
 </section>
+<a class="featured" id="featured" hidden><img alt="" loading="lazy"><span class="ft-text"><span class="eyebrow">Featured project</span><h2></h2><span class="ft-kind"></span><p></p><span class="ft-go"></span></span></a>
 </main></div><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
@@ -198,7 +211,7 @@ async function loadUpdates(){
     // branch's files a few minutes stale right after a Pages CMS edit.
     const head=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}`,{headers:{Accept:'application/vnd.github.sha'}});
     const ref=head.ok?(await head.text()).trim():BRANCH;
-    loadBanner(ref);loadLatest(ref);
+    loadBanner(ref);loadLatest(ref);loadFeatured(ref);
     const response=await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/updates?ref=${ref}`,{headers:{Accept:'application/vnd.github+json'}});
     if(response.status===404){render([]);return;} // folder appears with the first update
     if(!response.ok)throw Error('Could not read updates');
@@ -241,6 +254,41 @@ async function loadLatest(ref){
     const d=doodle.name.match(/^(\d{4}-\d{2}-\d{2})/);card.querySelector('strong').textContent=d?niceDate(d[1]):'New doodle';
     card.hidden=false;
   }
+}
+// Featured project: home.yml names a project; its picture, words and link come from projects.yml (the Projects page).
+function yamlItems(text){
+  // Reads the "projects:" list: "  - key: value" items, with long values wrapped onto indented lines.
+  const items=[];let cur=null,key=null;
+  for(const line of text.split(/\r?\n/)){
+    let m=line.match(/^\s*-\s+([A-Za-z_]+):\s*(.*)$/);
+    if(m){cur={};items.push(cur);key=m[1];cur[key]=m[2];continue;}
+    if(!cur)continue;
+    m=line.match(/^\s{4}([A-Za-z_]+):\s*(.*)$/);
+    if(m){key=m[1];cur[key]=m[2];continue;}
+    if(/^\s{5,}\S/.test(line)&&key){cur[key]+=' '+line.trim();continue;}
+    if(/^\S/.test(line))cur=null;
+  }
+  return items.map(item=>Object.fromEntries(Object.entries(item).map(([k,v])=>[k,unquote(v)])));
+}
+async function loadFeatured(ref){
+  try{
+    const raw=path=>fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${ref}/${path}`).then(r=>r.ok?r.text():'');
+    const [home,projects]=await Promise.all([raw('content/home.yml'),raw('content/projects.yml')]);
+    const want=(home.match(/^featured:[ \t]*(.*)$/m)||[])[1];
+    if(!want||!unquote(want))return;
+    const name=unquote(want).toLowerCase();
+    const p=yamlItems(projects.slice(projects.search(/^projects:/m))).find(x=>(x.title||'').toLowerCase()===name);
+    if(!p)return;
+    const card=document.getElementById('featured');
+    card.querySelector('h2').textContent=p.title;
+    card.querySelector('.ft-kind').textContent=p.kind||'';
+    card.querySelector('p').textContent=p.description||'';
+    const link=safeLink(p.link||'');
+    if(link){card.href=link;card.querySelector('.ft-go').textContent='Open '+p.title+' →';}
+    const img=card.querySelector('img'),src=safeImage(p.image||'');
+    if(src){img.src=src;img.alt='Screenshot of '+p.title;}else img.remove();
+    card.hidden=false;
+  }catch(error){console.warn(error);}
 }
 loadUpdates();
 </script><script src="/no-right-click.js"></script>

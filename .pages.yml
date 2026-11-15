@@ -101,7 +101,7 @@ content:
               label: Cyber Aero
 
   - name: home
-    label: Home Banner
+    label: Home Banner & Featured Project
     type: file
     path: content/home.yml
     format: yaml
@@ -111,6 +111,9 @@ content:
         type: image
       - name: alt
         label: Short description of the picture (for people who can't see it)
+        type: string
+      - name: featured
+        label: "Featured project: type a project's title exactly as on the Projects page (leave empty to hide the section)"
         type: string
 
   - name: about

@@ -48,6 +48,10 @@ html[data-theme=cyber] .side .updates{background:none;border:0;border-top:1px so
 html[data-theme=cyber] .latest-card{background:var(--glass);border-color:#ffffff22;box-shadow:0 8px 24px #00000090}
 html[data-theme=cyber] .lc-text strong{font-family:var(--head);color:#fff}
 html[data-theme=cyber] .lc-text time{font-family:var(--head)}
+html[data-theme=cyber] .featured{background:var(--glass);border-color:#ffffff22;box-shadow:0 8px 24px #00000090}
+html[data-theme=cyber] .featured h2{color:#fff}
+html[data-theme=cyber] .featured .ft-kind,html[data-theme=cyber] .featured .ft-go{font-family:var(--head);letter-spacing:.04em}
+html[data-theme=cyber] .featured .ft-go{color:#fff}
 @media(max-width:900px){html[data-theme=cyber] .home-top{grid-template-columns:1fr}}
 @media(max-width:700px){html[data-theme=cyber] .update{flex-direction:column;gap:2px}html[data-theme=cyber] .update .entry::before{display:none}}
 
