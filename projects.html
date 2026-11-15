@@ -29,14 +29,19 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
 @media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{gap:12px}}
 .loading{visibility:hidden}
-/* Framed layout (computers and tablets): the posts scroll inside a frame, so the footer always shows. Phones scroll the whole page. */
+/* Footer always in view (computers and tablets): the page itself doesn't scroll. Blog, Doodles and Projects scroll
+   inside a .frame; the other pages scroll inside .scroller (its scrollbar space is kept on both sides so every page
+   lines up the same). Phones scroll the whole page as usual. */
 @media(min-width:761px) and (min-height:560px){
+html{scrollbar-gutter:auto}
 body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 body>header,body>footer{flex:none}
 body>footer{margin-top:0;padding:14px 0 16px}
 body>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column}
 body>main>.hero{flex:none}
 .frame{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#8a949d80 transparent;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.scroller{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable both-edges;scrollbar-width:thin;scrollbar-color:#8a949d80 transparent}
+.scroller>main{margin-bottom:24px}
 }
 </style>
 </head>

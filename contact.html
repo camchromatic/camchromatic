@@ -27,20 +27,35 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 .page-content h1{margin-top:10px}
 .page-content p{max-width:680px;color:var(--muted);line-height:1.8}
 .page-content .lead{font-size:1.08rem}
-.contact-form{display:grid;gap:16px;margin-top:26px;max-width:620px}
-.contact-form label{display:grid;gap:7px;color:var(--ink);font-weight:600}
-.contact-form input,.contact-form textarea{box-sizing:border-box;width:100%;border:1px solid var(--line);border-radius:8px;background:#1c1f20;color:var(--ink);padding:12px;font:inherit}
-.contact-form textarea{min-height:170px;resize:vertical}
-.contact-form button{justify-self:start;border:1px solid var(--line);border-radius:99px;background:#1c1f20;color:var(--ink);padding:10px 18px;font:inherit;cursor:pointer}
+.contact-form{display:grid;gap:11px;margin-top:18px;max-width:520px}
+.contact-form label{display:grid;gap:5px;font-size:.92rem;color:var(--ink);font-weight:600}
+.contact-form input,.contact-form textarea{box-sizing:border-box;width:100%;border:1px solid var(--line);border-radius:8px;background:#1c1f20;color:var(--ink);padding:8px 10px;font:inherit;font-size:.92rem}
+.contact-form textarea{min-height:110px;resize:vertical}
+.contact-form button{justify-self:start;border:1px solid var(--line);border-radius:99px;background:#1c1f20;color:var(--ink);padding:8px 16px;font:inherit;font-size:.92rem;cursor:pointer}
 .contact-form .form-note{font-size:.88rem;color:var(--muted);margin:0}
 
 @media(max-width:700px){.page-content{padding:34px 14px 24px}}
 
+
+/* Footer always in view (computers and tablets): the page itself doesn't scroll. Blog, Doodles and Projects scroll
+   inside a .frame; the other pages scroll inside .scroller (its scrollbar space is kept on both sides so every page
+   lines up the same). Phones scroll the whole page as usual. */
+@media(min-width:761px) and (min-height:560px){
+html{scrollbar-gutter:auto}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+body>header,body>footer{flex:none}
+body>footer{margin-top:0;padding:14px 0 16px}
+body>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column}
+body>main>.hero{flex:none}
+.frame{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#8a949d80 transparent;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.scroller{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable both-edges;scrollbar-width:thin;scrollbar-color:#8a949d80 transparent}
+.scroller>main{margin-bottom:24px}
+}
 </style>
 </head>
 <body>
 <header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="contact.html" aria-current="page">Contact</a></nav></div></header>
-<main class="wrap page-content">
+<div class="scroller"><main class="wrap page-content">
 <section class="hero">
 <div class="eyebrow">Get in touch</div>
 <h1>Contact</h1>
@@ -63,7 +78,7 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 <p class="form-note">Your name, a valid email address, and a message are all required.</p>
 </form>
 </section>
-</main>
+</main></div>
 <footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <script src="/no-right-click.js"></script>
 </body>
