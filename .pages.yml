@@ -86,6 +86,22 @@ content:
             max: 500
           path: media/doodles
 
+  - name: site
+    label: Site Theme
+    type: file
+    path: content/site.yml
+    format: yaml
+    fields:
+      - name: theme
+        label: Look of the whole site (the tools keep their own look)
+        type: select
+        options:
+          values:
+            - name: dark
+              label: Dark (the usual look)
+            - name: steel
+              label: Steel Aero
+
   - name: home
     label: Home Banner
     type: file
