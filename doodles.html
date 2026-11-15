@@ -31,13 +31,24 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 .close{position:absolute;right:16px;top:14px;border:0;background:#eee;color:#222;border-radius:99px;width:36px;height:36px;font-size:1.3rem;cursor:pointer}
 @media(max-width:900px){.grid{columns:2}}
 @media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{column-gap:8px}.item{margin-bottom:8px}.watch{left:6px;bottom:6px;padding:6px 9px;font-size:.72rem}}
-.doodle img:not(.loaded){aspect-ratio:1;background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}</style>
+.doodle img:not(.loaded){aspect-ratio:1;background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}
+/* Framed layout (computers and tablets): the posts scroll inside a frame, so the footer always shows. Phones scroll the whole page. */
+@media(min-width:761px) and (min-height:560px){
+html{scrollbar-gutter:auto}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+body>header,body>footer{flex:none}
+body>footer{margin-top:0;padding:14px 0 16px}
+body>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column}
+body>main>.hero{flex:none}
+.frame{flex:1;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+}
+</style>
 </head>
 <body>
 <header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html">Blog</a><a href="doodles.html" aria-current="page">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
 <main class="wrap">
 <section class="hero"><h1>Doodles</h1><p class="intro">I still draw... sometimes.</p></section>
-<section class="grid" id="doodles" aria-label="Doodles" aria-live="polite"></section>
+<div class="frame"><section class="grid" id="doodles" aria-label="Doodles" aria-live="polite"></section></div>
 </main><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Doodle"><button class="close" id="close" aria-label="Close">×</button><img id="big" alt=""><video id="vid" controls playsinline preload="none" hidden></video></div>
 <script>

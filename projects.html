@@ -28,18 +28,29 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
 @media(max-width:700px){.wrap{padding:0 14px}.hero{padding:34px 0 22px}.grid{gap:12px}}
-.loading{visibility:hidden}</style>
+.loading{visibility:hidden}
+/* Framed layout (computers and tablets): the posts scroll inside a frame, so the footer always shows. Phones scroll the whole page. */
+@media(min-width:761px) and (min-height:560px){
+html{scrollbar-gutter:auto}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+body>header,body>footer{flex:none}
+body>footer{margin-top:0;padding:14px 0 16px}
+body>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column}
+body>main>.hero{flex:none}
+.frame{flex:1;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+}
+</style>
 </head>
 <body>
 <header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html">Home</a><a href="blog.html">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html" aria-current="page">Projects</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
 <main class="wrap loading" id="page">
 <section class="hero"><h1>Projects</h1><p class="intro" id="intro">Some things I'm working on. Every drawing here is mine, made by hand. I'm an artist, not a programmer, so I used AI (Claude) to help code my tools, but I decide what they do and how they look, and I test them myself. They run on your computer, so your files are never uploaded.</p></section>
-<section class="grid" id="cards" aria-label="Projects">
+<div class="frame"><section class="grid" id="cards" aria-label="Projects">
 <a class="project-card" href="palette-lab.html"><img src="media/projects/palette-lab-2026-11-05c.png" alt="Screenshot of Palette Lab" loading="lazy"><div class="text"><div class="kind">Free Tool</div><h2>Palette Lab</h2><p>Build, tweak, and save color palettes. Made primarily for Procreate swatch editing on desktop.</p></div></a>
 <a class="project-card" href="swatch-page-maker/"><img src="media/projects/swatch-page-maker-2026-11-05.png" alt="Screenshot of Swatch Page Maker" loading="lazy"><div class="text"><div class="kind">Free Tool</div><h2>Swatch Page Maker</h2><p>Print-ready swatch sheets for your art supplies (Excel or PDF).</p></div></a>
 <a class="project-card" href="font-sheet/"><img src="media/projects/font-sheet-2026-11-05b.png" alt="Screenshot of Font Sheet" loading="lazy"><div class="text"><div class="kind">Free Tool</div><h2>Font Sheet</h2><p>Drop in a font file and get a card that shows it off. Your font never leaves your computer.</p></div></a>
 <div class="project-card soon"><div class="placeholder" role="img" aria-label="Coming soon">Coming soon</div><div class="text"><div class="kind">Work in progress</div><h2>Project: HEXA</h2><p>A game about color theory. Futuristic Sci-Fi setting with many characters. Possible avatar customization. Full details TBA. All HEXA art is drawn by me.</p></div></div>
-</section>
+</section></div>
 </main><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUklpXp6R6wMnYf5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
