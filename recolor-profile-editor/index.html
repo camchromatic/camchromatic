@@ -810,7 +810,7 @@ function devRender(){
     row.addEventListener("click",function(e){
       var act=e.target.getAttribute&&e.target.getAttribute("data-act");if(!act)return;
       if(act==="load"){code.value=p.code;draw();save();devMsg('Loaded "'+p.name+'" into the code box.');}
-      if(act==="update"){if(sure(e.target,'Replace "'+p.name+'" with what\'s in the code box?')){p.code=code.value;devSave().then(function(ok){devMsg(ok?'Updated "'+p.name+'".':"Couldn't save. Ask Claude to start the preset helper.",!ok);});}}
+      if(act==="update"){if(sure(e.target,'Replace "'+p.name+'" with what\'s in the code box?')){p.code=code.value;devSave().then(function(ok){devMsg(ok?'Updated "'+p.name+'".':"Couldn't save. Start the preset helper (dev-server.py).",!ok);});}}
       if(act==="up"&&i>0){devList.splice(i-1,0,devList.splice(i,1)[0]);devSave();}
       if(act==="down"&&i<devList.length-1){devList.splice(i+1,0,devList.splice(i,1)[0]);devSave();}
       if(act==="del"&&sure(e.target,'Delete "'+p.name+'" from the presets?')){devList.splice(i,1);devSave();}
@@ -832,7 +832,7 @@ if(devOn){
     else devList.push({name:nm,description:"",code:code.value});
     devSave().then(function(ok){
       if(ok)document.getElementById("saveName").value="";
-      saveMsg(ok?'Saved "'+nm+'". It\'s in the Templates menu now.':"Couldn't save. Ask Claude to start the preset helper (dev-server.py).");
+      saveMsg(ok?'Saved "'+nm+'". It\'s in the Templates menu now.':"Couldn't save. Start the preset helper (dev-server.py).");
     });
   });
 }
