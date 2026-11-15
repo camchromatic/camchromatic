@@ -1,4 +1,4 @@
-// Starting templates for the BBCode Previewer's "Templates" menu.
+// Starting templates for the recolor.me Profile Editor's "Templates" menu.
 // Made with the Preset manager: open index.html?dev on your own computer.
 window.BB_PRESETS = [
   {

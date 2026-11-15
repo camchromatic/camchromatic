@@ -1,3 +1,7 @@
 # Old ProChromate address forwards to Palette Lab
 /prochromate /palette-lab 301
 /prochromate.html /palette-lab 301
+
+# BBCode Previewer was renamed recolor.me Profile Editor (2026-11-15)
+/bbcode-previewer /recolor-profile-editor/ 301
+/bbcode-previewer/* /recolor-profile-editor/:splat 301
