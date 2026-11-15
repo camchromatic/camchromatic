@@ -41,6 +41,10 @@ html[data-theme=cyber] .update .entry::before{content:"—";color:#6b757e;margin
 html[data-theme=cyber] .update .text{color:var(--ink)}
 html[data-theme=cyber] .home-top{grid-template-columns:minmax(0,754px) 1fr}
 html[data-theme=cyber] .side .update .entry::before{display:none}
+/* The updates box with its "Site updates" label inside: glass moves from the list to the whole box */
+html[data-theme=cyber] .side{position:relative;background:var(--glass);border:1px solid #ffffff22;border-radius:10px;box-shadow:0 8px 24px #000000a0,inset 0 1px 0 #ffffff28;padding:11px 16px 4px}
+html[data-theme=cyber] .side .update{gap:2px}
+html[data-theme=cyber] .side .updates{background:none;border:0;border-top:1px solid #ffffff1c;border-radius:0;box-shadow:none;padding:0}
 html[data-theme=cyber] .latest-card{background:var(--glass);border-color:#ffffff22;box-shadow:0 8px 24px #00000090}
 html[data-theme=cyber] .lc-text strong{font-family:var(--head);color:#fff}
 html[data-theme=cyber] .lc-text time{font-family:var(--head)}
