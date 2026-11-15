@@ -1,7 +1,8 @@
 intro: Some things I'm working on. Every drawing here is mine, made by hand. I'm
   an artist, not a programmer, so I used AI (Claude) to help code my tools, but
   I decide what they do and how they look, and I test them myself. They run on
-  your computer, so your files are never uploaded.
+  your computer, so your files are never uploaded. Some tools load public
+  pictures from other sites.
 projects:
   - title: BBCode Previewer
     kind: Free Tool
