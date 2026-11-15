@@ -52,9 +52,9 @@ body>main>.hero{flex:none}
 .side .update time{width:auto}
 .update:nth-child(n+4){display:none}.update:nth-child(3){border-bottom:0}
 .latest{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.latest-card{display:flex;gap:12px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-radius:10px;color:var(--ink);min-width:0}
+.latest-card{display:flex;gap:14px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px;color:var(--ink);min-width:0}
 .latest-card[hidden]{display:none}
-.latest-card img{width:64px;height:44px;object-fit:cover;border-radius:6px;flex:none;background:#191b1c}
+.latest-card img{height:140px;border-radius:6px;flex:none;background:#191b1c;object-fit:contain}#latestPost img{width:140px}#latestDoodle img{width:auto;max-width:65%}.lc-excerpt{width:100%;margin:4px 0 0;font-size:.85rem;line-height:1.4;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}@media(min-width:901px) and (max-height:720px){.latest-card img{height:96px}#latestPost img{width:96px}.lc-excerpt{-webkit-line-clamp:2}}
 .lc-text{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;min-width:0}
 .lc-text .eyebrow{width:100%;font-size:.66rem}
 .lc-text strong{font-weight:600;font-size:.95rem}
@@ -78,7 +78,7 @@ body>main>.hero{flex:none}
 <section class="hero"><div class="eyebrow">Here are some things made by</div><h1>Cam Garcia</h1></section><div class="home-top"><img class="banner loading" id="banner" src="media/home-banner-2026-11-04.png" alt="Drawing of Cam giving two thumbs up" width="750" height="250">
 <div class="side"><div class="eyebrow side-label">Site updates</div><ul class="updates" id="updates" aria-label="Site updates" aria-live="polite"></ul></div></div>
 <section class="latest" aria-label="Latest work">
-<a class="latest-card" id="latestPost" href="blog.html" hidden><img alt=""><span class="lc-text"><span class="eyebrow">Latest blog post</span><strong></strong><time></time></span></a>
+<a class="latest-card" id="latestPost" href="blog.html" hidden><img alt=""><span class="lc-text"><span class="eyebrow">Latest blog post</span><strong></strong><time></time><span class="lc-excerpt"></span></span></a>
 <a class="latest-card" id="latestDoodle" href="doodles.html" hidden><img alt="Latest doodle"><span class="lc-text"><span class="eyebrow">Latest doodle</span><strong></strong></span></a>
 </section>
 </main></div><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
@@ -222,13 +222,15 @@ async function loadLatest(ref){
   try{
     const entries=(await Promise.all((Array.isArray(posts)?posts:[]).filter(f=>f.type==='file'&&/\.md$/i.test(f.name)).map(async f=>{
       const r=await fetch(f.download_url);if(!r.ok)return null;const src=await r.text();
-      const title=frontField(src,'title');return title?{title,date:frontField(src,'date'),cover:safeImage(frontField(src,'cover')),slug:f.name.replace(/\.md$/i,'')}:null;
+      const title=frontField(src,'title');return title?{title,date:frontField(src,'date'),cover:safeImage(frontField(src,'cover')),body:src.replace(/^---[\s\S]*?\n---\s*/,''),slug:f.name.replace(/\.md$/i,'')}:null;
     }))).filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     const post=entries[0];
     if(post){
       const card=document.getElementById('latestPost');card.href='blog.html#'+encodeURIComponent(post.slug);
       card.querySelector('strong').textContent=post.title;card.querySelector('time').textContent=post.date?niceDate(post.date):'';
-      const img=card.querySelector('img');if(post.cover)img.src=post.cover;else img.remove();
+      const img=card.querySelector('img');if(post.cover){img.src=post.cover;img.alt=post.title;}else img.remove();
+      // A few lines of the post as plain text (markdown marks, links and pictures stripped).
+      card.querySelector('.lc-excerpt').textContent=post.body.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#>*_~`|-]+/g,' ').replace(/\s+/g,' ').trim().slice(0,300);
       card.hidden=false;
     }
   }catch(e){console.warn(e);}
