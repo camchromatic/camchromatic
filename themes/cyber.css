@@ -1,6 +1,6 @@
 /* Cyber Aero theme (replaced Steel Aero on 2026-11-15). Only used when the page has <html data-theme="cyber">.
    Switched in Pages CMS "Site Theme" (content/site.yml); see /themes/theme.js, which also loads the fonts.
-   Look: near-black brushed stripes, smoked glass with corner brackets, color only in the logo,
+   Look: near-black brushed stripes, smoked glass, color only in the logo,
    the banner frame and the footer stripe. Fonts: Chakra Petch (logo, headings, menu, dates) + Inter (text). */
 html[data-theme=cyber]{--bg:#111418;--panel:#ffffff0d;--ink:#eef2f5;--muted:#8a949d;--line:#ffffff1c;--accent:#ffffff;
   --head:'Chakra Petch',system-ui,sans-serif;--body:Inter,system-ui,-apple-system,sans-serif;
@@ -12,11 +12,8 @@ html[data-theme=cyber]::before{content:"";position:fixed;inset:0;z-index:-1;poin
     radial-gradient(ellipse at 70% -20%,#262c33 0,transparent 55%),
     linear-gradient(180deg,#171b20 0,#0a0c0f 100%)}
 
-/* Smoked glass panels with two corner brackets */
+/* Smoked glass panels */
 html[data-theme=cyber] header .top,html[data-theme=cyber] .updates,html[data-theme=cyber] .page-content{position:relative;background:var(--glass);border:1px solid #ffffff22;border-radius:10px;box-shadow:0 8px 24px #000000a0,inset 0 1px 0 #ffffff28}
-html[data-theme=cyber] header .top::before,html[data-theme=cyber] header .top::after,html[data-theme=cyber] .updates::before,html[data-theme=cyber] .updates::after,html[data-theme=cyber] .page-content::before,html[data-theme=cyber] .page-content::after{content:"";position:absolute;width:10px;height:10px;border:2px solid #ffffffb0;pointer-events:none}
-html[data-theme=cyber] header .top::before,html[data-theme=cyber] .updates::before,html[data-theme=cyber] .page-content::before{left:-3px;top:-3px;border-right:0;border-bottom:0;border-radius:3px 0 0 0}
-html[data-theme=cyber] header .top::after,html[data-theme=cyber] .updates::after,html[data-theme=cyber] .page-content::after{right:-3px;bottom:-3px;border-left:0;border-top:0;border-radius:0 0 3px 0}
 
 /* Top bar */
 html[data-theme=cyber] header{background:none;border:0;padding-top:14px}
