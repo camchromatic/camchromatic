@@ -54,7 +54,7 @@ body>main>.hero{flex:none}
 .latest{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .latest-card{display:flex;gap:14px;align-items:flex-start;padding:8px;border:1px solid var(--line);border-radius:10px;color:var(--ink);min-width:0}
 .latest-card[hidden]{display:none}
-.latest-card img{height:140px;border-radius:6px;flex:none;background:#191b1c;object-fit:contain}#latestPost img{width:140px}#latestDoodle img{width:auto;max-width:65%}.lc-excerpt{width:100%;margin:4px 0 0;font-size:.85rem;line-height:1.4;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}@media(min-width:901px) and (max-height:720px){.latest-card img{height:96px}#latestPost img{width:96px}.lc-excerpt{-webkit-line-clamp:2}}
+.latest-card img{height:116px;border-radius:6px;flex:none;background:#191b1c;object-fit:contain}#latestPost img{width:116px}#latestDoodle img{width:auto;max-width:65%}.lc-excerpt{width:100%;margin:4px 0 0;font-size:.85rem;line-height:1.4;color:var(--muted);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .lc-text{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;min-width:0;padding-top:6px}
 .lc-text .eyebrow{width:100%;font-size:.66rem}
 .lc-text strong{font-weight:600;font-size:.95rem}
@@ -69,19 +69,27 @@ body>main>.hero{flex:none}
 .side .update .entry{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.side .update time{line-height:1.3}
 }
 /* Featured project: full width under the Latest cards, picked in Pages CMS "Home Banner & Featured Project" */
-.featured{display:flex;gap:18px;align-items:center;margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.featured{display:flex;gap:18px;align-items:center;margin-top:12px;padding:8px;border:1px solid var(--line);border-radius:10px;color:var(--ink)}
 .featured[hidden]{display:none}
-.featured img{width:288px;aspect-ratio:16/10;object-fit:cover;object-position:top left;border-radius:6px;flex:none;background:#191b1c}
+.featured img{width:200px;aspect-ratio:16/10;object-fit:cover;object-position:top left;border-radius:6px;flex:none;background:#191b1c}
 .featured .ft-text{display:flex;flex-direction:column;gap:4px;min-width:0}
 .featured .eyebrow{font-size:.66rem}
 .featured h2{margin:0;font-size:1.35rem;letter-spacing:-.02em}
-.featured p{margin:0;color:var(--muted);font-size:.92rem;max-width:620px}
-.featured .ft-kind{font-size:.75rem;color:var(--muted)}
+.featured p{margin:0;color:var(--muted);font-size:.92rem}
+.featured .ft-kind{display:none}
 .featured .ft-go{margin-top:6px;font-size:.88rem;font-weight:600}
 .featured:hover .ft-go{text-decoration:underline}
 @media(max-width:700px){.featured{flex-direction:column;align-items:stretch}.featured img{width:100%}}
 @media(max-width:900px){.home-top,.latest{grid-template-columns:1fr}}
-@media(min-width:901px) and (max-height:720px){.hero{padding:16px 0 12px}.hero h1{font-size:2.6rem;margin:6px 0 4px}.side .update{padding:6px 2px}}
+/* Shorter screens (most laptops): tighter spacing so everything down to Featured fits above the footer */
+@media(min-width:901px) and (max-height:860px){
+.hero{padding:12px 0 10px}.hero h1{font-size:2.4rem;margin:4px 0 2px}.side .update{padding:6px 2px}
+.scroller>main{margin-bottom:8px}
+.home-top{margin-bottom:10px}.latest{gap:10px}
+.latest-card img{height:92px}#latestPost img{width:92px}.lc-excerpt{-webkit-line-clamp:2}
+.featured{margin-top:10px;gap:14px}.featured img{width:150px}
+.featured h2{font-size:1.15rem}.featured p{font-size:.86rem}.featured .ft-go{margin-top:2px;font-size:.84rem}
+}
 </style>
 </head>
 <body>
@@ -93,7 +101,7 @@ body>main>.hero{flex:none}
 <a class="latest-card" id="latestPost" href="blog.html" hidden><img alt=""><span class="lc-text"><span class="eyebrow">Latest blog post</span><strong></strong><time></time><span class="lc-excerpt"></span></span></a>
 <a class="latest-card" id="latestDoodle" href="doodles.html" hidden><img alt="Latest doodle"><span class="lc-text"><span class="eyebrow">Latest doodle</span><strong></strong></span></a>
 </section>
-<a class="featured" id="featured" hidden><img alt="" loading="lazy"><span class="ft-text"><span class="eyebrow">Featured project</span><h2></h2><span class="ft-kind"></span><p></p><span class="ft-go"></span></span></a>
+<a class="featured" id="featured" hidden><img alt="" loading="lazy"><span class="ft-text"><span class="eyebrow">Featured project<span class="ft-kind2"></span></span><h2></h2><span class="ft-kind"></span><p></p><span class="ft-go"></span></span></a>
 </main></div><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
 <script>
 const OWNER='camchromatic',REPO='camchromatic',BRANCH='main';
@@ -281,7 +289,7 @@ async function loadFeatured(ref){
     if(!p)return;
     const card=document.getElementById('featured');
     card.querySelector('h2').textContent=p.title;
-    card.querySelector('.ft-kind').textContent=p.kind||'';
+    card.querySelector('.ft-kind').textContent=p.kind||'';card.querySelector('.ft-kind2').textContent=p.kind?' · '+p.kind:'';
     card.querySelector('p').textContent=p.description||'';
     const link=safeLink(p.link||'');
     if(link){card.href=link;card.querySelector('.ft-go').textContent='Open '+p.title+' →';}
