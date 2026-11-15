@@ -3,6 +3,12 @@ intro: Some things I'm working on. Every drawing here is mine, made by hand. I'm
   I decide what they do and how they look, and I test them myself. They run on
   your computer, so your files are never uploaded.
 projects:
+  - title: BBCode Previewer
+    kind: Free Tool
+    description: Write recolor.me BBCode and see your profile bio live, with your
+      real avatar and name.
+    link: bbcode-previewer/
+    image: /media/projects/bbcode-previewer-2026-11-15.png
   - title: Font Sheet
     kind: Free Tool
     description: Drop in a font file and get a card that shows it off. Your font

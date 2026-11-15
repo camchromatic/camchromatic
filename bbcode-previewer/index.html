@@ -1,0 +1,937 @@
+<!doctype html>
+<!-- Code written with help from Claude Opus 5.5 (Anthropic). Design by Cam Garcia. Fan-made; not affiliated with recolor.me. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BBCode Previewer</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script>
+  // Apply the saved theme before the page draws, so it doesn't flash. Dark by default.
+  try {
+    const saved = JSON.parse(localStorage.getItem("bb-look") || "{}");
+    document.documentElement.dataset.mode = ["light", "gray", "dark"].includes(saved.mode) ? saved.mode : "dark";
+  } catch (e) {
+    document.documentElement.dataset.mode = "dark";
+  }
+</script>
+<meta name="description" content="Write recolor.me BBCode on the left and see a live preview on the right. Fan-made by Cam.">
+<style>
+/* Theme colors copied from Font Sheet / Swatch Page Maker / Palette Lab. */
+:root {
+  --bg: #e4e4e6; --panel: #f8f8f8; --ink: #1c1c1e; --muted: #6c6c70; --line: #d1d1d6;
+  --accent: #0a7cff; --warn: #d6342c; --ok: #1f8a3b; --code: #ffffff;
+  color-scheme: light;
+}
+:root[data-mode="gray"] {
+  --bg: #4a4a4d; --panel: #575759; --ink: #f4f4f5; --muted: #d0d0d4; --line: #6c6c70;
+  --accent: #2f8cff; --warn: #ffc2bb; --ok: #b6f0b0; --code: #3f3f42;
+  color-scheme: dark;
+}
+:root[data-mode="dark"] {
+  --bg: #111111; --panel: #1f1f1f; --ink: #f2f2f2; --muted: #9a9a9e; --line: #363636;
+  --accent: #2f8cff; --warn: #ff5f57; --ok: #8fe08a; --code: #161616;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 Arial, Helvetica, sans-serif; }
+main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 64px; }
+header {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 12px 24px; margin-bottom: 24px;
+}
+h1 { font: 700 2rem/1.1 Arial, Helvetica, sans-serif; letter-spacing: -0.02em; margin: 0 0 4px; }
+.lead { color: var(--muted); margin: 0; }
+.look { display: flex; gap: 8px; align-items: center; }
+.look-label { font: 500 11px/1 Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { background: var(--panel); color: var(--ink); border: 0; border-radius: 0; padding: 6px 12px; font-size: 0.85rem; font-weight: 400; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--ink); color: var(--bg); }
+/* "?" button and Tips and tricks box, like the other tools. */
+#help-btn {
+  width: 26px; height: 26px; padding: 0; border-radius: 50%; margin-right: 6px; flex: none; cursor: pointer;
+  font: 700 13px Arial, Helvetica, sans-serif; background: var(--panel); color: var(--ink); border: 1px solid var(--line);
+}
+#help {
+  width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 16px 22px 20px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink);
+}
+#help::backdrop { background: rgb(0 0 0 / .45); }
+.help-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.help-head h2 { margin: 0; font: 700 18px Arial, Helvetica, sans-serif; }
+#help-close { width: 30px; height: 30px; padding: 0; cursor: pointer; border-radius: 8px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); font-weight: 400; }
+.help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px 26px; }
+.help-grid h3 { margin: 0 0 5px; font: 700 11px Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.help-grid ul { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.42; }
+.help-grid li + li { margin-top: 3px; }
+.help-grid code { font: 12px ui-monospace, Consolas, monospace; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0 3px; }
+.help-grid .ex { display: flex; gap: 6px; align-items: flex-start; margin-top: 6px; }
+.help-grid .ex code { flex: 1; display: block; white-space: pre-wrap; padding: 5px 7px; border-radius: 6px; }
+.help-grid .try { padding: 3px 9px; font-size: 12px; }
+/* Two halves: code on the left, preview on the right (stacked on narrow screens). */
+.split { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+@media (min-width: 1000px) { .split { grid-template-columns: minmax(320px, 1fr) auto; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.panel h2 { margin: 0; font: 700 1.2rem/1.2 Arial, Helvetica, sans-serif; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.bar .grow { flex: 1; }
+#pickColor { width: 34px; height: 30px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; }
+#pickHex { font: 13px ui-monospace, Consolas, monospace; color: var(--ink); min-width: 62px; }
+#pickMsg, #saveMsg { color: var(--muted); font-size: 14px; }
+.bar label { font-size: 14px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.bar input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+button {
+  font: inherit; font-size: 14px; font-weight: 600; padding: 7px 14px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer;
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+select, .who {
+  font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px;
+}
+.who { width: 120px; }
+.who.id { width: 90px; }
+.who::placeholder { color: var(--muted); }
+textarea#code {
+  width: 100%; min-height: 560px; resize: vertical; background: var(--code); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; padding: 12px; font: 13px/1.55 ui-monospace, Consolas, "Courier New", monospace; tab-size: 2;
+}
+textarea#code:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 600px) { textarea#code { min-height: 300px; } }
+#count { font-size: 14px; color: var(--muted); }
+#templates { max-width: 220px; }
+/* Preset manager (only with ?dev on your own computer) */
+#dev { margin-top: 16px; }
+#dev[hidden], #saveBox[hidden] { display: none; }
+#saveName { font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; width: 150px; }
+#dev .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+#dev input[type=text] { font: 14px Arial, Helvetica, sans-serif; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+#dev .list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+#dev .item { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+#dev .item .nm { flex: 1 1 160px; }
+#dev .item .ds { flex: 2 1 220px; }
+#dev .item .len { color: var(--muted); font-size: 13px; min-width: 80px; }
+#dev .item button { padding: 4px 9px; font-size: 13px; }
+#dev .msg { color: var(--muted); font-size: 14px; }
+#dev .warn { color: var(--warn); }
+/* Shortcut buttons above the code box */
+.tools { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 10px; }
+.tools .grp { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.tools .grp-label { font: 500 11px/1 Arial, Helvetica, sans-serif; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-right: 2px; }
+.tools button { padding: 4px 9px; font-size: 13px; border-radius: 8px; font-weight: 600; }
+.tools button:hover { border-color: var(--accent); }
+#count.over { color: var(--warn); font-weight: 700; }
+.stage { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 18px; overflow: auto; max-width: 100%; }
+.note { color: var(--muted); font-size: 14px; margin: 10px 2px 0; }
+.cc-foot { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 13px; line-height: 1.6; text-align: center; }
+.cc-foot a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.cc-foot a:hover { color: var(--ink); }
+@media print { .cc-foot { display: none; } }
+
+/* ---------- recolor.me look (preview only) ---------- */
+.rcm{color:#333;font-family:Verdana,sans-serif;text-align:left}
+.rcm :where(div,span,iframe,h1,h2,h3,p,ul,img,strong,sub,sup,a){margin:0;padding:0;border:0;font-size:100%;background:transparent;line-height:1;font-family:verdana;outline:0;text-indent:0}
+.rcm a:link,.rcm a:visited{text-decoration:none;color:#0077ff}.rcm a:hover{color:#49a5ff}
+.rcm a{vertical-align:middle}
+.rcm table{border-collapse:collapse;border-spacing:0}
+.rcm hr{display:block;height:1px;border:0;border-top:1px solid #ccc;margin:1em 0;padding:0;opacity:.75}
+.rcm .left{float:left}.rcm .right{float:right}.rcm .hidden{display:none}
+.rcm .grayscale{filter:grayscale(100%)}.rcm .invert{filter:invert(100%)}.rcm .contrast{filter:contrast(150%)}
+.rcm .pixelated{image-rendering:pixelated}.rcm .sepia{filter:sepia(100%)}.rcm img.blur{filter:blur(3px)}
+.rcm .backshadow{filter:drop-shadow(rgba(0,0,0,.42) 1px 1px 1px)}
+.rcm .imgflip{transform:scaleX(-1)}.rcm .imgflipv{transform:scaleY(-1)}
+.rcm .button{background:linear-gradient(#3d94f6,#1e62d0);box-shadow:rgba(0,0,0,.6) 0 2px 2px;border-radius:4px;border:1px solid #337fed;display:inline-block;font-weight:bold;white-space:nowrap;padding:4px 10px 7px;text-decoration:none;text-align:center;text-shadow:#333 1px 1px 1px;color:#fff!important;cursor:pointer}
+.rcm .button.button_pink{background:linear-gradient(#ff66cc,#ff33bb);border-color:#ff00aa}
+.rcm .button.button_red{background:linear-gradient(#be2323,#940c0c);border-color:#742424}
+.rcm .button.button_yellow{background:linear-gradient(#e6cb4e,#dfa730);border-color:#a09b17;text-shadow:rgba(0,0,0,.9) 0 0 2px}
+.rcm .button.button_brown{background:linear-gradient(#996950,#644a2c);border-color:#896532;text-shadow:rgba(0,0,0,.9) 0 0 2px}
+.rcm .button.button_green{background:linear-gradient(#21b61e,#1c8b25);border-color:#198b17;text-shadow:rgba(0,0,0,.9) 0 0 2px}
+.rcm .button.button_grey{background:linear-gradient(#777,#666);border-color:#555;text-shadow:rgba(0,0,0,.9) 0 0 2px}
+.rcm .button.button_gray{background:linear-gradient(#d4d4d4 5%,#e4e4e4);border-color:#aaa}
+.rcm .bbcode_img_container{display:inline-block;max-width:100%;vertical-align:middle}
+.rcm .bbcode_img{display:inline-block;max-width:100%;vertical-align:middle}
+.rcm .bbcode_selfie{width:30px;height:30px;display:inline-block;vertical-align:middle;overflow:hidden;margin:0 10px;border:1px solid rgba(0,0,0,.5);background:rgba(0,0,0,.5)}
+.rcm .bbcode_selfie img{margin-top:-45px;margin-left:-48px;height:150px;width:125px;max-width:250px}
+.rcm .bbcode_selfie.big{width:50px;height:50px}
+.rcm .bbcode_selfie.big img{margin-left:-60px;margin-top:-53px;width:auto;height:200px}
+.rcm .bbcode_ghost{display:inline-block;vertical-align:middle;margin:3px 4px}
+.rcm .bbcode_outfit{background:rgba(0,0,0,.42);border:1px solid #111;border-radius:4px;box-shadow:rgba(0,0,0,.85) 0 0 1px 1px;display:inline-block;margin:3px 4px;padding:0;position:relative;vertical-align:middle}
+.rcm .bbcode_outfit.portrait{width:85px;height:100px;overflow:hidden}
+.rcm .bbcode_outfit.smallportrait{width:50px;height:50px;overflow:hidden}
+.rcm .bbcode_outfit.borderless{box-shadow:none!important;border:0!important;background:transparent!important}
+.rcm .bbcode_outfit img{max-width:250px}
+.rcm .bbcode_outfit.portrait img{height:250px;margin-left:-58px;margin-top:-42px}
+.rcm .bbcode_outfit.smallportrait img{height:200px;margin-left:-59px;margin-top:-56px}
+.rcm .bbcode_viewername{border-bottom:1px dotted rgba(100,100,100,.5)}
+.rcm .bbcode_sign{clear:both;display:block;position:relative}
+.rcm .bbcode_sign_word{vertical-align:middle;display:inline-block;margin:0 31px 10px 0}
+.rcm .bbcode_sign img{height:75px;max-width:60px;vertical-align:middle}
+.rcm .bbcode_blur{filter:blur(3px);cursor:pointer}
+.rcm .bbcode_blur.bbcode_blur_disabled,.rcm .bbcode_blur:hover{filter:none}
+.rcm .bbcode_brick{background:#000 url("https://recolor.me/images/site/bricks_small.png") 0 center no-repeat;border:1px solid #424242;box-shadow:rgba(0,0,0,.5) 0 0 1px 1px;display:inline-block;font-size:39px;height:50px;line-height:50px;text-align:center;text-shadow:#000 0 1px 3px;vertical-align:middle;width:56px;overflow:hidden;font-weight:bold;color:#fff!important;cursor:pointer}
+.rcm .bbcode_brick.level_1{background-position:-0px center}.rcm .bbcode_brick.level_2{background-position:-56px center}.rcm .bbcode_brick.level_3{background-position:-112px center}.rcm .bbcode_brick.level_4{background-position:-168px center}.rcm .bbcode_brick.level_5{background-position:-224px center}.rcm .bbcode_brick.level_6{background-position:-280px center}.rcm .bbcode_brick.level_7{background-position:-336px center}.rcm .bbcode_brick.level_8{background-position:-392px center}.rcm .bbcode_brick.level_9{background-position:-448px center}.rcm .bbcode_brick.level_10{background-position:-504px center}
+.rcm img.fit{margin:0!important;width:100%!important;height:100%!important;transform:none!important}
+.rcm .bbcode_spoiler{background:#050505;color:#050505;padding:0 6px;cursor:pointer}
+.rcm .bbcode_spoiler img{opacity:0}
+.rcm .bbcode_spoiler:hover,.rcm .bbcode_spoiler.spoiler_revealed{color:#fff!important}
+.rcm .bbcode_spoiler:hover img,.rcm .bbcode_spoiler.spoiler_revealed img{opacity:1}
+.rcm .bbcode_strike{text-decoration:line-through}.rcm .bbcode_strike:hover{text-decoration:none}
+.rcm .bbcode_big{font-size:24px}.rcm .bbcode_small{font-size:13px!important}
+.rcm .bbcode_sub{vertical-align:sub;font-size:70%!important}
+.rcm sup{font-size:70%;vertical-align:super}
+.rcm ul.bbcode_list{list-style-type:circle}
+.rcm .bbcode_list li{padding:0;margin:0 0 7px 5%;display:list-item;line-height:30px}
+.rcm .bbcode_hidden_button{display:inline-block;font-size:inherit;padding:3px 5px;text-align:center}
+.rcm .bbcode_hidden_button span{display:inline-block;min-width:14px;text-align:center}
+.rcm .bbcode_hidden{max-width:99%;display:inline}
+.rcm .bbcode_smiley{width:32px;height:32px;margin:0 3px;vertical-align:bottom}
+.rcm .bbcode_smiley.bigger{width:42px;height:42px;vertical-align:middle}
+.rcm blockquote{background:#f9f9f9;border-left:10px solid rgba(100,100,100,.25);margin:7px 10px 10px;padding:4px 10px;text-align:left}
+.rcm .bbcode_blockquote_cite{margin:0 0 4px;font-weight:bold}
+.rcm .bbcode_highlight{padding:0 2px}
+.rcm .bbcode_random{display:inline-block;vertical-align:middle;background:#b4dbff;margin:2px;border-radius:2px;box-shadow:rgba(0,0,0,.67) 0 0 1px 1px,rgba(255,255,255,.5) 0 0 4px 2px inset;color:#000}
+.rcm .bbcode_random_icon{display:inline-block;vertical-align:middle;height:30px}
+.rcm .bbcode_random_title{display:inline-block;vertical-align:middle;font-size:11px;padding:0 2px;opacity:.85}
+.rcm .bbcode_random_value{display:inline-block;vertical-align:middle;font-size:18px;font-weight:bold;padding:0 4px 0 3px}
+.rcm .bbcode_indent{display:inline-block;vertical-align:top;max-width:95%;padding-left:5%}
+.rcm .bbcode_acronym{cursor:help;border-bottom:1px dotted rgba(100,100,100,.5)}
+.rcm .d6,.rcm .d20{margin:0 2px;display:inline-block;text-align:center;color:#fff;text-shadow:#000 0 1px 2px;font-size:20px;line-height:42px;width:42px;height:42px;vertical-align:middle}
+.rcm .d6{background:url("https://recolor.me/images/site/d6.png") no-repeat}
+.rcm .d20{background:url("https://recolor.me/images/site/d20.png") no-repeat}
+.rcm .progress_bar{display:inline-block;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.5);border-radius:50px;box-shadow:rgba(0,0,0,.5) 0 -3px 2px 2px inset,rgba(255,255,255,.75) 0 3px 2px 2px inset;height:42px;margin:0 auto;overflow:hidden;padding:0;position:relative;text-align:left;width:99%}
+.rcm .progress_bar_status{position:absolute;left:0;top:0;bottom:0;border-radius:50px}
+.rcm .progress_bar_prize{position:absolute;inset:0;text-align:center;font-weight:bold}
+.rcm .bbcode_code{background:#fff;border:1px solid #ccc;border-radius:4px;padding:6px;text-align:left;overflow:auto;font-family:monospace}
+.rcm .bbcode_code_body{font-family:monospace;line-height:1.3}
+.rcm .bbcode_columns{width:100%}.rcm .bbcode_column{vertical-align:top}
+.rcm .bbcode_justify{text-align:justify}
+.rcm iframe.bbcode_youtube,.rcm .video_ph{width:600px;height:340px;max-width:100%}
+.rcm .video_ph{display:inline-flex;align-items:center;justify-content:center;background:#111;color:#eee;font-size:14px;vertical-align:middle;border-radius:4px}
+
+/* profile popup: the parts the user can't edit (avatar, ID, name, buttons), then the bio box */
+.stage.is-bio{padding:18px 18px 18px 60px}
+.bio_container{position:relative;width:540px;background:rgba(255,255,255,.9);padding:0 0 4px;border-radius:10px;box-shadow:rgba(0,0,0,.42) 0 1px 2px 2px;margin:100px auto 0}
+.profile_avatar{display:block;position:absolute;top:-100px;left:-42px;z-index:1}
+.profile_avatar img{display:block;width:250px;height:300px;filter:drop-shadow(rgba(0,0,0,.42) 1px 1px 1px)}
+.rcm .profile_name{position:relative;z-index:2;padding:7px 10px;height:56px;line-height:42px;font-size:20px;font-weight:bold;color:#424242;text-shadow:#ddd 0 1px 1px,#fff 0 0 4px;text-align:right;white-space:nowrap;overflow:hidden}
+.rcm .profile_name .citizen_id{opacity:.75;font-size:10px;margin:0 10px 0 0;vertical-align:middle;line-height:1}
+.rcm .profile_options{position:relative;z-index:2;padding:0 10px 13px 0;text-align:right;line-height:1}
+.rcm .profile_options .button{font-size:15px;margin:0 0 0 8px;padding:4px 7px 5px;cursor:default}
+.bio{position:relative;z-index:2;margin:0 0 10px;padding:15px 10px 0;background:linear-gradient(rgba(255,255,255,0) 0%,rgba(255,255,255,.5) 3%,rgba(255,255,255,.75) 6%,rgba(255,255,255,.75) 98%,rgba(255,255,255,0) 100%)}
+.bio_content{position:relative;height:310px;overflow:hidden scroll;overflow-wrap:break-word;font-size:16px;line-height:18px;text-align:center}
+.full .bio_content{height:auto;overflow:visible}
+/* fit check: no scrolling until the user's own [hidden] button is opened */
+.fitcheck .bio_content{overflow:hidden;scrollbar-gutter:stable}
+.fitcheck.opened .bio_content{overflow:hidden scroll}
+.fitcheck.over:not(.opened) .bio_content{box-shadow:inset 0 -3px 0 #e04848}
+#fitMsg{margin:10px 2px 0;font-size:14px;font-weight:700}
+#fitMsg.ok{color:var(--ok)}#fitMsg.bad{color:var(--warn)}#fitMsg.info{color:var(--muted)}
+.night .bio_container{background:rgba(16,16,16,.9)}
+.night .bio{background:transparent}
+.night .bio_content{color:#b4b4b4}
+.night .rcm .profile_name{color:#ddd;text-shadow:none}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>BBCode Previewer</h1>
+      <p class="lead">Write recolor.me BBCode and see your profile bio live, with your real avatar and name.</p>
+    </div>
+    <div class="look">
+      <button id="help-btn" type="button" title="Tips and tricks" aria-label="Tips and tricks" aria-haspopup="dialog">?</button>
+      <span class="look-label">Theme</span>
+      <div class="seg" role="group" aria-label="Page colors">
+        <button type="button" data-mode="dark">Dark</button>
+        <button type="button" data-mode="gray">Gray</button>
+        <button type="button" data-mode="light">Light</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="split">
+  <!-- Left half: your code -->
+  <section class="panel">
+    <div class="bar">
+      <h2 class="grow">Your code</h2>
+      <span id="count">0 / 10,000</span>
+    </div>
+    <div class="bar">
+      <button id="copy" type="button" class="primary">Copy code</button>
+      <button id="sample" type="button" title="Replace your code with a sample bio that shows off lots of tags">Load example</button>
+      <button id="clear" type="button">Clear</button>
+      <select id="templates" aria-label="Start from a template" hidden><option value="">Templates…</option></select>
+      <span id="saveBox" hidden><input type="text" id="saveName" placeholder="Preset name" maxlength="40" aria-label="Preset name"> <button id="savePreset" type="button" title="Save what's in the code box as a template (only you see this)">Save as preset</button></span>
+      <span class="msg" id="saveMsg" aria-live="polite"></span>
+    </div>
+    <div class="tools" id="tools" aria-label="Shortcuts">
+      <div class="grp"><span class="grp-label">Text</span>
+        <button type="button" data-snip="b" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button type="button" data-snip="i" title="Italic (Ctrl+I)"><i>I</i></button>
+        <button type="button" data-snip="u" title="Underline (Ctrl+U)"><u>U</u></button>
+        <button type="button" data-snip="s" title="Strike"><s>S</s></button>
+        <button type="button" data-snip="color" title="Text color">Color</button>
+        <button type="button" data-snip="size" title="Text size (1 to 7)">Size</button>
+        <button type="button" data-snip="center" title="Center">Center</button>
+      </div>
+      <div class="grp"><span class="grp-label">Add</span>
+        <button type="button" data-snip="url" title="Link">Link</button>
+        <button type="button" data-snip="img" title="Image">Image</button>
+        <button type="button" data-snip="list" title="List">List</button>
+        <button type="button" data-snip="rule" title="Divider line">Divider</button>
+        <button type="button" data-snip="spoiler" title="Spoiler">Spoiler</button>
+      </div>
+      <div class="grp"><span class="grp-label">Layout</span>
+        <button type="button" data-snip="picright" title="Centered text on the left, picture on the right">Text + picture</button>
+        <button type="button" data-snip="picleft" title="Picture on the left, centered text on the right">Picture + text</button>
+        <button type="button" data-snip="cols" title="Two columns side by side">2 columns</button>
+        <button type="button" data-snip="box" title="Colored box">Box</button>
+        <button type="button" data-snip="solid" title="Solid background for your whole bio (hides the faded avatar)">Solid background</button>
+        <button type="button" data-snip="more" title="A Read more button that opens hidden text">Read more</button>
+      </div>
+    </div>
+    <textarea id="code" spellcheck="false" aria-label="BBCode"></textarea>
+  </section>
+
+  <!-- Right half: the preview -->
+  <section class="panel">
+    <div class="bar">
+      <h2 class="grow">Preview</h2>
+    </div>
+    <div class="bar">
+      <label id="whoBox">Name <input class="who" id="uname" value="" placeholder="Username" maxlength="30" aria-label="Username"> ID <input class="who id" id="uid" value="" placeholder="Citizen ID" inputmode="numeric" maxlength="8" aria-label="User ID"></label>
+      <label title="Shows only what fits in the 310px box, with no scrolling. Use a [hidden] button at the bottom to open the rest."><input type="checkbox" id="fit"> Fit check</label>
+      <label><input type="checkbox" id="full"> Full height</label>
+      <label><input type="checkbox" id="night"> Night mode</label>
+      <span class="grow"></span>
+      <button id="reroll" type="button" title="New numbers for [rand], [random], [d6] and [d20] in your code" hidden>Re-roll dice</button>
+    </div>
+    <div class="bar" id="pickBar">
+      <button id="pickBtn" type="button" title="Click, then click any color on your avatar (or anywhere on the screen)">Pick color from avatar</button>
+      <input type="color" id="pickColor" value="#6f86ff" aria-label="Chosen color" title="Chosen color (click to adjust it)">
+      <code id="pickHex">#6f86ff</code>
+      <button id="pickCopy" type="button">Copy</button>
+      <button id="pickText" type="button" title="Add [color] with this color, around any selected text">Text color</button>
+      <button id="pickBox" type="button" title="Add a [box] with this background color, around any selected text">Box color</button>
+      <span class="msg" id="pickMsg" aria-live="polite"></span>
+    </div>
+    <div class="stage" id="stage"></div>
+    <p id="fitMsg" hidden></p>
+    <p class="note">The bio box is 520 × 310 px and scrolls, like on recolor.me. Fan-made; not an official recolor.me tool.</p>
+  </section>
+  </div>
+
+  <!-- Preset manager: only shows when opened with ?dev on your own computer (file, localhost or 127.0.0.1) -->
+  <section class="panel" id="dev" hidden>
+    <h2>Preset manager</h2>
+    <p class="msg">Only you see this. To add a preset: put the code in the code box, type a name next to <b>Save as preset</b> and press it. It goes straight into the Templates menu.</p>
+    <div class="list" id="devList"></div>
+    <p class="msg" id="devMsg"></p>
+  </section>
+</main>
+<footer class="cc-foot">A free tool by <a href="https://camchromatic.com">Cam Garcia</a>. Your code stays in your browser. Like what I do? <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Support me on Ko-Fi</a>. <a id="code-link" href="https://github.com/camchromatic/bbcode-previewer" target="_blank" rel="noopener">View the code</a>.</footer>
+
+<!-- Tips and tricks, opened by the "?" button (like the other tools). -->
+<dialog id="help" aria-labelledby="help-title">
+  <div class="help-head">
+    <h2 id="help-title">Tips and tricks</h2>
+    <button id="help-close" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="help-grid">
+    <section>
+      <h3>Basics</h3>
+      <ul>
+        <li>Type code on the left; the preview updates as you go. Your draft is saved in this browser.</li>
+        <li>Add a <b>Citizen ID</b> to see your own avatar and name.</li>
+        <li><b>Copy code</b>, then paste it into your recolor.me bio (10,000 characters max).</li>
+        <li><b>Fit check</b> shows only what fits without scrolling (520 × 310px).</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Text</h3>
+      <ul>
+        <li><b>Use hex colors</b> (like <code>#ad533b</code>). Pick one from your avatar with <b>Pick color from avatar</b>.</li>
+        <li>Set your own text color: Night mode turns plain text light gray.</li>
+      </ul>
+      <div class="ex"><code>[center][size=5][b]Your Name[/b][/size]
+[color=#ad533b]pronouns · a fun fact[/color][/center]</code><button type="button" class="try">Try</button></div>
+      <div class="ex"><code>[gradient start=#ff6699 end=#6699ff]Rainbow text[/gradient]</code><button type="button" class="try">Try</button></div>
+    </section>
+    <section>
+      <h3>Layout</h3>
+      <ul>
+        <li>Columns are about 240px each. Put formatting inside each column.</li>
+        <li>Put a <code>[hidden]</code> button at the bottom to tuck away the rest.</li>
+        <li>If Enter doesn't add space, use <code>[br]</code>.</li>
+      </ul>
+      <div class="ex"><code>[columns][b]Likes[/b]
+art, tea[nextcol][b]Dislikes[/b]
+mornings[/columns]</code><button type="button" class="try">Try</button></div>
+      <div class="ex"><code>[hidden=Read more]More about me...[/hidden]</code><button type="button" class="try">Try</button></div>
+    </section>
+    <section>
+      <h3>Images</h3>
+      <ul>
+        <li>Usable width is about <b>500px</b>. Only height resizes: <code>[img height=100]</code>.</li>
+        <li>Your avatar fades in over the top-left of the bio (about 200 × 90px).</li>
+        <li><code>[img right]</code> floats a big picture over the bio; <code>[img align=right]</code> lets text wrap around it.</li>
+      </ul>
+      <div class="ex"><code>[img height=100]IMAGE URL[/img]</code><button type="button" class="try">Try</button></div>
+    </section>
+    <section>
+      <h3>Box tricks</h3>
+      <ul>
+        <li><b>Solid background:</b> wrap your whole bio in a box. It hides the faded avatar and keeps colors the same in Night mode.</li>
+        <li><b>Border:</b> a box inside a box. <b>Pill label:</b> <code>radius=20 padding=4</code>.</li>
+      </ul>
+      <div class="ex"><code>[box bgcolor=ffffff radius=0 padding=10]Your whole bio[/box]</code><button type="button" class="try">Try</button></div>
+      <div class="ex"><code>[box bgcolor=999999 padding=3][box bgcolor=ffffff]Framed[/box][/box]</code><button type="button" class="try">Try</button></div>
+    </section>
+  </div>
+</dialog>
+
+<script src="presets.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- placeholders: solid color boxes with a label (no art) ---------- */
+function svgURI(svg){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);}
+var phCache={};
+function placeholder(w,h,label,color,ly){
+  var key=[w,h,label,color,ly].join("|");if(phCache[key])return phCache[key];
+  var fs=Math.max(7,Math.min(14,Math.floor((w-4)/Math.max(label.length,1)*1.6)));
+  return phCache[key]=svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+  '<rect x=".5" y=".5" width="'+(w-1)+'" height="'+(h-1)+'" fill="'+color+'" stroke="#000" stroke-opacity=".35"/>'+
+  '<text x="'+(w/2)+'" y="'+(ly||h/2)+'" dominant-baseline="middle" font-family="Verdana" font-size="'+fs+'" font-weight="bold" text-anchor="middle" fill="#fff">'+escapeHTML(label)+'</text></svg>');
+}
+/* label sits at the face area so it shows in [selfie] and [outfit portrait] crops */
+function avatarSVG(label){return placeholder(125,150,label,"#7f8c99",60);}
+function ghostSVG(){return placeholder(100,125,"GHOST","#8f8aa8");}
+function robotSVG(back){return placeholder(125,150,back?"ROBOT (back)":"ROBOT","#7d9a8c");}
+function emoteSVG(name){return placeholder(42,42,name,"#a39a8c");}
+function signSVG(ch){return placeholder(50,75,ch,"#a39a8c");}
+/* profile avatar: fills the whole 250 wide x 300 tall space, like the real one */
+var profileAvatar=svgURI('<svg xmlns="http://www.w3.org/2000/svg" width="250" height="300" viewBox="0 0 250 300">'+
+  '<rect x=".5" y=".5" width="249" height="299" fill="#7f8c99" stroke="#000" stroke-opacity=".35"/>'+
+  '<text x="125" y="70" dominant-baseline="middle" font-family="Verdana" font-size="16" font-weight="bold" text-anchor="middle" fill="#fff">AVATAR</text>'+
+  '<text x="125" y="94" dominant-baseline="middle" font-family="Verdana" font-size="13" text-anchor="middle" fill="#fff">250 × 300</text></svg>');
+/* real recolor.me images, loaded from its website. Folder rules worked out by testing. */
+var RCM="https://recolor.me";
+function numId(v){v=String(v).trim();return /^\d{1,9}$/.test(v)?parseInt(v,10):null;}
+function avURL(n,pose){return RCM+"/av/"+Math.ceil(n/10000)+"/"+n+(pose==="win"?"a":pose==="lose"?"b":"")+".png";}
+function outfitURL(n){return RCM+"/images/outfit/"+Math.ceil(n/30000)+"/"+n+".png";}
+function ghostURL(n){return RCM+"/images/ghost/1/"+n+".png";}
+function robotURL(n,back){return RCM+"/images/robot/1/"+n+(back?"a":"")+".png";}
+var randomIcon=placeholder(22,30,"?","#3366cc");
+
+var EMOTES=("glance ene xD confused erk love nyan laugh nyoron roll relief smirk yell darp oh bored mischief o3o sweat upset denko finger heee bashful yeesh cheeks wink eoe da hm galp shy hysterical hurr icecream donut sushi pancakes avocado tombstone brain token chick eastereggs hatch nope spider starstruck no pan microwave bowl chopsticks knife spoon fork plate tennis baseball hockey tshirt soccer football pillows hairdryer tp soap key tv couch taxi skateboard train airplane car tornado coldweather thunderstorm flipflops sweater scarf tie dress skirt frenchfries socks map calculator scissors glue paperclip ruler notebook paper pen salad pizza waffle bacon coffee rice burger taco lemon pineapple potato soda strawberry watermelon lime giraffe cow bird alligator butterfly ant bee fish cup sunny snow pencil horse door palette dragon apple orange bananas pear blueberries grapes sadpepe ok maniac umm uwu owl mushroom eyeball crown teacup duck kissy bread toast sneaky lit faint brow rbow wha nom flirty i hand brows whistle brighteyes who hoot expired question corndog cyclops tri motivated 8) uhno awesome slime jaw noop ewe admin feels pbt huehue pray snrk ohoho tickles hotdog shock jack nerd tea salt bitter vom 3 low ahg tear facepalm shrug nun 8u8 dur pepe yara n_n oAo huh skull pop wah bubbles butt sympathy tdown tup popcorn qq hothead zombie yawning yawn win whew wave vomit unimpressed tongue think sun stars smug smoke smile sleeping sleep silly silenced sicker sick shh scared sad rainbow rain poo phone party ninja night music mail loser lips angel idea hug heart grin gift ghost flower drool drink dpig dog dizzy devil dead crying cry shades cool cookie cold clown clock cat cake bye broken bomb blush blank bit angry tree snag skunk sakutree sakura petal ginkgo stop squash log gramophone yandere peachrings lollipop keyboard gummyworms deredere candycorn candy upsidedown snail potogold possum posscream mantaray flooshed fkey crazed pumpkinpie lemon_meringue ice applepie tearful crush candyheart chocoheart gingerbread anger turkeyleg recbuck periodt leaves dolphin joyqq nyamen lipbite devom devlko devilpump ohm spanky siobhan terra cherries bump bbq saturn mango magnet shumai porkbun gun pbatty batty pbat bat smore pensive macarons hourglass frog friedegg crow book microbes jigsawpuzzle gbh fortunecookie dna boba tooth toolbox sponge petridish broom testtube sloth mothman bone paintbrush witchat foot cauldron bong lock spit ribbon peach chubstar carrot bunny bear thirsty rocketship ufo lightbulb_off lightbulb turtle basketball coffeetable purse boat motorcycle bicycle bus jacket gloves hat suit shoes pants folder egg water goat squirrel pig bug mouse chicken chair").split(" ");
+var EMOTE_FILE={"8)":"8","oAo":"oao"};
+var EMOTE_SET={};EMOTES.forEach(function(e){EMOTE_SET[e]=1;});
+
+/* ---------- helpers ---------- */
+function escapeHTML(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function attr(s){return escapeHTML(s);}
+var COLOR_RE=/^(#?[0-9a-fA-F]{3}|#?[0-9a-fA-F]{6}|[a-zA-Z]+)$/;
+function cssColor(c){c=String(c||"").trim();if(!COLOR_RE.test(c))return null;if(/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(c))return "#"+c;return c;}
+function hexColor(c){c=String(c||"").trim().replace(/^#/,"");if(/^[0-9a-fA-F]{3}$/.test(c))c=c.replace(/./g,"$&$&");if(/^[0-9a-fA-F]{6}$/.test(c))return [parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];
+  /* color names: let the browser translate (the real site gives odd colors for names) */
+  var cv=document.createElement("canvas").getContext("2d");cv.fillStyle="#000";cv.fillStyle=c;var v=cv.fillStyle;if(/^#[0-9a-f]{6}$/i.test(v))return hexColor(v);return null;}
+function hex2(n){n=Math.max(0,Math.min(255,n|0));return (n<16?"0":"")+n.toString(16);}
+function safeURL(u){u=String(u||"").replace(/[\u0000-\u0020\u007f]/g,"");if(/^(https?:)?\/\//i.test(u))return u;if(/^\//.test(u))return "https://recolor.me"+u;if(/^mailto:/i.test(u))return u;if(/^[a-z][a-z0-9+.-]*:/i.test(u))return null;return u;}
+
+/* seeded random so the preview doesn't flicker while typing */
+var seed=Date.now()%100000;
+function rng(i){var x=Math.sin(seed*9301+i*49297)*233280;return x-Math.floor(x);}
+var rngCount=0;
+function randInt(a,b){if(b<a){var t=a;a=b;b=t;}return a+Math.floor(rng(++rngCount)*(b-a+1));}
+
+/* ---------- tag table ---------- */
+/* RAW: inner text is used as-is (not parsed). SINGLE: no closing tag. PAIRED: normal open/close tags. */
+var RAW={img:1,url:0,email:1,av:1,avatar:1,ghost:1,robot:1,selfie:1,outfit:1,youtube:1,video:1,topic:1,post:1,timesince:1,timeuntil:1,code:1,copy:1,sign:1};
+var SINGLE={br:1,rule:1,viewerid:1,viewername:1,viewerghostid:1,rand:1,random:1,d6:1,d20:1,nextcol:1,"*":1};
+var PAIRED={b:1,i:1,u:1,s:1,strike:1,fliph:1,flipv:1,reverse:1,upsidedown:1,fade:1,sup:1,sub:1,highlight:1,h:1,color:1,gradient:1,left:1,center:1,right:1,justify:1,font:1,size:1,big:1,small:1,indent:1,blur:1,url:1,brick:1,spoiler:1,hidden:1,invisible:1,columns:1,list:1,box:1,bar:1,acronym:1,quote:1,button:1};
+function known(n){return PAIRED[n]||RAW[n]||SINGLE[n];}
+
+/* parse "=main key=val flag" */
+function parseAttrs(s){
+  var out={main:null,kv:{},flags:{}};s=s||"";
+  var m=s.match(/^=(.*)$/);
+  var rest=s;
+  if(m){
+    var v=m[1];
+    var k=v.search(/\s+[a-zA-Z]+=/);
+    var f=v.search(/\s+(color|red|yellow|green|blue|brown|gray|grey|pink|small|sort|unique|minutes|hours)\b/);
+    var cut=[k,f].filter(function(x){return x>=0;});
+    if(cut.length){var c=Math.min.apply(null,cut);out.main=v.slice(0,c);rest=v.slice(c);}else{out.main=v;rest="";}
+  }
+  rest.replace(/([a-zA-Z]+)=("[^"]*"|\S+)|([a-zA-Z0-9]+)/g,function(_,k,v,f){
+    if(k)out.kv[k.toLowerCase()]=v.replace(/^"|"$/g,"");else if(f)out.flags[f.toLowerCase()]=1;return "";
+  });
+  return out;
+}
+
+/* ---------- parser: text → tree ---------- */
+var TAG_RE=/\[(\/?)([a-zA-Z][a-zA-Z0-9]*|\*)((?:[= ][^\[\]]*)?)\]/g;
+function parse(src){
+  var root={tag:"#root",children:[]},stack=[root],pos=0,m;
+  TAG_RE.lastIndex=0;
+  function top(){return stack[stack.length-1];}
+  function text(t){if(t)top().children.push({text:t});}
+  while((m=TAG_RE.exec(src))){
+    var full=m[0],closing=m[1]==="/",name=m[2].toLowerCase(),rawAttr=m[3];
+    if(name==="avatar")name="av";
+    if(!known(name)){continue;}
+    text(src.slice(pos,m.index));pos=m.index;
+    if(closing){
+      var found=-1;for(var i=stack.length-1;i>0;i--){if(stack[i].tag===name){found=i;break;}}
+      if(found<0){text(full);pos=m.index+full.length;continue;}
+      stack.length=found;pos=m.index+full.length;continue;
+    }
+    var a=parseAttrs(rawAttr);
+    if(SINGLE[name]){top().children.push({tag:name,a:a,single:true});pos=m.index+full.length;continue;}
+    var isRaw=RAW[name]||(name==="url"&&a.main===null);
+    if(isRaw){
+      var closeRe=new RegExp("\\[\\/"+(m[2].toLowerCase()==="avatar"?"avatar":name)+"\\]","i");
+      var after=src.slice(m.index+full.length),cm=after.match(closeRe);
+      if(!cm){
+        if(name==="code"||name==="copy"){top().children.push({tag:name,a:a,raw:after});pos=src.length;TAG_RE.lastIndex=src.length;break;}
+        text(full);pos=m.index+full.length;continue;
+      }
+      top().children.push({tag:name,a:a,raw:after.slice(0,cm.index)});
+      pos=m.index+full.length+cm.index+cm[0].length;TAG_RE.lastIndex=pos;continue;
+    }
+    var node={tag:name,a:a,children:[]};top().children.push(node);stack.push(node);pos=m.index+full.length;
+  }
+  text(src.slice(pos));
+  return root;
+}
+
+/* ---------- renderer: tree → HTML (mirrors recolor.me's output) ---------- */
+var protectedBits=[];
+function protect(html){protectedBits.push(html);return "\u0000"+(protectedBits.length-1)+"\u0000";}
+var URL_RE=/(https?:\/\/[^\s<>"'\[\]]+)/;
+function emotes(t){
+  return escapeHTML(t).replace(/:([A-Za-z0-9_)]+):/g,function(all,n){
+    if(!EMOTE_SET[n])return all;
+    return '<img src="'+RCM+'/images/e/'+encodeURIComponent(EMOTE_FILE[n]||n)+'.png" data-fb="'+emoteSVG(n)+'" alt=":'+n+':" title=":'+n+':" class="bbcode_smiley bigger backshadow">';
+  });
+}
+function renderText(t){
+  return String(t).split(URL_RE).map(function(part,i){
+    if(i%2===0)return emotes(part);
+    var u=escapeHTML(part);return '<a href="'+u+'" rel="nofollow noopener" target="_blank">'+u+"</a>";
+  }).join("");
+}
+function kids(n){return (n.children||[]).map(render).join("");}
+function plainText(n){if(n.text!=null)return n.text;if(n.raw!=null)return n.raw;return (n.children||[]).map(plainText).join("");}
+function block(cls,style,inner){return '\n<div class="'+cls+'"'+(style?' style="'+style+'"':"")+'>\n'+inner+'\n</div>\n';}
+
+var SIZES={0:".5",1:".67",2:".83",3:"1.0",4:"1.17",5:"1.5",6:"2.0",7:"2.5"};
+var FILTERS={blur:1,contrast:1,flash:1,ghost:1,invert:1,pixelated:1,sepia:1,grayscale:1};
+var HIDDEN_COLORS={red:1,yellow:1,green:1,blue:1,brown:1,gray:1,grey:1,pink:1};
+
+function imgMods(a){
+  var imgCls=[],contCls=[],style="";
+  var f=(a.kv.filter||"").toLowerCase();if(FILTERS[f])imgCls.push(f);
+  if(a.kv.height&&/^\d+$/.test(a.kv.height))style+="height: "+a.kv.height+"px;";
+  if(a.flags.flipv)contCls.push("imgflipv");if(a.flags.fliph)contCls.push("imgflip");
+  var al=(a.kv.align||"").toLowerCase();if(al==="left"||al==="right")contCls.push(al);
+  if(a.flags.right)style+="position: absolute;right: 0%;";else if(a.flags.left)style+="position: absolute;left: 0%;";
+  return {imgCls:imgCls,contCls:contCls,style:style};
+}
+function imgTag(src,a,extraImgCls,fb){
+  var m=imgMods(a);var cls=(extraImgCls||[]).concat(m.imgCls).join(" ");
+  var img='<img src="'+attr(src)+'" alt=""'+(fb?' data-fb="'+attr(fb)+'"':"")+(cls?' class="'+cls+'"':"")+(m.style?" style='"+m.style+"'":"")+">";
+  return m.contCls.length?'<span class="'+m.contCls.join(" ")+'" style="display:inline-block">'+img+"</span>":img;
+}
+function id(raw){var v=String(raw).trim();return /^\d+$/.test(v)?v:(v===""?"0":v);}
+
+function render(n){
+  if(n.text!=null)return renderText(n.text);
+  var a=n.a,t=n.tag,c,v;
+  switch(t){
+  case "b":return "<b>"+kids(n)+"</b>";
+  case "i":return "<i>"+kids(n)+"</i>";
+  case "u":return "<u>"+kids(n)+"</u>";
+  case "s":case "strike":return '<span class="bbcode_strike">'+kids(n)+"</span>";
+  case "fliph":case "reverse":return '<div style="display: inline-block;" class="reversed imgflip">'+kids(n)+"</div>";
+  case "flipv":case "upsidedown":return '<div style="display: inline-block;" class="upsidedown imgflipv">'+kids(n)+"</div>";
+  case "fade":v=Math.max(0,Math.min(100,parseFloat(a.main)||0));return "<span style='opacity: "+(1-v/100)+";'>"+kids(n)+"</span>";
+  case "sup":return "<sup>"+kids(n)+"</sup>";
+  case "sub":return '<span class="bbcode_sub">'+kids(n)+"</span>";
+  case "highlight":return "<span class='bbcode_highlight' style='background: yellow;'>"+kids(n)+"</span>";
+  case "h":c=cssColor(a.main)||"yellow";return "<span class='bbcode_highlight' style='background: "+attr(c)+";'>"+kids(n)+"</span>";
+  case "color":c=cssColor(a.main);if(!c)return escapeHTML("[color"+(a.main!=null?"="+a.main:"")+"]")+kids(n)+"[/color]";return '<span style="color:'+attr(c)+'">'+kids(n)+"</span>";
+  case "gradient":{
+    var s=hexColor(a.kv.start),e=hexColor(a.kv.end),txt=plainText(n);
+    if(!s||!e||!txt)return kids(n);
+    var L=txt.length,S=Math.round((L-1)/2),groups=[];
+    for(var i=0;i<L;i++){var k=S?Math.round(i/2):0;(groups[k]=groups[k]||[]).push(txt[i]);}
+    return groups.map(function(g,k){var r=S?k/S:0;var col="#"+[0,1,2].map(function(j){return hex2(Math.floor(s[j]+(e[j]-s[j])*r));}).join("");
+      return "<span style='color: "+col+" !important;'>"+escapeHTML(g.join(""))+"</span>";}).join("");
+  }
+  case "left":case "center":case "right":return block("bbcode_"+t,"text-align:"+t,kids(n));
+  case "justify":return '<span class="bbcode_justify">'+kids(n)+"</span>";
+  case "font":return "<span style=\"font-family:'"+attr((a.main||"").replace(/['";]/g,""))+"'\">"+kids(n)+"</span>";
+  case "size":v=SIZES[String(parseInt(a.main,10))]||"1.0";return '<span style="font-size:'+v+'em">'+kids(n)+"</span>";
+  case "big":return '<span class="bbcode_big">'+kids(n)+"</span>";
+  case "small":return '<span class="bbcode_small">'+kids(n)+"</span>";
+  case "indent":return block("bbcode_indent","margin-left:4em",kids(n));
+  case "blur":return '<span class="bbcode_blur">'+kids(n)+"</span>";
+  case "img":{
+    var src=n.raw.trim();var m=imgMods(a);
+    var url=/^(https?:)?\/\//i.test(src)?src:(/^\//.test(src)?"https://recolor.me"+src:null);
+    if(!url)return escapeHTML(src);
+    return "<span class='bbcode_img_container"+(m.contCls.length?" "+m.contCls.join(" "):"")+"'><img src=\""+attr(url)+"\" alt=\"\" class=\"bbcode_img"+(m.imgCls.length?" "+m.imgCls.join(" "):"")+"\""+(m.style?" style='"+m.style+"'":"")+" /></span>";
+  }
+  case "url":{
+    var href=a.main!=null?a.main:n.raw;var label=a.main!=null?kids(n):escapeHTML(n.raw);var u=safeURL(href);
+    if(!u)return label;
+    return '<a href="'+attr(u)+'" class="bbcode_url" target="_blank" rel="nofollow noopener">'+label+"</a>";
+  }
+  case "email":{var addr=(a.main||n.raw).trim();var lab=a.main?renderText(n.raw):escapeHTML(addr);return '<a href="mailto:'+attr(addr)+'" class="bbcode_email">'+lab+"</a>";}
+  case "topic":return "<a href='https://recolor.me/topic/"+attr(id(n.raw))+"' target='_blank'>"+escapeHTML(a.main||("Topic "+id(n.raw)))+"</a>";
+  case "post":return "<a href='https://recolor.me/post/"+attr(id(n.raw))+"' target='_blank'>#"+escapeHTML(id(n.raw))+"</a>";
+  case "viewerid":return "1";
+  case "viewername":return "<span class='bbcode_viewername' title='[viewername]'>Viewer</span>";
+  case "viewerghostid":return "1";
+  case "av":{var pose=a.flags.win||a.flags.victory?"win":(a.flags.lose||a.flags.defeat?"lose":"");
+    var ph=avatarSVG(pose?"AVATAR ("+pose+")":"AVATAR"),ni=numId(n.raw);
+    return "<a class='citizen' title='Citizen #"+attr(id(n.raw))+"'>"+imgTag(ni?avURL(ni,pose):ph,a,null,ni?ph:null)+"</a>";}
+  case "ghost":{var gi=numId(n.raw);return "<a class='bbcode_ghost' title='Ghost #"+attr(id(n.raw))+"'>"+imgTag(gi?ghostURL(gi):ghostSVG(),a,null,gi?ghostSVG():null)+"</a>";}
+  case "robot":{var ri=numId(n.raw),bk=!!a.flags.back;return "<span class='bbcode_robot' title='Robot #"+attr(id(n.raw))+"'>"+imgTag(ri?robotURL(ri,bk):robotSVG(bk),a,null,ri?robotSVG(bk):null)+"</span>";}
+  case "selfie":{var si=numId(n.raw),sph=a.flags.big?placeholder(50,50,"SELFIE","#7f8c99"):placeholder(30,30,"SELF","#7f8c99");
+    return "<a class='citizen bbcode_selfie"+(a.flags.big?" big":"")+"' title='Citizen #"+attr(id(n.raw))+"'>"+(si?"<img class='imgflip' src='"+avURL(si)+"' data-fb='"+sph+"' data-fbfit='1'>":"<img class='fit' src='"+sph+"'>")+"</a>";}
+  case "outfit":{
+    var cls="bbcode_outfit"+(a.flags.portrait?" portrait":"")+(a.flags.small?" smallportrait":"")+(a.flags.noborder?" borderless":"");
+    var tagn=a.flags.nolink?"span":"a";
+    var oi=numId(n.raw),crop=a.flags.portrait||a.flags.small,oph=crop?placeholder(a.flags.small?50:85,a.flags.small?50:100,"OUTFIT","#7f8c99"):avatarSVG("OUTFIT");
+    var oimg=oi?imgTag(outfitURL(oi),a,["imgflip"],oph).replace("<img ","<img"+(crop?" data-fbfit='1'":"")+" "):(crop?"<img class='fit' src='"+oph+"'>":imgTag(oph,a));
+    return "<"+tagn+" class='"+cls+"' title='Outfit #"+attr(id(n.raw))+"'>"+oimg+"</"+tagn+">";
+  }
+  case "brick":{v=parseInt(a.main,10);if(!(v>=1))v=1;if(v>10)v=10;
+    return "<a href='#' class='bbcode_brick level_"+v+"' data-level='"+v+"'>"+(v>1?v:"&nbsp;")+"</a><span class='hidden' style='line-height: 50px;'>"+kids(n)+"</span>";}
+  case "spoiler":return '<span class="bbcode_spoiler">'+kids(n)+"</span>";
+  case "hidden":{
+    var col=(a.kv.color||Object.keys(a.flags).filter(function(f){return HIDDEN_COLORS[f];})[0]||"").toLowerCase();
+    var btnCls="button "+(col&&col!=="blue"?" button_"+(col==="grey"?"gray":col):"")+" bbcode_hidden_button";
+    var label=a.main!=null&&a.main!==""?renderText(a.main):"+";
+    return '<span class="bbcode_hidden"><a href="#" class="'+btnCls+'" data-label="'+attr(a.main||"")+'"><span>'+label+'</span></a> <span class="hidden bbcode_hidden_content">'+kids(n)+"</span></span>";
+  }
+  case "invisible":return '<span class="hidden">'+kids(n)+"</span>";
+  case "br":return "<br>\n";
+  case "rule":return '\n<hr class="bbcode_rule" />\n';
+  case "columns":{
+    var cols=[[]];(n.children||[]).forEach(function(ch){if(ch.tag==="nextcol")cols.push([]);else cols[cols.length-1].push(ch);});
+    return '\n<table class="bbcode_columns"><tbody><tr>'+cols.map(function(cc,i){return '<td class="bbcode_column'+(i===0?" bbcode_firstcolumn":"")+'">\n'+cc.map(render).join("")+"\n</td>";}).join("")+"</tr></tbody></table>\n";
+  }
+  case "list":{
+    var items=[],cur=null;(n.children||[]).forEach(function(ch){if(ch.tag==="*"){cur=[];items.push(cur);}else if(cur)cur.push(ch);else if(ch.text==null||ch.text.trim()){items.push(cur=[ch]);}});
+    var typ=a.main,lt={"1":"","a":"lower-alpha","A":"upper-alpha","I":"upper-roman","i":"lower-roman"};
+    var ordered=typ!=null&&typ!==""&&lt.hasOwnProperty(typ);
+    var open=ordered?'<ol class="bbcode_list"'+(lt[typ]?' style="list-style-type:'+lt[typ]+'"':"")+">":'<ul class="bbcode_list">';
+    return "\n"+open+"\n"+items.map(function(it){return "<li>"+it.map(render).join("").replace(/^\n+|\n+$/g,"")+"</li>\n";}).join("")+(ordered?"</ol>":"</ul>")+"\n";
+  }
+  case "box":{
+    var bg=a.kv.bgcolor?cssColor(a.kv.bgcolor):"#5eaeff";if(!bg)bg="#5eaeff";
+    var rad=/^\d+$/.test(a.kv.radius||"")?a.kv.radius:"7",pad=/^\d+$/.test(a.kv.padding||"")?a.kv.padding:"10";
+    return "<span style='border-radius: "+rad+"px; display: inline-block; background: "+attr(bg)+"; padding: "+pad+"px "+pad+"px;'>"+kids(n)+"</span>";
+  }
+  case "rand":{
+    if(a.kv.set){var pool=a.kv.set.split(",");return escapeHTML(pool[randInt(0,pool.length-1)]);}
+    var r=(a.main||"1,10").split(",").map(function(x){return parseInt(x,10);});if(isNaN(r[0])||isNaN(r[1]))return "[rand]";return String(randInt(r[0],r[1]));
+  }
+  case "random":{
+    var p=(a.main||"1,10").split(",").map(function(x){return parseInt(x,10);});var lo=p[0]||1,hi=p[1]||10,cnt=Math.min(p[2]||1,20);
+    var vals=[];for(var q=0;q<cnt;q++)vals.push(randInt(lo,hi));if(a.flags.sort)vals.sort(function(x,y){return x-y;});
+    return "<span class='bbcode_random' title='[random="+lo+","+hi+","+cnt+"]'><img class='bbcode_random_icon' src='"+RCM+"/images/site/qcard.png' data-fb='"+randomIcon+"'/><span class='bbcode_random_title'>["+lo+","+hi+"]</span><span class='bbcode_random_value'>"+vals.join(" ")+"</span></span>";
+  }
+  case "d6":return "<span class='d6' title='[d6]'>"+randInt(1,6)+"</span>";
+  case "d20":return "<span class='d20' title='[d20]'>"+randInt(1,20)+"</span>";
+  case "timesince":case "timeuntil":return escapeHTML(timeText(n.raw,t==="timeuntil",a));
+  case "bar":{
+    var pct=Math.max(0,Math.min(100,parseFloat(a.main)||0)),bc=cssColor(a.kv.color)||"#5eaeff",bh=/^\d+$/.test(a.kv.height||"")?a.kv.height:"42";
+    return '<div class="progress_bar" style="width: 98%; height: '+bh+'px;"><div class="progress_bar_status" style="width: '+pct+'%; background: '+attr(bc)+'"></div><div class="progress_bar_prize" style="line-height: '+bh+'px;">'+kids(n)+"</div></div>";
+  }
+  case "youtube":case "video":return '<span class="video_ph"'+(a.flags.small?' style="width:200px;height:200px"':"")+'>&#9654; YouTube video</span>';
+  case "acronym":return '<span class="bbcode_acronym" title="'+attr(a.main||"")+'">'+kids(n)+"</span>";
+  case "sign":{var w=n.raw.toUpperCase();return "<span class='bbcode_sign'><span class='bbcode_sign_word' title='"+attr(w)+"'>"+w.split("").filter(function(ch){return /[A-Z]/.test(ch);}).map(function(ch){return "<img alt='' src='"+RCM+"/images/signlang/"+ch.toLowerCase()+".png' data-fb='"+signSVG(ch)+"' />";}).join("")+"</span></span>";}
+  case "copy":return protect("<textarea rows='1' readonly onclick='this.focus();this.select();' style='min-height: 30px; padding: 2px; width: 95%; background: rgba(0,0,0,0.05);'>"+escapeHTML(n.raw)+"</textarea>");
+  case "code":return '\n<div class="bbcode_code">'+protect('<div class="bbcode_code_body" style="white-space:pre">'+escapeHTML(n.raw)+"</div>")+"\n</div>\n";
+  case "quote":return "<blockquote class='bbcode_blockquote'>"+(a.main?"<div class='bbcode_blockquote_cite'>"+escapeHTML(a.main)+"</div>":"")+kids(n)+"</blockquote>";
+  case "button":return '<span class="button">'+kids(n)+"</span>";
+  case "nextcol":case "*":return "";
+  }
+  return kids(n);
+}
+function timeText(raw,until,a){
+  var s=String(raw).trim(),now=new Date(),d;
+  if(/^today$/i.test(s)){d=new Date(now);d.setHours(0,0,0,0);}
+  else if(/^yesterday$/i.test(s)){d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()-1);}
+  else if(/^tomorrow$/i.test(s)){d=new Date(now);d.setHours(24,0,0,0);}
+  else if(/^\d{1,2}:\d{2}\s*[ap]m$/i.test(s)){var mm=s.match(/(\d+):(\d+)\s*([ap])/i);d=new Date(now);var hh=parseInt(mm[1],10)%12+(/p/i.test(mm[3])?12:0);d.setHours(hh,parseInt(mm[2],10),0,0);}
+  else d=new Date(s.replace(/-/g,"/"));
+  if(isNaN(d))return s;
+  var diff=(until?d-now:now-d)/1000;
+  if(diff<0)return until?"already happened":"recently";
+  if(diff>5*365*86400)return "a long time";
+  if(a.flags.minutes)return Math.round(diff/60)+" minutes";
+  if(a.flags.hours||diff<2*86400)return diff<3600?Math.round(diff/60)+" minutes":Math.round(diff/3600)+" hours";
+  if(diff<60*86400)return Math.round(diff/86400)+" days";
+  if(diff<730*86400)return Math.round(diff/(30*86400))+" months";
+  return Math.round(diff/(365*86400))+" years";
+}
+function toHTML(src){
+  protectedBits=[];rngCount=0;
+  var html=render(parse(src.replace(/\r\n?/g,"\n").replace(/\u0000/g,"")));
+  html=html.replace(/\n/g,"<br>\n");
+  return html.replace(/\u0000(\d+)\u0000/g,function(_,i){return protectedBits[+i];});
+}
+
+/* ---------- UI ---------- */
+var code=document.getElementById("code"),stage=document.getElementById("stage"),count=document.getElementById("count");
+var full=document.getElementById("full"),fit=document.getElementById("fit"),night=document.getElementById("night");
+/* Theme (Dark / Gray / Light), remembered in this browser, like the other tools */
+var root=document.documentElement,lookButtons=document.querySelectorAll(".seg [data-mode]");
+function markLook(){lookButtons.forEach(function(b){b.classList.toggle("on",b.dataset.mode===(root.dataset.mode||"light"));});}
+lookButtons.forEach(function(b){b.addEventListener("click",function(){
+  if(b.dataset.mode==="light")delete root.dataset.mode;else root.dataset.mode=b.dataset.mode;
+  markLook();try{localStorage.setItem("bb-look",JSON.stringify({mode:root.dataset.mode||"light"}));}catch(e){}
+});});
+markLook();
+/* Shortcut buttons: wrap the selected text, or insert a ready-made piece of code and select the part to replace */
+var SNIPS={
+  b:"[b]{{*text}}[/b]", i:"[i]{{*text}}[/i]", u:"[u]{{*text}}[/u]", s:"[s]{{*text}}[/s]",
+  color:"[color=#6f86ff]{{*text}}[/color]", size:"[size=4]{{*text}}[/size]", center:"[center]{{*text}}[/center]",
+  url:"[url=https://{{example.com}}]{{*link text}}[/url]", img:"[img]{{*IMAGE URL}}[/img]",
+  list:"[list]\n[*]{{*first item}}\n[*]second item\n[/list]", rule:"[rule]{{*}}", spoiler:"[spoiler]{{*secret}}[/spoiler]",
+  picright:"[columns][center]{{*Your text here}}[/center][nextcol][img]{{IMAGE URL}}[/img][/columns]",
+  picleft:"[columns][img]{{IMAGE URL}}[/img][nextcol][center]{{*Your text here}}[/center][/columns]",
+  cols:"[columns]{{*Left side}}[nextcol]Right side[/columns]",
+  box:"[box bgcolor=eef0ff radius=10 padding=8]{{*text}}[/box]",
+  solid:"[box bgcolor=ffffff radius=0 padding=10]{{*Your whole bio goes here}}[/box]",
+  more:"[hidden=Read more]{{*Hidden text}}[/hidden]"
+};
+function insertSnippet(key){
+  var tpl=SNIPS[key];if(!tpl)return;
+  var st=code.selectionStart,en=code.selectionEnd,sel=code.value.slice(st,en);
+  var marks=[],out="",re=/\{\{(\*?)([^}]*)\}\}/g,last=0,m;
+  while((m=re.exec(tpl))){
+    out+=tpl.slice(last,m.index);
+    var txt=(m[1]&&sel)?sel:m[2];
+    marks.push({star:!!m[1],from:out.length,to:out.length+txt.length,ph:!(m[1]&&sel)});
+    out+=txt;last=m.index+m[0].length;
+  }
+  out+=tpl.slice(last);
+  code.focus();code.setSelectionRange(st,en);
+  /* insertText keeps Ctrl+Z working; fall back if the browser doesn't support it */
+  if(!document.execCommand||!document.execCommand("insertText",false,out)){code.setRangeText(out,st,en,"end");code.dispatchEvent(new Event("input"));}
+  var pick=marks.filter(function(k){return k.ph&&k.to>k.from;})[0];
+  if(pick)code.setSelectionRange(st+pick.from,st+pick.to);else code.setSelectionRange(st+out.length,st+out.length);
+}
+/* Color picker: pick a color from the avatar (or anywhere on screen) to match your bio to it.
+   recolor.me images can't be read by the page itself, so this uses the browser's eyedropper (Chrome, Edge, Opera). */
+(function(){
+  var inp=document.getElementById("pickColor"),hex=document.getElementById("pickHex"),msg=document.getElementById("pickMsg"),btn=document.getElementById("pickBtn");
+  function say(t){msg.textContent=t;clearTimeout(say.t);say.t=setTimeout(function(){msg.textContent="";},5000);}
+  function setColor(c){c=String(c).toLowerCase();if(/^#[0-9a-f]{6}$/.test(c)){inp.value=c;hex.textContent=c;}}
+  inp.addEventListener("input",function(){setColor(inp.value);});
+  if(!window.EyeDropper){btn.title="Your browser can't pick colors from the screen. Try Chrome or Edge, or use the color box next to this.";}
+  btn.addEventListener("click",function(){
+    if(!window.EyeDropper){say("Your browser can't pick from the screen. Try Chrome or Edge, or click the color box to choose one.");return;}
+    new EyeDropper().open().then(function(r){setColor(r.sRGBHex);say("Got it: "+hex.textContent);}).catch(function(){});
+  });
+  document.getElementById("pickCopy").addEventListener("click",function(){
+    var t=hex.textContent;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){say("Copied "+t);},function(){say("Couldn't copy. Select the code and copy it yourself.");});
+  });
+  document.getElementById("pickText").addEventListener("click",function(){SNIPS._pick="[color="+hex.textContent+"]{{*text}}[/color]";insertSnippet("_pick");});
+  document.getElementById("pickBox").addEventListener("click",function(){SNIPS._pick="[box bgcolor="+hex.textContent.slice(1)+" radius=0 padding=10]{{*text}}[/box]";insertSnippet("_pick");});
+})();
+document.getElementById("tools").addEventListener("click",function(e){var b=e.target.closest("[data-snip]");if(b)insertSnippet(b.getAttribute("data-snip"));});
+code.addEventListener("keydown",function(e){
+  if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey)return;
+  var k={b:"b",i:"i",u:"u"}[e.key.toLowerCase()];if(k){e.preventDefault();insertSnippet(k);}
+});
+/* "Are you sure?" without pop-up boxes (some browsers block them): the first click asks, a second click within 4 seconds does it. */
+function sure(el,msg){
+  var key=el.tagName==="SELECT"?el.value:"1";
+  if(el.dataset.armed===key){clearTimeout(el._t);delete el.dataset.armed;if(el.dataset.txt){el.textContent=el.dataset.txt;delete el.dataset.txt;}saveMsg("");return true;}
+  clearTimeout(el._t);el.dataset.armed=key;
+  if(el.tagName==="BUTTON"){if(!el.dataset.txt)el.dataset.txt=el.textContent;el.textContent="Sure? Click again";}
+  else saveMsg(msg+" Pick it again to confirm.");
+  el._t=setTimeout(function(){delete el.dataset.armed;if(el.dataset.txt){el.textContent=el.dataset.txt;delete el.dataset.txt;}},4000);
+  return false;
+}
+/* Templates menu for visitors (from presets.js) */
+var PRESETS=Array.isArray(window.BB_PRESETS)?window.BB_PRESETS.filter(function(p){return p&&typeof p.code==="string";}):[];
+var tplSel=document.getElementById("templates");
+function fillTemplates(list){
+  var keep=tplSel.value;tplSel.length=1;
+  list.forEach(function(p,i){var o=document.createElement("option");o.value=String(i);o.textContent=p.name||("Template "+(i+1));if(p.description)o.title=p.description;tplSel.appendChild(o);});
+  tplSel.hidden=!list.length;
+  if(+keep<list.length)tplSel.value=keep;
+}
+fillTemplates(PRESETS);
+var tplCur="";  // the template that's loaded, so the menu keeps showing its name
+tplSel.addEventListener("change",function(){
+  var v=tplSel.value,list=devOn?devList:PRESETS,p=list[+v];
+  if(v===""||!p){tplCur="";return;}
+  if(code.value.trim()&&code.value!==p.code&&!sure(tplSel,'Replace your code with "'+(p.name||"this template")+'"?')){tplSel.value=tplCur;return;}
+  code.value=p.code;tplCur=v;draw();save();
+});
+
+/* Preset manager: only with ?dev, and only on your own computer */
+var devOn=/[?&]dev\b/.test(location.search)&&(location.protocol==="file:"||/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname));
+var devList=[];
+function devSave(){
+  fillTemplates(devList);devRender();
+  // dev-server.py writes presets.js straight away.
+  return fetch("/__save-presets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(devList)})
+    .then(function(r){if(!r.ok)throw 0;return true;}).catch(function(){return false;});
+}
+function saveMsg(t){var m=document.getElementById("saveMsg");m.textContent=t;clearTimeout(saveMsg.t);saveMsg.t=setTimeout(function(){m.textContent="";},6000);}
+function devMsg(t,warn){var m=document.getElementById("devMsg");m.textContent=t;m.className="msg"+(warn?" warn":"");}
+function devRender(){
+  var box=document.getElementById("devList");box.innerHTML="";
+  if(!devList.length){box.innerHTML='<p class="msg">No presets yet.</p>';return;}
+  devList.forEach(function(p,i){
+    var row=document.createElement("div");row.className="item";
+    row.innerHTML='<input type="text" class="nm" maxlength="40" aria-label="Name"><input type="text" class="ds" maxlength="120" aria-label="Description" placeholder="Description">'+
+      '<span class="len"></span><button type="button" data-act="load">Load</button><button type="button" data-act="update" title="Replace this preset with the code box">Update</button>'+
+      '<button type="button" data-act="up" title="Move up">↑</button><button type="button" data-act="down" title="Move down">↓</button><button type="button" data-act="del">Delete</button>';
+    row.querySelector(".nm").value=p.name||"";row.querySelector(".ds").value=p.description||"";
+    var n=p.code.length;row.querySelector(".len").textContent=n.toLocaleString()+" chars";if(n>10000)row.querySelector(".len").className="len warn";
+    row.querySelector(".nm").addEventListener("change",function(e){p.name=e.target.value.trim();devSave();});
+    row.querySelector(".ds").addEventListener("change",function(e){p.description=e.target.value.trim();devSave();});
+    row.addEventListener("click",function(e){
+      var act=e.target.getAttribute&&e.target.getAttribute("data-act");if(!act)return;
+      if(act==="load"){code.value=p.code;draw();save();devMsg('Loaded "'+p.name+'" into the code box.');}
+      if(act==="update"){if(sure(e.target,'Replace "'+p.name+'" with what\'s in the code box?')){p.code=code.value;devSave().then(function(ok){devMsg(ok?'Updated "'+p.name+'".':"Couldn't save. Ask Claude to start the preset helper.",!ok);});}}
+      if(act==="up"&&i>0){devList.splice(i-1,0,devList.splice(i,1)[0]);devSave();}
+      if(act==="down"&&i<devList.length-1){devList.splice(i+1,0,devList.splice(i,1)[0]);devSave();}
+      if(act==="del"&&sure(e.target,'Delete "'+p.name+'" from the presets?')){devList.splice(i,1);devSave();}
+    });
+    box.appendChild(row);
+  });
+}
+if(devOn){
+  devList=PRESETS.map(function(p){return {name:p.name||"",description:p.description||"",code:p.code};});
+  document.getElementById("dev").hidden=false;fillTemplates(devList);devRender();
+  var sp=document.getElementById("savePreset");document.getElementById("saveBox").hidden=false;
+  document.getElementById("saveName").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();sp.click();}});
+  sp.addEventListener("click",function(){
+    if(!code.value.trim()){saveMsg("The code box is empty.");return;}
+    var nm=document.getElementById("saveName").value.trim().slice(0,40);
+    if(!nm){saveMsg("Type a name first.");document.getElementById("saveName").focus();return;}
+    var old=devList.filter(function(p){return p.name.toLowerCase()===nm.toLowerCase();})[0];
+    if(old){if(!sure(sp,'"'+old.name+'" already exists. Replace it with this code?')){saveMsg('"'+old.name+'" already exists. Click again to replace it.');return;}old.code=code.value;nm=old.name;}
+    else devList.push({name:nm,description:"",code:code.value});
+    devSave().then(function(ok){
+      if(ok)document.getElementById("saveName").value="";
+      saveMsg(ok?'Saved "'+nm+'". It\'s in the Templates menu now.':"Couldn't save. Ask Claude to start the preset helper (dev-server.py).");
+    });
+  });
+}
+
+/* Tips and tricks box */
+var help=document.getElementById("help");
+document.getElementById("help-btn").addEventListener("click",function(){help.showModal();});
+document.getElementById("help-close").addEventListener("click",function(){help.close();});
+/* "Try" adds the example to your code, where the cursor is */
+help.addEventListener("click",function(e){
+  if(!e.target.classList.contains("try"))return;
+  SNIPS._ex=e.target.previousElementSibling.textContent.replace(/\{\{/g,"{ {");help.close();
+  code.setSelectionRange(code.selectionEnd,code.selectionEnd);insertSnippet("_ex");
+});
+help.addEventListener("click",function(e){if(e.target===help)help.close();});
+
+var SAMPLE="[center][size=5][gradient start=#6f86ff end=#c77dff]Your Name Here[/gradient][/size]\n[size=2][color=#777]pronouns · time zone · a few words about you[/color][/size]\n[box bgcolor=eef0ff radius=10 padding=8][b]About me[/b]\nWrite a little about yourself here. :smile:[/box][columns][box bgcolor=eef7ec padding=6][b]Likes[/b][/box]\nart · music :music:[nextcol][box bgcolor=fff1e3 padding=6][b]Dislikes[/b][/box]\nrainy Mondays :rain:[/columns][hidden=Read more]Hi [viewername]! Thanks for visiting. :wave:\n[list][*]Favorite color[*]Favorite food[*]Favorite game[/list]\n[spoiler]a secret[/spoiler] [brick=3]You found it![/brick]\n\n[bar=60 color=#6f86ff]Goal progress 60%[/bar][/hidden][/center]";
+var KEY="rcm-bbcode-draft";
+function load(){try{var s=localStorage.getItem(KEY);if(s!=null)return s;}catch(e){}return SAMPLE;}
+function save(){try{localStorage.setItem(KEY,code.value);}catch(e){}}
+function draw(){
+  document.getElementById("reroll").hidden=!/\[(rand|random|d6|d20)[\]= ]/i.test(code.value);
+  var html=toHTML(code.value);
+  var n=code.value.length;count.textContent=n.toLocaleString()+" / 10,000";count.className=n>10000?"over":"";
+  stage.className="stage is-bio"+(full.checked?" full":"")+(fit.checked?" fitcheck":"")+(night.checked?" night":"");
+  var uname=escapeHTML(document.getElementById("uname").value.trim()||"Username"),rawId=document.getElementById("uid").value.replace(/\D/g,""),uid=escapeHTML(rawId||"12345");
+  stage.innerHTML='<div class="bio_container rcm">'+
+    '<span class="profile_avatar" title="Your avatar (set on recolor.me, not in your code)"><span class="'+(numId(rawId)?"imgflip":"")+'" style="display:inline-block"><img alt="" class="backshadow" src="'+(numId(rawId)?avURL(numId(rawId)):profileAvatar)+'" data-fb="'+profileAvatar+'"></span></span>'+
+    '<h2 class="profile_name"><span class="citizen_id">Citizen '+uid+': </span><span class="citizen_name">'+uname+'</span></h2>'+
+    '<div class="profile_options"><span class="button button_green">Items</span><span class="button button_green">Pose</span><span class="button">Chat</span></div>'+
+    '<div class="bio"><div class="bio_content">'+html+"</div></div></div>";
+  checkFit();
+}
+/* fit check: does the bio fit the 310px box without scrolling? */
+function checkFit(){
+  var msg=document.getElementById("fitMsg"),box=stage.querySelector(".bio_content");
+  stage.classList.remove("over","opened");
+  if(!fit.checked||!box){msg.hidden=true;return;}
+  msg.hidden=false;
+  var opened=[].some.call(box.querySelectorAll(".bbcode_hidden_content"),function(h){return !h.classList.contains("hidden");});
+  if(opened){stage.classList.add("opened");msg.className="info";msg.textContent="Opened: the bio now scrolls, like it will on recolor.me. Click your button again to close it.";return;}
+  var over=box.scrollHeight-box.clientHeight;
+  if(over>1){stage.classList.add("over");msg.className="bad";msg.textContent=over+"px too tall: this will scroll on recolor.me. Everything below the red line is cut off here.";}
+  else{msg.className="ok";msg.textContent="Fits: no scrolling needed.";}
+}
+fit.addEventListener("change",function(){if(fit.checked)full.checked=false;draw();});
+full.addEventListener("change",function(){if(full.checked)fit.checked=false;});
+stage.addEventListener("load",function(e){if(e.target.tagName==="IMG")checkFit();},true);
+var timer;function onInput(){clearTimeout(timer);timer=setTimeout(function(){draw();save();},120);}
+code.addEventListener("input",onInput);
+[full,night].forEach(function(el){el.addEventListener("change",draw);});
+["uname","uid"].forEach(function(i){var el=document.getElementById(i);
+  try{var v=localStorage.getItem("rcm-"+i);if(v)el.value=v;}catch(e){}
+  el.addEventListener("input",function(){try{localStorage.setItem("rcm-"+i,el.value);}catch(e){}onInput();if(i==="uid")lookupName();});});
+/* name lookup: asks this site's helper (/api/rcm-name), which asks recolor.me. Only works on the live site, not when opened as a file. */
+var lookupTimer,lookupSeq=0;
+function lookupName(){
+  clearTimeout(lookupTimer);
+  var idv=document.getElementById("uid").value.replace(/\D/g,"");
+  if(!idv||!/^https?:$/.test(location.protocol))return;
+  lookupTimer=setTimeout(function(){
+    var seq=++lookupSeq;
+    fetch("/api/rcm-name?id="+encodeURIComponent(idv)).then(function(r){return r.ok?r.json():null;}).then(function(d){
+      if(seq!==lookupSeq||!d||typeof d.name!=="string")return;
+      var u=document.getElementById("uname");u.value=d.name;try{localStorage.setItem("rcm-uname",d.name);}catch(e){}draw();
+    }).catch(function(){});
+  },500);
+}
+document.getElementById("reroll").addEventListener("click",function(){seed=(seed*7+13)%100000;draw();});
+document.getElementById("sample").addEventListener("click",function(){if(code.value===SAMPLE||sure(this,"Replace your code with the example?")){code.value=SAMPLE;tplSel.value=tplCur="";draw();save();}});
+document.getElementById("clear").addEventListener("click",function(){if(!code.value||sure(this,"Clear all your code?")){code.value="";tplSel.value=tplCur="";draw();save();code.focus();}});
+document.getElementById("copy").addEventListener("click",function(){
+  var b=this;function done(){b.textContent="Copied!";setTimeout(function(){b.textContent="Copy code";},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code.value).then(done,function(){code.select();document.execCommand("copy");done();});
+  else{code.select();document.execCommand("copy");done();}
+});
+/* a recolor.me image that fails to load becomes its labeled box */
+stage.addEventListener("error",function(e){
+  var el=e.target;if(!el||el.tagName!=="IMG"||!el.getAttribute("data-fb"))return;
+  el.src=el.getAttribute("data-fb");el.removeAttribute("data-fb");el.classList.remove("imgflip");
+  if(el.getAttribute("data-fbfit"))el.classList.add("fit");
+  var p=el.parentNode;if(p&&p.classList&&p.classList.contains("imgflip")&&!p.classList.contains("bbcode_img_container"))p.classList.remove("imgflip");
+},true);
+/* interactive bits, like on the site */
+stage.addEventListener("click",function(e){
+  var el=e.target.closest(".bbcode_hidden_button");
+  if(el){e.preventDefault();var content=el.parentNode.querySelector(".bbcode_hidden_content");var open=content.classList.toggle("hidden")===false;
+    if(!el.getAttribute("data-label"))el.firstChild.textContent=open?"-":"+";checkFit();return;}
+  el=e.target.closest(".bbcode_brick");
+  if(el){e.preventDefault();var lv=parseInt(el.getAttribute("data-level"),10)-1;el.setAttribute("data-level",lv);
+    el.className="bbcode_brick level_"+Math.max(lv,1);
+    if(lv<=0){el.style.display="none";el.nextElementSibling.classList.remove("hidden");}else el.textContent=lv>1?lv:" ";checkFit();return;}
+  el=e.target.closest(".bbcode_spoiler");if(el){el.classList.toggle("spoiler_revealed");return;}
+  el=e.target.closest(".bbcode_blur");if(el){el.classList.toggle("bbcode_blur_disabled");return;}
+  if(e.target.closest(".citizen,.bbcode_ghost,.bbcode_outfit"))e.preventDefault();
+});
+code.value=load();draw();
+window.rcmBBCode={toHTML:toHTML};
+})();
+</script>
+</body>
+</html>
