@@ -1,0 +1,63 @@
+/* Cyber Aero theme (replaced Steel Aero on 2026-11-15). Only used when the page has <html data-theme="cyber">.
+   Switched in Pages CMS "Site Theme" (content/site.yml); see /themes/theme.js, which also loads the fonts.
+   Look: near-black brushed stripes, smoked glass with corner brackets, color only in the logo,
+   the banner frame and the footer stripe. Fonts: Chakra Petch (logo, headings, menu, dates) + Inter (text). */
+html[data-theme=cyber]{--bg:#111418;--panel:#ffffff0d;--ink:#eef2f5;--muted:#8a949d;--line:#ffffff1c;--accent:#ffffff;
+  --head:'Chakra Petch',system-ui,sans-serif;--body:Inter,system-ui,-apple-system,sans-serif;
+  --glass:linear-gradient(180deg,#ffffff12,#ffffff05 50%,#00000030 51%,#ffffff04);
+  --rainbow:linear-gradient(90deg,#cc6873,#d9765a,#d9964d,#cbae4e,#b1bf5c,#8cb866,#6ebd94,#6acac5,#569ac8,#7096c8,#9970c1,#c46ea8)}
+html[data-theme=cyber] body{background:transparent;color:var(--ink);font-family:var(--body)}
+html[data-theme=cyber]::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(90deg,#ffffff07 0 1px,transparent 1px 3px,#0000001c 3px 4px),
+    radial-gradient(ellipse at 70% -20%,#262c33 0,transparent 55%),
+    linear-gradient(180deg,#171b20 0,#0a0c0f 100%)}
+
+/* Smoked glass panels with two corner brackets */
+html[data-theme=cyber] header .top,html[data-theme=cyber] .updates,html[data-theme=cyber] .page-content{position:relative;background:var(--glass);border:1px solid #ffffff22;border-radius:10px;box-shadow:0 8px 24px #000000a0,inset 0 1px 0 #ffffff28}
+html[data-theme=cyber] header .top::before,html[data-theme=cyber] header .top::after,html[data-theme=cyber] .updates::before,html[data-theme=cyber] .updates::after,html[data-theme=cyber] .page-content::before,html[data-theme=cyber] .page-content::after{content:"";position:absolute;width:10px;height:10px;border:2px solid #ffffffb0;pointer-events:none}
+html[data-theme=cyber] header .top::before,html[data-theme=cyber] .updates::before,html[data-theme=cyber] .page-content::before{left:-3px;top:-3px;border-right:0;border-bottom:0;border-radius:3px 0 0 0}
+html[data-theme=cyber] header .top::after,html[data-theme=cyber] .updates::after,html[data-theme=cyber] .page-content::after{right:-3px;bottom:-3px;border-left:0;border-top:0;border-radius:0 0 3px 0}
+
+/* Top bar */
+html[data-theme=cyber] header{background:none;border:0;padding-top:14px}
+html[data-theme=cyber] header .top{width:calc(100% - 28px);max-width:1132px;padding:0 16px}
+html[data-theme=cyber] .brand{font-family:var(--head);font-weight:600;font-size:1.9rem;letter-spacing:.01em;text-shadow:0 0 14px #ffffff20}
+html[data-theme=cyber] nav{gap:6px}
+html[data-theme=cyber] nav a,html[data-theme=cyber] nav a:visited{font-family:var(--head);font-weight:500;letter-spacing:.04em;color:#c9d0d6;padding:4px 11px;border-radius:6px;border:1px solid #ffffff22;background:linear-gradient(180deg,#ffffff14,transparent 50%)}
+html[data-theme=cyber] nav a:hover{color:#fff;opacity:1;border-color:#ffffff60}
+html[data-theme=cyber] nav a[aria-current=page]{color:#0a0c0f;background:linear-gradient(180deg,#fff,#dfe5ea 50%,#c9d1d8 51%,#eef2f5);border-color:#fff;box-shadow:0 0 12px #ffffff60;font-weight:600}
+@media(max-width:700px){html[data-theme=cyber] header .top{padding:10px 12px}html[data-theme=cyber] nav{gap:4px}html[data-theme=cyber] nav a{padding:3px 8px}}
+
+/* Headings and small labels */
+html[data-theme=cyber] h1,html[data-theme=cyber] h2{font-family:var(--head);font-weight:600;letter-spacing:-.01em}
+html[data-theme=cyber] .eyebrow{font-family:var(--head);font-weight:500;letter-spacing:.18em;color:var(--muted)}
+html[data-theme=cyber] .eyebrow::before{content:"// "}
+
+/* Home: glowing rainbow banner frame, glass updates, only the latest 3 */
+html[data-theme=cyber] .banner{aspect-ratio:4.5/1;padding:2px;background:var(--rainbow);border-radius:12px;box-shadow:0 0 26px #6acac535,0 0 40px #cc687320}
+html[data-theme=cyber] .updates{padding:4px 16px}
+html[data-theme=cyber] .update{gap:8px}
+html[data-theme=cyber] .update:nth-child(n+4){display:none}
+html[data-theme=cyber] .update:nth-child(3),html[data-theme=cyber] .update:last-child{border-bottom:0}
+html[data-theme=cyber] .update time{width:auto;font-family:var(--head);font-weight:600;font-size:.82rem;letter-spacing:.03em;color:#fff}
+html[data-theme=cyber] .update .entry::before{content:"—";color:#6b757e;margin-right:8px}
+html[data-theme=cyber] .update .text{color:var(--ink)}
+@media(max-width:700px){html[data-theme=cyber] .update{flex-direction:column;gap:2px}html[data-theme=cyber] .update .entry::before{display:none}}
+
+/* Links: white and underlined instead of blue */
+html[data-theme=cyber] .update a,html[data-theme=cyber] .page-content a,html[data-theme=cyber] footer a,html[data-theme=cyber] .article-body a,html[data-theme=cyber] .intro a{color:#fff;text-decoration:underline;text-underline-offset:2px}
+
+/* Cards and pop-ups */
+html[data-theme=cyber] .entry-card,html[data-theme=cyber] .project-card,html[data-theme=cyber] .art-card{background:var(--glass);border:1px solid #ffffff22;box-shadow:0 8px 24px #00000090}
+html[data-theme=cyber] .entry-card,html[data-theme=cyber] .art-card{font-family:var(--body)}
+html[data-theme=cyber] .project-card .kind{font-family:var(--head);letter-spacing:.14em}
+html[data-theme=cyber] .page-content{width:calc(100% - 28px);margin-top:24px}
+html[data-theme=cyber] .article,html[data-theme=cyber] .post-view{background:#111418;border-color:#ffffff22}
+html[data-theme=cyber] .empty{border-color:#ffffff30}
+
+/* Contact form */
+html[data-theme=cyber] .contact-form input,html[data-theme=cyber] .contact-form textarea{background:#ffffff0c;border-color:#ffffff30;color:var(--ink)}
+html[data-theme=cyber] .contact-form button{font-family:var(--head);font-weight:600;letter-spacing:.04em;color:#0a0c0f;border:1px solid #fff;border-radius:6px;background:linear-gradient(180deg,#fff,#dfe5ea 50%,#c9d1d8 51%,#eef2f5);box-shadow:0 0 12px #ffffff40}
+
+/* Footer: thin 12-color stripe on top */
+html[data-theme=cyber] footer{border-top:3px solid transparent;border-image:var(--rainbow) 1;color:var(--muted)}

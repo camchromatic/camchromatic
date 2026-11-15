@@ -97,8 +97,8 @@ content:
           values:
             - name: dark
               label: Dark (the usual look)
-            - name: steel
-              label: Steel Aero
+            - name: cyber
+              label: Cyber Aero
 
   - name: home
     label: Home Banner
