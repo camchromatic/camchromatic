@@ -34,13 +34,12 @@ footer{margin-top:56px;border-top:1px solid var(--line);padding:24px 0 40px;colo
 .doodle img:not(.loaded){aspect-ratio:1;background:linear-gradient(100deg,#262a2c 40%,#30353a 50%,#262a2c 60%) 0 0/200% 100%;animation:ph 1.4s linear infinite}@keyframes ph{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){img:not(.loaded){animation:none!important}}
 /* Framed layout (computers and tablets): the posts scroll inside a frame, so the footer always shows. Phones scroll the whole page. */
 @media(min-width:761px) and (min-height:560px){
-html{scrollbar-gutter:auto}
 body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 body>header,body>footer{flex:none}
 body>footer{margin-top:0;padding:14px 0 16px}
 body>main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column}
 body>main>.hero{flex:none}
-.frame{flex:1;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.frame{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#8a949d80 transparent;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
 }
 </style>
 </head>
