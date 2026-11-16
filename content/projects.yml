@@ -12,8 +12,9 @@ projects:
     image: /media/projects/recolor-profile-editor-2026-11-15.png
   - title: Font Sheet
     kind: Free Tool
-    description: Drop in a font file and get a card that shows it off. Your font
-      never leaves your computer.
+    description: Drop in a font file and get a sheet that shows it off. Made mostly
+      for fun, with a focus on pangram variations, spacing, and repetition
+      options.
     link: font-sheet/
     image: /media/projects/font-sheet-2026-11-05b.png
   - title: Swatch Page Maker
