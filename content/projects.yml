@@ -6,8 +6,9 @@ intro: Some things I'm working on. Every drawing here is mine, made by hand. I'm
 projects:
   - title: recolor.me Profile Editor
     kind: Free Tool
-    description: Write recolor.me BBCode and see your profile bio live, with your
-      real avatar and name.
+    description: Write supported BBCode and see your recolor.me profile bio live,
+      with your real avatar and name. Focus on non-scrolling bios for maximum
+      minimalism. Or whatever.
     link: recolor-profile-editor/
     image: /media/projects/recolor-profile-editor-2026-11-15.png
   - title: Font Sheet
