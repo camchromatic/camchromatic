@@ -141,7 +141,7 @@ function parseUpdate(source,filename){
     else{raw[field[1]]=value;data[field[1]]=unquote(value);last=field[1];}
   }
   if(block)data[block]=data[block].join('\n').trim();
-  return data.title?{title:data.title,date:data.date||'',text:data.text||'',link:data.link||'',filename}:null;
+  return (data.title||data.text)?{title:data.title,date:data.date||'',text:data.text||'',link:data.link||'',filename}:null;
 }
 function safeLink(value=''){
   // Full web addresses, or pages on this site such as projects.html or /doodles.
