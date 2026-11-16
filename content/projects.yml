@@ -1,7 +1,7 @@
-intro: I'm an artist, not a programmer, so I used (Claude) to help code my
-  tools, but I decide what they do and how they look, and I test them myself.
-  They run on your computer, so your files are never uploaded. Some tools, such
-  as the recolor.me Profile Editor, load public pictures from other sites.
+intro: I'm an artist, not a programmer, so I used Claude to help code my tools,
+  but I decide what they do and how they look, and I test them myself. They run
+  on your computer, so your files are never uploaded. Some tools, such as the
+  recolor.me Profile Editor, load public pictures from other sites.
 projects:
   - title: recolor.me Profile Editor
     kind: Free Tool
