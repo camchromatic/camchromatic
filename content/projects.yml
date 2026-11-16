@@ -18,7 +18,8 @@ projects:
     image: /media/projects/font-sheet-2026-11-05b.png
   - title: Swatch Page Maker
     kind: Free Tool
-    description: Print-ready swatch sheets for your art supplies (Excel or PDF).
+    description: Swatch pages for (most of) your favorite traditional art supplies
+      (Excel or PDF).
     link: swatch-page-maker/
     image: /media/projects/swatch-page-maker-2026-11-05.png
   - title: Palette Lab
