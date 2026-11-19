@@ -65,7 +65,10 @@ h1 { font: 700 2rem/1.1 Arial, Helvetica, sans-serif; letter-spacing: -0.02em; m
   width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 16px 22px 20px;
   border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink);
 }
-#help::backdrop { background: rgb(0 0 0 / .45); }
+#help::backdrop, #ask::backdrop { background: rgb(0 0 0 / .45); }
+#ask { width: min(380px, calc(100% - 32px)); padding: 18px 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); }
+#ask p { margin: 0 0 16px; font-size: 15px; }
+#ask .ask-btns { display: flex; justify-content: flex-end; gap: 8px; }
 .help-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .help-head h2 { margin: 0; font: 700 18px Arial, Helvetica, sans-serif; }
 #help-close { width: 30px; height: 30px; padding: 0; cursor: pointer; border-radius: 8px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); font-weight: 400; }
@@ -344,6 +347,11 @@ textarea#code:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 <footer class="cc-foot">A free tool by <a href="https://camchromatic.com">Cam Garcia</a>. Your code stays in your browser. Like what I do? <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">Support me on Ko-Fi</a>. <a id="code-link" href="https://github.com/camchromatic/recolor-profile-editor" target="_blank" rel="noopener">View the code</a>.</footer>
 
 <!-- Tips and tricks, opened by the "?" button (like the other tools). -->
+<!-- "Are you sure?" box (built in, because some browsers block pop-up boxes) -->
+<dialog id="ask" aria-labelledby="askMsg">
+  <p id="askMsg"></p>
+  <div class="ask-btns"><button type="button" id="askNo">Cancel</button><button type="button" id="askYes" class="primary">OK</button></div>
+</dialog>
 <dialog id="help" aria-labelledby="help-title">
   <div class="help-head">
     <h2 id="help-title">Tips and tricks</h2>
@@ -766,15 +774,17 @@ code.addEventListener("keydown",function(e){
   if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey)return;
   var k={b:"b",i:"i",u:"u"}[e.key.toLowerCase()];if(k){e.preventDefault();insertSnippet(k);}
 });
-/* "Are you sure?" without pop-up boxes (some browsers block them): the first click asks, a second click within 4 seconds does it. */
-function sure(el,msg){
-  var key=el.tagName==="SELECT"?el.value:"1";
-  if(el.dataset.armed===key){clearTimeout(el._t);delete el.dataset.armed;if(el.dataset.txt){el.textContent=el.dataset.txt;delete el.dataset.txt;}saveMsg("");return true;}
-  clearTimeout(el._t);el.dataset.armed=key;
-  if(el.tagName==="BUTTON"){if(!el.dataset.txt)el.dataset.txt=el.textContent;el.textContent="Sure? Click again";}
-  else saveMsg(msg+" Pick it again to confirm.");
-  el._t=setTimeout(function(){delete el.dataset.armed;if(el.dataset.txt){el.textContent=el.dataset.txt;delete el.dataset.txt;}},4000);
-  return false;
+/* "Are you sure?" box. ask(message, button label) gives true (yes) or false (Cancel / Esc). */
+function ask(msg,yes){
+  var dlg=document.getElementById("ask");
+  return new Promise(function(res){
+    document.getElementById("askMsg").textContent=msg;
+    var y=document.getElementById("askYes"),n=document.getElementById("askNo");y.textContent=yes||"OK";
+    function done(v){y.onclick=n.onclick=dlg.oncancel=null;if(dlg.open)dlg.close();res(v);}
+    y.onclick=function(){done(true);};n.onclick=function(){done(false);};
+    dlg.oncancel=function(e){e.preventDefault();done(false);};
+    dlg.showModal();y.focus();
+  });
 }
 /* Templates menu for visitors (from presets.js) */
 var PRESETS=Array.isArray(window.BB_PRESETS)?window.BB_PRESETS.filter(function(p){return p&&typeof p.code==="string";}):[];
@@ -790,8 +800,13 @@ var tplCur="";  // the template that's loaded, so the menu keeps showing its nam
 tplSel.addEventListener("change",function(){
   var v=tplSel.value,list=devOn?devList:PRESETS,p=list[+v];
   if(v===""||!p){tplCur="";return;}
-  if(code.value.trim()&&code.value!==p.code&&!sure(tplSel,'Replace your code with "'+(p.name||"this template")+'"?')){tplSel.value=tplCur;return;}
-  code.value=p.code;tplCur=v;draw();save();
+  function go(){tplSel.value=v;code.value=p.code;tplCur=v;draw();save();}
+  if(code.value.trim()&&code.value!==p.code){
+    tplSel.value=tplCur;
+    ask('Replace your code with "'+(p.name||"this template")+'"?',"Replace").then(function(y){if(y)go();});
+    return;
+  }
+  go();
 });
 
 /* Preset manager: only with ?dev, and only on your own computer */
@@ -820,10 +835,10 @@ function devRender(){
     row.addEventListener("click",function(e){
       var act=e.target.getAttribute&&e.target.getAttribute("data-act");if(!act)return;
       if(act==="load"){code.value=p.code;draw();save();devMsg('Loaded "'+p.name+'" into the code box.');}
-      if(act==="update"){if(sure(e.target,'Replace "'+p.name+'" with what\'s in the code box?')){p.code=code.value;devSave().then(function(ok){devMsg(ok?'Updated "'+p.name+'".':"Couldn't save. Start the preset helper (dev-server.py).",!ok);});}}
+      if(act==="update")ask('Replace "'+p.name+'" with what\'s in the code box?',"Replace").then(function(y){if(!y)return;p.code=code.value;devSave().then(function(ok){devMsg(ok?'Updated "'+p.name+'".':"Couldn't save. Start the preset helper (dev-server.py).",!ok);});});
       if(act==="up"&&i>0){devList.splice(i-1,0,devList.splice(i,1)[0]);devSave();}
       if(act==="down"&&i<devList.length-1){devList.splice(i+1,0,devList.splice(i,1)[0]);devSave();}
-      if(act==="del"&&sure(e.target,'Delete "'+p.name+'" from the presets?')){devList.splice(i,1);devSave();}
+      if(act==="del")ask('Delete "'+p.name+'" from the presets?',"Delete").then(function(y){var k=devList.indexOf(p);if(y&&k>=0){devList.splice(k,1);devSave();}});
     });
     box.appendChild(row);
   });
@@ -838,12 +853,14 @@ if(devOn){
     var nm=document.getElementById("saveName").value.trim().slice(0,40);
     if(!nm){saveMsg("Type a name first.");document.getElementById("saveName").focus();return;}
     var old=devList.filter(function(p){return p.name.toLowerCase()===nm.toLowerCase();})[0];
-    if(old){if(!sure(sp,'"'+old.name+'" already exists. Replace it with this code?')){saveMsg('"'+old.name+'" already exists. Click again to replace it.');return;}old.code=code.value;nm=old.name;}
-    else devList.push({name:nm,description:"",code:code.value});
-    devSave().then(function(ok){
-      if(ok)document.getElementById("saveName").value="";
-      saveMsg(ok?'Saved "'+nm+'". It\'s in the Templates menu now.':"Couldn't save. Start the preset helper (dev-server.py).");
-    });
+    function finish(){
+      devSave().then(function(ok){
+        if(ok)document.getElementById("saveName").value="";
+        saveMsg(ok?'Saved "'+nm+'". It\'s in the Templates menu now.':"Couldn't save. Start the preset helper (dev-server.py).");
+      });
+    }
+    if(old){ask('"'+old.name+'" already exists. Replace it with this code?',"Replace").then(function(y){if(y){old.code=code.value;nm=old.name;finish();}});return;}
+    devList.push({name:nm,description:"",code:code.value});finish();
   });
 }
 
@@ -912,8 +929,14 @@ function lookupName(){
   },500);
 }
 document.getElementById("reroll").addEventListener("click",function(){seed=(seed*7+13)%100000;draw();});
-document.getElementById("sample").addEventListener("click",function(){if(code.value===SAMPLE||sure(this,"Replace your code with the example?")){code.value=SAMPLE;tplSel.value=tplCur="";draw();save();}});
-document.getElementById("clear").addEventListener("click",function(){if(!code.value||sure(this,"Clear all your code?")){code.value="";tplSel.value=tplCur="";draw();save();code.focus();}});
+document.getElementById("sample").addEventListener("click",function(){
+  function go(){code.value=SAMPLE;tplSel.value=tplCur="";draw();save();}
+  if(code.value===SAMPLE||!code.value.trim())go();else ask("Replace your code with the example?","Replace").then(function(y){if(y)go();});
+});
+document.getElementById("clear").addEventListener("click",function(){
+  function go(){code.value="";tplSel.value=tplCur="";draw();save();code.focus();}
+  if(!code.value)go();else ask("Clear all your code?","Clear").then(function(y){if(y)go();});
+});
 document.getElementById("copy").addEventListener("click",function(){
   var b=this;function done(){b.textContent="Copied!";setTimeout(function(){b.textContent="Copy code";},1500);}
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code.value).then(done,function(){code.select();document.execCommand("copy");done();});

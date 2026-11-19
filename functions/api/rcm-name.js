@@ -1,5 +1,5 @@
 // Cloudflare Pages Function: GET /api/rcm-name?id=12345  ->  {"id":12345,"name":"Username"}
-// Used by the BBCode Previewer to show a recolor.me username for a Citizen ID.
+// Used by the recolor.me Profile Editor to show a recolor.me username for a Citizen ID.
 // recolor.me shares this publicly at /get/account/ID, but its replies can't be read by
 // pages on other websites, so this small helper asks for them and passes back only the name.
 // Replies are cached for an hour so recolor.me isn't asked again for every keystroke.
