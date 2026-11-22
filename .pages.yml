@@ -64,10 +64,10 @@ content:
         type: date
         required: true
       - name: text
-        label: "Text (BBCode works: [b] [i] [u] [s] [color=red] [url=projects.html]...[/url])"
+        label: "Text (BBCode works: [b] [i] [u] [s] [color=red] [url=/projects]...[/url])"
         type: text
       - name: link
-        label: Link (optional, e.g. projects.html or a full web address)
+        label: Link (optional, e.g. /projects or a full web address)
         type: string
 
   - name: doodles
@@ -132,7 +132,7 @@ content:
         label: Name
         type: string
       - name: text
-        label: "Text (leave an empty line between paragraphs; BBCode works: [b] [i] [u] [s] [color=red] [url=contact.html]...[/url])"
+        label: "Text (leave an empty line between paragraphs; BBCode works: [b] [i] [u] [s] [color=red] [url=/contact]...[/url])"
         type: text
 
   - name: projects
@@ -142,7 +142,7 @@ content:
     format: yaml
     fields:
       - name: intro
-        label: "Intro text under the Projects heading (BBCode works: [b] [i] [url=about.html]...[/url])"
+        label: "Intro text under the Projects heading (BBCode works: [b] [i] [url=/about]...[/url])"
         type: text
       - name: projects
         label: Project cards (shown in this order)
@@ -163,7 +163,7 @@ content:
             label: Description
             type: text
           - name: link
-            label: Link (e.g. palette-lab.html or a full web address; leave empty for no link)
+            label: Link (e.g. /palette-lab or a full web address; leave empty for no link)
             type: string
           - name: image
             label: Picture (leave empty for a rainbow "Coming soon" box)

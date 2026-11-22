@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CamChromatic</title>
 <meta name="description" content="Art, doodles, blog posts and free art tools by Cam Garcia.">
+<link rel="canonical" href="https://camchromatic.com/">
 <!-- Link previews (Discord, Bluesky, X, texts) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="CamChromatic">
@@ -102,13 +103,13 @@ body>main>.hero{flex:none}
 </style>
 </head>
 <body>
-<header><div class="wrap top"><a class="brand" href="index.html" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="index.html" aria-current="page">Home</a><a href="blog.html">Blog</a><a href="doodles.html">Doodles</a><a href="projects.html">Projects</a><a href="about.html">About</a><a href="contact.html">Contact</a></nav></div></header>
+<header><div class="wrap top"><a class="brand" href="/" aria-label="CamChromatic home"><span style="color:#cc6873">c</span><span style="color:#d9765a">a</span><span style="color:#d9964d">m</span><span style="color:#cbae4e">c</span><span style="color:#b1bf5c">h</span><span style="color:#8cb866">r</span><span style="color:#6ebd94">o</span><span style="color:#6acac5">m</span><span style="color:#569ac8">a</span><span style="color:#7096c8">t</span><span style="color:#9970c1">i</span><span style="color:#c46ea8">c</span></a><nav><a href="/" aria-current="page">Home</a><a href="/blog">Blog</a><a href="/doodles">Doodles</a><a href="/projects">Projects</a><a href="/about">About</a><a href="/contact">Contact</a></nav></div></header>
 <div class="scroller"><main class="wrap">
 <section class="hero"><div class="eyebrow">Here are some things made by</div><h1>Cam Garcia</h1></section><div class="home-top"><img class="banner loading" id="banner" src="media/home-banner-2026-11-04.png" alt="Drawing of Cam giving two thumbs up" width="750" height="250">
 <div class="side"><div class="eyebrow side-label">Site updates</div><ul class="updates" id="updates" aria-label="Site updates" aria-live="polite"></ul></div></div>
 <section class="latest" aria-label="Latest work">
-<a class="latest-card" id="latestPost" href="blog.html" hidden><img alt=""><span class="lc-text"><span class="eyebrow">Latest blog post</span><strong></strong><time></time><span class="lc-excerpt"></span></span></a>
-<a class="latest-card" id="latestDoodle" href="doodles.html" hidden><img alt="Latest doodle"><span class="lc-text"><span class="eyebrow">Latest doodle</span><strong></strong></span></a>
+<a class="latest-card" id="latestPost" href="/blog" hidden><img alt=""><span class="lc-text"><span class="eyebrow">Latest blog post</span><strong></strong><time></time><span class="lc-excerpt"></span></span></a>
+<a class="latest-card" id="latestDoodle" href="/doodles" hidden><img alt="Latest doodle"><span class="lc-text"><span class="eyebrow">Latest doodle</span><strong></strong></span></a>
 </section>
 <a class="featured" id="featured" hidden><img alt="" loading="lazy"><span class="ft-text"><span class="eyebrow">Featured project<span class="ft-kind2"></span></span><h2></h2><span class="ft-kind"></span><p></p><span class="ft-go"></span></span></a>
 </main></div><footer><div class="wrap">© 2026 Cam Garcia<p class="kofi">If you like what I do, you can <a href="https://ko-fi.com/camchromatic" target="_blank" rel="noopener">support me on Ko-Fi</a>.</p></div></footer>
@@ -256,7 +257,7 @@ async function loadLatest(ref){
     }))).filter(Boolean).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
     const post=entries[0];
     if(post){
-      const card=document.getElementById('latestPost');card.href='blog.html#'+encodeURIComponent(post.slug);
+      const card=document.getElementById('latestPost');card.href='/blog#'+encodeURIComponent(post.slug);
       card.querySelector('strong').textContent=post.title;card.querySelector('time').textContent=post.date?niceDate(post.date):'';
       const img=card.querySelector('img');if(post.cover){img.src=post.cover;img.alt=post.title;}else img.remove();
       // A few lines of the post as plain text (markdown marks, links and pictures stripped).

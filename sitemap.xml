@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pages for search engines. Gallery is left out on purpose (not linked from the site). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://camchromatic.com/</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/blog</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/doodles</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/projects</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/about</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/contact</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/palette-lab</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/font-sheet/</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/swatch-page-maker/</loc><lastmod>2026-11-22</lastmod></url>
+  <url><loc>https://camchromatic.com/recolor-profile-editor/</loc><lastmod>2026-11-22</lastmod></url>
+</urlset>

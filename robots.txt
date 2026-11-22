@@ -1,0 +1,2 @@
+# Cloudflare adds its own rules (search allowed, AI bots blocked) above this line.
+Sitemap: https://camchromatic.com/sitemap.xml
